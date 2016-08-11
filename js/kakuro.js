@@ -57,6 +57,9 @@ function Kakuro() {
   // are either numbers or pairs of [rowsum, colsum],
   // Where rowsum and colsum are the sums of the row to the right
   // and column below, with 0 if there is none.
+  // *** TODO ***:
+  //   Do random column run sizes and ensure none < 2.
+  //   Do random unused space sizes, especially at left and top.
   function generate(maxlen, minlen) {
     if (maxlen === undefined || maxlen >= width) {
       maxlen = width-1
