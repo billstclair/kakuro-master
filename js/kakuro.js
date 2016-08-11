@@ -127,7 +127,6 @@ function Kakuro() {
       }
     }
     var rnd = rand(cnt);
-    //alert("cnt="+cnt+", rnd="+rnd);
     var i = 0;
     var res = null;
     for (var c=0; c<rnd; c++) {
@@ -137,7 +136,6 @@ function Kakuro() {
         }
         res = nums[i++];
         if (res) {
-          //alert("c="+c+", res="+res);
           break;
         }
       }

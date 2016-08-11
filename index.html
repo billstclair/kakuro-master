@@ -1,12 +1,49 @@
 <html>
-<head>
-  <!--<link rel='stylesheet' type='text/css' href='css/style.css'>-->
-  <script src='js/jquery.min.js'></script>
-  <script src='js/kakuro.js'></script>
-  <title>Kakuro</title>
-</head>
-<body>
-  <table id='table'>
-</body>
+  <head>
+    <!--<link rel='stylesheet' type='text/css' href='css/style.css'>-->
+    <script src='js/jquery.min.js'></script>
+    <script src='js/kakuro.js'></script>
+    <title>Kakuro</title>
+    <script>
+var board;
+
+function generate() {
+  var maxrun = $('#maxrun').val();
+  board = kakuro.generate(maxrun);
+  showBoard(board);
+}
+
+function showBoard(brd) {
+  if (brd === undefined) {
+    brd = board;
+  }
+  var tbl = $('#table')[0];
+  while (tbl.rows[0]) {
+    tbl.deleteRow(0);
+  }
+  var rows = brd.length;
+  var cols = brd[0].length;
+  for (var i=0; i<rows; i++) {
+    var row = tbl.insertRow(-1);
+    var brow = brd[i];
+    for (var j=0; j<cols; j++) {
+      var val = brow[j];
+      var elt = row.insertCell(-1);
+      if (!val) {
+        val = "&nbsp;";
+      }
+      elt.innerHTML = val;
+      elt.style.padding = '4px';
+    }
+  }
+}
+    </script>
+  </head>
+  <body onload='generate()'>
+    <input id='maxrun' type='text' size='1' value='4'>
+    <input type='submit' id='generate' onClick='generate()' value='Generate'
+           title='Generate a new board.'/>
+    <table id='table' border='1' style='padding: 2px;'>
+  </body>
 </html>
 
