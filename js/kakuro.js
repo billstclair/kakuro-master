@@ -28,7 +28,7 @@ function Kakuro() {
   var height = 10;
 
   function get(board, x, y) {
-    return board[x][y];
+    return board[y][x];
   }
 
   // Generate an integer between 1 and max, inclusive
