@@ -39,11 +39,14 @@ function showBoard(brd) {
 }
     </script>
   </head>
-  <body onload='generate()'>
-    <input id='maxrun' type='text' size='1' value='4'>
-    <input type='submit' id='generate' onClick='generate()' value='Generate'
-           title='Generate a new board.'/>
-    <table id='table' border='1' style='padding: 2px;'>
+  <body style="width: 40em; margin: auto; margin-top: 5em; margin-bottom: 5em; padding: 2em;"
+        onload='generate()'>
+    <center>
+      <input id='maxrun' type='text' size='1' value='4'>
+      <input type='submit' id='generate' onClick='generate()' value='Generate'
+             title='Generate a new board.'/>
+      <table id='table' border='1' style='padding: 2px;'>
+    </center>
   </body>
 </html>
 
