@@ -4,7 +4,7 @@
     <script src='js/jquery.min.js'></script>
     <script src='js/kakuro.js'></script>
     <title>Kakuro Master</title>
-    <script>
+    <script> <!--
 var board;
 
 function generate() {
@@ -37,15 +37,23 @@ function showBoard(brd) {
     }
   }
 }
-    </script>
+
+function onFocus(element) {
+  window.setTimeout(function() { element.select(); }, 10);
+}
+
+    --></script>
   </head>
   <body style="width: 40em; margin: auto; margin-top: 5em; margin-bottom: 5em; padding: 2em;"
         onload='generate()'>
     <center>
-      <input id='maxrun' type='text' size='1' value='4'>
-      <input type='submit' id='generate' onClick='generate()' value='Generate'
+      <input id='maxrun' type='text' size='1' value='4'
+             style='padding: 2px;'
+             onfocus='onFocus(this)'>
+      <input type='submit' onClick='generate()' value='Generate'
              title='Generate a new board.'/>
-      <table id='table' border='1' style='font-size: 18pt; padding: 2px;'>
+      <table id='table' border='1'
+             style='font-family: "Lucida Console", Monaco, monospace; font-size: 18pt; padding: 2px;'>
       </table>
       <p>
         <br/><br/><br/>

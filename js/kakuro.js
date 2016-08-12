@@ -58,18 +58,27 @@ function Kakuro() {
   // Where rowsum and colsum are the sums of the row to the right
   // and column below, with 0 if there is none.
   // *** TODO ***:
+  //   Check for duplicate numbers in the same column in other rows
+  //   Check for non-uniqueness:
+  //     get(x, y) == get(a, b) and get(a, y) == get(x, b)
+  //   Keep a backtrack stack, so we can back out and try again.
   //   Do random column run sizes and ensure none < 2.
+  //     Don't know whether to continue the row or stop the column
   //   Do random unused space sizes, especially at left and top.
-  function generate(maxlen, minlen) {
-    if (maxlen === undefined || maxlen >= width) {
+  function generate(maxlen, minlen, maxUnused) {
+    if (!maxlen || maxlen >= width) {
       maxlen = width-1
     }
 
-    if (minlen === undefined) {
+    if (!minlen) {
       minlen = 2;
     }
     if (minlen > maxlen) {
       minlen = maxlen;
+    }
+
+    if (!maxUnused || maxUnused >= width) {
+      maxUnused = Math.min(maxlen, width-maxlen);
     }
 
     var board = new Array(height);
@@ -86,13 +95,20 @@ function Kakuro() {
       var left = 0;
       var numbers;
       for (var i=0; i<width; i++) {
-        if (left == 0) {
-          // Need to check for column length < 2 here.
+        if (left < 0) {
+          // Need to check for column length < 2 here and collissions with earlier rows
           row[i] = null;
-          if ((j > 0) && (width-i >= 3)) {
-            left = genlen(Math.min(maxlen, width-i), minlen);
-            numbers = initNums();
+          left++;
+          if (left == 0) {
+            if ((j > 0) && (width-i >= 3)) {
+              left = genlen(Math.min(maxlen, width-i), minlen);
+              numbers = initNums();
+            } else {
+              left = -width;
+            }
           }
+        } else if (left == 0) {
+          left = -genlen(maxUnused, 1)
         } else {
           row[i] = pickNum(numbers);
           left--;
