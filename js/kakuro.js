@@ -28,7 +28,9 @@ function Kakuro() {
   var height = 10;
 
   function get(board, x, y) {
-    return board[y][x];
+    var res = board[y][x];
+    //log("get(,"+x+","+y+") = "+res);
+    return res;
   }
 
   // Generate an integer between 1 and max, inclusive
@@ -40,7 +42,7 @@ function Kakuro() {
   // Generate an integer between min and max, inclusive
   function genlen(max, min) {
     if (max === undefined) {
-      max = width-1;
+      max = 9;
     } else if (max < 1) {
       max = 1;
     }
@@ -58,16 +60,12 @@ function Kakuro() {
   // Where rowsum and colsum are the sums of the row to the right
   // and column below, with 0 if there is none.
   // *** TODO ***:
-  //   Check for duplicate numbers in the same column in other rows
-  //   Check for non-uniqueness:
-  //     get(x, y) == get(a, b) and get(a, y) == get(x, b)
-  //   Keep a backtrack stack, so we can back out and try again.
   //   Do random column run sizes and ensure none < 2.
   //     Don't know whether to continue the row or stop the column
-  //   Do random unused space sizes, especially at left and top.
   function generate(maxlen, minlen, maxUnused) {
-    if (!maxlen || maxlen >= width) {
-      maxlen = width-1
+    //log("generate");
+    if (!maxlen || maxlen > 9) {
+      maxlen = 9
     }
 
     if (!minlen) {
@@ -78,7 +76,7 @@ function Kakuro() {
     }
 
     if (!maxUnused || maxUnused >= width) {
-      maxUnused = Math.min(maxlen, width-maxlen);
+      maxUnused = Math.max(1, Math.min(maxlen, width-maxlen-1));
     }
 
     var board = new Array(height);
@@ -91,13 +89,23 @@ function Kakuro() {
 
     for (var j=0; j<height; j++) {
       var row = new Array(width);
+      if (j != 0) {
+        row[0] = spanit(j);   // for debugging
+      }
       board[j] = row;
       var left = 0;
+      if (j == 0) {
+        left = -width;   // First row is all empty
+      }
       var numbers;
       for (var i=0; i<width; i++) {
         if (left < 0) {
-          // Need to check for column length < 2 here and collissions with earlier rows
-          row[i] = null;
+          if (j==0 && i!=0) {
+            row[i] = spanit(i);   // for debugging
+          } else {
+            row[i] = null;
+            checkShortColumn(board, i, j-1);
+          }
           left++;
           if (left == 0) {
             if ((j > 0) && (width-i >= 3)) {
@@ -110,8 +118,23 @@ function Kakuro() {
         } else if (left == 0) {
           left = -genlen(maxUnused, 1)
         } else {
-          row[i] = pickNum(numbers);
-          left--;
+          while (true) {
+            var num = pickNum(numbers);
+            if (!num) {
+              // Could do a whole backup stack thing here, but it's easier to just punt.
+              log("punt at ("+i+","+j+")");
+              checkShortRow(board, i, j, true);
+              left = -1;
+              i--;
+              break;
+            }
+            if (!(isDuplicateInColumn(board, num, i, j) ||
+                  isNonUnique(board, num, i, j))) {
+              row[i] = num
+              left--;
+              break;
+            }
+          }
         }
       }
     }
@@ -119,10 +142,97 @@ function Kakuro() {
     return board;
   }
 
+  function spanit(x) {
+    return "<span style='font-size: 50%;'>"+x+"</span>";
+  }
+
+  function logErase(i, j) {
+    log("  erase ("+i+","+j+")");
+  }    
+
+  // When a cell is left blank or erased,
+  // Need to erase the cell before & after, if they are all alone.
+  function checkShortRow(board, i, j, noAfter) {
+    var ii = i - 1;
+    if (ii <= 0 || j <= 0) return;
+    var row = board[j];
+    if (row[ii] && (ii==1 || !row[ii-1])) {
+      if (j==1 || !board[j-1][ii]) {
+        logErase(ii, j);
+        row[ii] = null;
+        checkShortColumn(board, ii, j-1);
+      }
+    }
+    ii = i + 1;
+    if (!noAfter && ii<width && row[ii] && ((ii+1)==width || !row[ii+1])) {
+      if (j==1 || !board[j-1][ii]) {
+        logErase(ii, j);
+        row[ii] = null;
+        checkShortColumn(board, ii, j-1);
+      }
+    }
+  }
+
+  // When a row cell is left blank or erased,
+  // need to check for a short column above it.
+  function checkShortColumn(board, i, j) {
+    if (i<=0 || j<=0) return;
+    if (board[j][i] && (j==1 || !board[j-1][i])) {
+      if ((i==1 || !board[j][i-1]) && ((i+1)==width || !board[j][i+1])) {
+        logErase(i, j);
+        board[j][i] = null;
+        checkShortRow(board, i, j);
+      }
+    }
+  }
+
+  function isDuplicateInColumn(board, num, i, j) {
+    for (var jj=j-1; jj>0; jj--) {
+      var numjj = get(board, i, jj);
+      if (numjj == num) {
+        //log("Duplicate "+num+" at ("+i+","+j+") with row "+jj+": ");
+        return true;
+      }
+      if (!numjj) {
+        break;
+      }
+    }
+    return false
+  }
+
+  function isNonUnique(board, num, i, j) {
+    for (var jj=j-1; jj>0; jj--) {
+      var numijj = get(board, i, jj);
+      if (!numijj) {
+        return false;
+      }
+      for (var ii=i-1; ii>0; ii--) {
+        var numiij = get(board, ii, j);
+        var numiijj = get(board, ii, jj);
+        if (!(numiij && numiijj)) {
+          return false;
+        }
+        if (num==numiijj && numijj==numiij) {
+          log("non unique at ("+ii+","+jj+") ("+i+","+j+") = "+num+", "+numijj)
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function log(msg) {
+    if (console) {
+      console.error(msg);
+    }
+  }
+
   function logboard(board) {
     if (!console) return;
-    for (var i=0; i<height; i++) {
-      console.error(board[i]);
+    for (var i=1; i<height; i++) {
+      var row = board[i];
+      if (!row) return;
+      log(board[i]);
     }
   }
 
