@@ -55,6 +55,8 @@ function Kakuro() {
     return rand(max-min+1) + min-1;
   }
 
+  var gencount = 0;
+
   // Generate a board, an array of arrays, whose elements
   // are either numbers or pairs of [rowsum, colsum],
   // Where rowsum and colsum are the sums of the row to the right
@@ -80,6 +82,7 @@ function Kakuro() {
     }
 
     var board = new Array(height);
+    gencount++;
 
     var colLens = new Array(width);
     colLens[0] = height;
@@ -108,7 +111,7 @@ function Kakuro() {
           }
           left++;
           if (left == 0) {
-            if ((j > 0) && (width-i >= 3)) {
+            if ((j > 0) && (width-i >= 2)) {
               left = genlen(Math.min(maxlen, width-i), minlen);
               numbers = initNums();
             } else {
@@ -118,21 +121,39 @@ function Kakuro() {
         } else if (left == 0) {
           left = -genlen(maxUnused, 1)
         } else {
+          var tried = new Array();
+          var duplicates = new Array();
+          var nonuniques = new Array();
           while (true) {
             var num = pickNum(numbers);
             if (!num) {
               // Could do a whole backup stack thing here, but it's easier to just punt.
-              log("punt at ("+i+","+j+")");
+              log("punt at ("+i+","+j+"), left: "+left+", tried: "+tried+", dups: "+duplicates+", nonuniques: "+nonuniques);
               checkShortRow(board, i, j, true);
               left = -1;
               i--;
               break;
             }
-            if (!(isDuplicateInColumn(board, num, i, j) ||
-                  isNonUnique(board, num, i, j))) {
-              row[i] = num
-              left--;
-              break;
+            tried.push(num);
+            var dup = isDuplicateInColumn(board, num, i, j);
+            if (dup) {
+              duplicates.push(num);
+            } else {
+              var nu = isNonUnique(board, num, i, j);
+              if (nu) {
+                nonuniques.push(num);
+              } else {
+                // Return the numbers we skipped to the pool for the next column
+                for (var n in duplicates) {
+                  numbers.push(n);
+                }
+                for (var n in nonuniques) {
+                  numbers.push(n);
+                }
+                row[i] = num
+                left--;
+                break;
+              }
             }
           }
         }
@@ -189,28 +210,61 @@ function Kakuro() {
   function isDuplicateInColumn(board, num, i, j) {
     for (var jj=j-1; jj>0; jj--) {
       var numjj = get(board, i, jj);
+      if (!numjj) break;
       if (numjj == num) {
         //log("Duplicate "+num+" at ("+i+","+j+") with row "+jj+": ");
         return true;
-      }
-      if (!numjj) {
-        break;
       }
     }
     return false
   }
 
+  // True if value exists in the same run in row y or column x in board
+  function existsInRowOrColumn(board, value, x, y) {
+    // So I don't need to do this inline in the caller
+    if (value<1 || value>9) {
+      return true
+    }
+    var w = board[0].length;
+    var h = board.length;
+    for (var i=x-1; i>0; --i) {
+      var v = get(board, i, y);
+      if (!v) break
+      if (v == value) return true;
+    }
+    for (var i=x+1; i<w; i++) {
+      var v = get(board, i, y);
+      if (!v) break;
+      if (v == value) return true;
+    }
+    for (var j=y-1; j>0; --j) {
+      var v = get(board, x, j);
+      if (!v) break;
+      if (v == value) return true;
+    }
+    for (var j=y+1; j<h; j++) {
+      var v = get(board, x, j);
+      if (!v) break;
+      if (v == value) return true;
+    }
+    return false;
+  }
+
+  // This used to just check for get(i, j)==get(ii,jj) && get(i,jj)==get(ii,j),
+  // but it really needs to be better than that.
+  // Fixing it may require doing backtracking instead of punting in generate().
   function isNonUnique(board, num, i, j) {
-    for (var jj=j-1; jj>0; jj--) {
-      var numijj = get(board, i, jj);
-      if (!numijj) {
-        return false;
-      }
-      for (var ii=i-1; ii>0; ii--) {
-        var numiij = get(board, ii, j);
+    for (var ii=i-1; ii>0; ii--) {
+      var numiij = get(board, ii, j);
+      if (!numiij) return false;
+      middle:
+      for (var jj=j-1; jj>0; jj--) {
+        var numijj = get(board, i, jj);
         var numiijj = get(board, ii, jj);
-        if (!(numiij && numiijj)) {
-          return false;
+        if (!numijj) return false;
+        if (!numiijj) break;
+        for (iii=ii+1; iii<i; iii++) {
+          if (!get(board, iii, j)) break middle;
         }
         if (num==numiijj && numijj==numiij) {
           log("non unique at ("+ii+","+jj+") ("+i+","+j+") = "+num+", "+numijj)
@@ -223,7 +277,7 @@ function Kakuro() {
 
   function log(msg) {
     if (console) {
-      console.error(msg);
+      console.error(""+gencount+": "+msg);
     }
   }
 
@@ -249,29 +303,11 @@ function Kakuro() {
   // it out so it can't be picked again.
   // If all 9 numbers have been returned, return null.
   function pickNum(nums) {
-    var cnt = 0;
-    for (var i=0; i<9; i++) {
-      if (nums[i]) {
-        cnt++;
-      }
-    }
-    var rnd = rand(cnt);
-    var i = 0;
-    var res = null;
-    for (var c=0; c<rnd; c++) {
-      while (true) {
-        if (i >= 9) {
-          return null;
-        }
-        res = nums[i++];
-        if (res) {
-          break;
-        }
-      }
-    }
-    if (res) {
-      nums[i-1] = null;
-    }
+    var cnt = nums.length;
+    if (cnt == 0) return null;
+    var i = rand(cnt) - 1;
+    var res = nums[i];
+    nums.splice(i, 1);
     return res;
   }
 
