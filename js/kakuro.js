@@ -66,23 +66,19 @@ function Kakuro() {
   //     Don't know whether to continue the row or stop the column
   function generate(maxlen, minlen, maxUnused) {
     //log("generate");
-    if (!maxlen || maxlen > 9) {
-      maxlen = 9
-    }
-
-    if (!minlen) {
-      minlen = 2;
-    }
-    if (minlen > maxlen) {
-      minlen = maxlen;
-    }
+    if (!maxlen || maxlen > 9) maxlen = 9
+    if (maxlen < 2) maxlen = 2;
+    if (!minlen) minlen = 2;
+    if (minlen > maxlen) minlen = maxlen;
 
     if (!maxUnused || maxUnused >= width) {
       maxUnused = Math.max(1, Math.min(maxlen, width-maxlen-1));
     }
 
-    var board = new Array(height);
     gencount++;
+    log("maxlen: "+maxlen+", minlen: "+minlen+", maxUnused: "+maxUnused);
+
+    var board = new Array(height);
 
     var colLens = new Array(width);
     colLens[0] = height;
@@ -111,9 +107,34 @@ function Kakuro() {
           }
           left++;
           if (left == 0) {
-            if ((j > 0) && (width-i >= 2)) {
-              left = genlen(Math.min(maxlen, width-i), minlen);
-              numbers = initNums();
+            if ((j > 0) && (width-i >= 3)) {
+              left = genlen(Math.min(maxlen, Math.max(2, width-i)), minlen);
+              //log('run length:'+left);
+              // Make sure we connect with the row above
+              check:
+              if (j > 1) {
+                // See if we already will connect
+                // Remember, i will be incremented before the start.
+                for (var ii=i; ii<i+left; ii++) {
+                  if (get(board, ii+1, j-1)) break check;
+                }
+                for (var ii=i-1; ii>0; ii--) {
+                  if (ii>0 && get(board, ii, j)) break;
+                  if (get(board, ii+1, j-1)) {
+                    i = ii;
+                    break check;
+                  }
+                }
+                for (var ii=i+1+left; ii<width; ii++) {
+                  if (get(board, ii+1, j-1)) {
+                    i = ii + 1 - left;
+                    break check;
+                  }
+                }
+                left = -width;
+              }
+              //log("i: "+(i+1)+", j: "+j+", left: "+left);
+              if (left > 0) numbers = initNums();
             } else {
               left = -width;
             }
@@ -126,6 +147,7 @@ function Kakuro() {
           var nonuniques = new Array();
           while (true) {
             var num = pickNum(numbers);
+            if (num == 0) throw("zero");
             if (!num) {
               // Could do a whole backup stack thing here, but it's easier to just punt.
               log("punt at ("+i+","+j+"), left: "+left+", tried: "+tried+", dups: "+duplicates+", nonuniques: "+nonuniques);
@@ -135,24 +157,56 @@ function Kakuro() {
               break;
             }
             tried.push(num);
-            var dup = isDuplicateInColumn(board, num, i, j);
-            if (dup) {
+            if (isDuplicateInColumn(board, num, i, j)) {
               duplicates.push(num);
             } else {
-              var nu = isNonUnique(board, num, i, j);
-              if (nu) {
+              if (isNonUnique(board, num, i, j)) {
                 nonuniques.push(num);
               } else {
                 // Return the numbers we skipped to the pool for the next column
-                for (var n in duplicates) {
-                  numbers.push(n);
+                for (var n=0; n<duplicates.length; n++) {
+                  numbers.push(duplicates[n]);
                 }
-                for (var n in nonuniques) {
-                  numbers.push(n);
+                for (var n=0; n<nonuniques.length; n++) {
+                  numbers.push(nonuniques[n]);
                 }
                 row[i] = num
                 left--;
+                //log("row["+i+"+] = "+num+", left: "+left+", dups: "+duplicates+", nonunique: "+nonuniques+", numbers: "+numbers);
                 break;
+              }
+            }
+          }
+        }
+      }
+      // Eliminate orphan runs in the row above.
+      // Maybe it would be better to ensure there aren't any.
+      if (j > 1) {
+        var jj = j-1;
+        var start = false;
+        var found = false;
+        for (var ii=1; ii<=width; ii++) {
+          if (!start) {
+            if (ii<width && get(board, ii, jj)) {
+              start = ii;
+              if ((jj>1 && get(board, ii, jj-1)) ||
+                  (jj<height && get(board, ii, jj+1))) {
+                found = true;
+              }
+            }
+          } else {
+            if (ii==width || !get(board, ii, jj)) {
+              if (!found) {
+                for (iii=start; iii<ii; iii++) {
+                  board[jj][iii] = null;
+                }
+              }
+              start = false;
+              found = false;
+            } else {
+              if ((jj>1 && get(board, ii, jj-1)) ||
+                  (jj<height && get(board, ii, jj+1))) {
+                found = true;
               }
             }
           }
@@ -292,9 +346,9 @@ function Kakuro() {
 
   // Return an array of integers: [1,2,3,4,5,6,7,8,9]
   function initNums() {
-    var res = new Array(9);
-    for (var i=0; i<9; i++) {
-      res[i] = i+1;
+    var res = new Array()
+    for (var i=1; i<=9; i++) {
+      res.push(i);
     }
     return res;
   }
