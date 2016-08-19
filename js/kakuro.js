@@ -181,6 +181,8 @@ function Kakuro() {
       }
       // Eliminate orphan runs in the row above.
       // Maybe it would be better to ensure there aren't any.
+      // This actually isn't good enough.
+      // It doesn't guarantee that there aren't islands of connected rows.
       if (j > 1) {
         var jj = j-1;
         var start = false;
@@ -306,7 +308,10 @@ function Kakuro() {
 
   // This used to just check for get(i, j)==get(ii,jj) && get(i,jj)==get(ii,j),
   // but it really needs to be better than that.
-  // Fixing it may require doing backtracking instead of punting in generate().
+  // It needs to check whether incrementing/decrementing the corners
+  // and decrementing/incrementing the other corners can be done without collision.
+  // If so, this is also a non-unique situation.
+  // Fixing this may require doing backtracking instead of punting in generate().
   function isNonUnique(board, num, i, j) {
     for (var ii=i-1; ii>0; ii--) {
       var numiij = get(board, ii, j);
