@@ -1,6 +1,7 @@
-Yet another Kakuro in JavaScript.
+Kakuro in [Elm](http://elm-lang.org/).
 
-Very early development. Not much to see yet.
+Just started converting from JavaScript. Nothing works yet.
 
-Live at <a href='http://kakuro-master.com/'>kakuro-master.com</a>.
+The old JavaScript version is live at <a href='http://kakuro-master.com/'>kakuro-master.com</a>.
+
 Articles at <a href='https://steemit.com/created/kakuro-master'>steemit.com/created/kakuro-master</a>.
