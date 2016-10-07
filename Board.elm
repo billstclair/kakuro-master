@@ -35,20 +35,17 @@ setElement array idx val =
        (Array.repeat 1 val)
        (Array.slice (idx+1) (Array.length array) array))
 
-set : Board -> Int -> Int -> Int -> Maybe Board
+set : Board -> Int -> Int -> Int -> Board
 set board row col val =
   if not (check board row col) then
-    Nothing
+    board
   else
     case Array.get row board.array of
-       Nothing -> Nothing
-       Just r -> Just (Board
-                         board.rows
-                         board.cols
-                         (setElement
-                            board.array
-                            row
-                            (setElement r col val)))
+       Nothing -> board
+       Just r -> { board | array = (setElement
+                                      board.array
+                                      row
+                                      (setElement r col val)) }
 
 getRow : Board -> Int -> Maybe (Array Int)
 getRow board row =

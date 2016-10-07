@@ -9,9 +9,14 @@
 --
 ----------------------------------------------------------------------
 
-import Board
+import Board exposing(Board)
 
-import Html exposing (Html, button, div, text)
+import Array exposing (Array)
+import Char
+import String
+
+import Html exposing (Html, Attribute, button, div, text, table, tr, td, th)
+import Html.Attributes exposing (style, align)
 import Html.App as Html
 import Html.Events exposing (onClick)
 
@@ -24,38 +29,91 @@ main =
 
 -- MODEL
 
-type alias Model = Int
+initialRows : Int
+initialRows = 10
+
+initialCols: Int
+initialCols = 10
+
+initialMaxrun : Int
+initialMaxrun = 4
+
+type alias Model =
+  { board : Board
+  , rows : Int
+  , cols : Int
+  , maxrun : Int
+  , gencount : Int
+  }
+
+initialBoard : Board
+initialBoard =
+  Board.set
+    (Board.set
+       (Board.make initialRows initialCols)
+       1 2 5)
+    6 7 9
 
 model : Model
 model =
-  0
+  Model
+    initialBoard
+    initialRows
+    initialCols
+    initialMaxrun
+    0
 
 -- UPDATE
 
 type Msg
-  = Increment
-  | Decrement
-  | Reset
+  = Generate
+  | SetMaxrun Int
 
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-    Increment ->
-      model + 1
-    Decrement ->
-      model - 1
-    Reset ->
-      0
+    Generate ->
+      model
+    SetMaxrun mr ->
+      { model | maxrun = mr }
 
 -- VIEW
 
+tdStyle : List (Attribute Msg)
+tdStyle = [ style [ ("padding", "4px"),
+                    ("textAlign", "center"),
+                    ("border", "1px solid black")] ]
+
+nbsp : String
+nbsp = String.cons (Char.fromCode 160) "" -- \u00A0
+
+renderElement : Int -> Html Msg
+renderElement val =
+  td
+    tdStyle
+    [ text (if val == 0 then nbsp else (toString val)) ]
+
+renderRow : Array Int -> Html Msg
+renderRow row =
+  tr
+    []
+    (List.map renderElement (Array.toList row))                         
+
+renderBoard : Board -> Html Msg
+renderBoard board =
+  table
+    [ style [ ("font-family", "\"Lucida Console\", Monaco, monospace"),
+              ("font-size", "18pt"),
+              ("padding", "2px"),
+              ("border", "1px solid black")
+            ]
+    ]
+    (List.map renderRow (Array.toList board.array))
+
 view : Model -> Html Msg
 view model =
-  div []
-    [ button [ onClick Decrement ] [ text "-" ]
-    , div [] [ text (toString model) ]
-    , button [ onClick Increment ] [ text "+" ]
-    , div [] [button [ onClick Reset ] [ text "Reset" ]]
+  div [ align "center" ]        --deprecated, so sue me
+    [ renderBoard model.board
     ]
 
 {-
