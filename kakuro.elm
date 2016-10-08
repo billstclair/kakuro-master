@@ -89,9 +89,9 @@ showDebugNumbers : Bool
 showDebugNumbers = True
 
 tdStyle : List (Attribute Msg)
-tdStyle = [ style [ ("padding", "4px"),
-                    ("textAlign", "center"),
-                    ("border", "1px solid black") ] ]
+tdStyle = [ style [ ("padding", "4px")
+                  , ("textAlign", "center")
+                  , ("border", "1px solid black") ] ]
 
 nbsp : String
 nbsp = String.cons (Char.fromCode 160) "" -- \u00A0
@@ -110,21 +110,17 @@ renderRow rowNum row =
              else
                es
   in
-      tr
-        []
-        elts                         
+      tr [] elts                         
 
 dnStyle : List (Attribute Msg)
-dnStyle = [ style [ ("padding", "4px"),
-                    ("font-size", "50%"),
-                    ("textAlign", "center"),
-                    ("border", "1px solid black") ] ]
+dnStyle = [ style [ ("padding", "4px")
+                  , ("font-size", "50%")
+                  , ("textAlign", "center")
+                  , ("border", "1px solid black") ] ]
 
 debugNumbersElement : String -> Html Msg
 debugNumbersElement label =
-  td
-    dnStyle
-    [ text label ]
+  td dnStyle [ text label ]
 
 debugNumbersIntElement : Int -> Html Msg
 debugNumbersIntElement num =
@@ -154,6 +150,16 @@ renderBoard board =
         ]
         rows
 
+sqrimg : String -> String -> Int -> Html Msg
+sqrimg url name size =
+  img [ src url
+      , title name
+      , alt name
+      , width size
+      , height size ]
+      []
+          
+
 view : Model -> Html Msg
 view model =
   div [ align "center" --deprecated, so sue me
@@ -166,27 +172,15 @@ view model =
               , text " "
               , button [ onClick Generate
                        , style [ ("font-size", "14pt") ] ]
-                [ text "Generate" ]
+                 [ text "Generate" ]
               ]
     , div [] [ renderBoard model.board
              , div [ style [ ("margin-top", "2em") ] ]
                [ a [ href "https://github.com/billstclair/kakuro-master" ]
-                   [ img [ src "images/GitHub-Mark-32px.png"
-                         , title "GitHub"
-                         , alt "GitHub"
-                         , width 32
-                         , height 32]
-                       []
-                   ]
+                   [ sqrimg "images/GitHub-Mark-32px.png" "GitHub" 32 ]
                , text " "
                , a [ href "https://steemit.com/created/kakuro-master" ]
-                   [ img [ src "images/steemit-icon-114x114.png"
-                         , title "Steemit"
-                         , alt "Steemit"
-                         , width 32
-                         , height 32]
-                       []
-                   ]
+                   [ sqrimg "images/steemit-icon-114x114.png" "Steemit" 32 ]
                ]
              ]
     ]
