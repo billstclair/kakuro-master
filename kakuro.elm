@@ -15,10 +15,12 @@ import Array exposing (Array)
 import Char
 import String
 
-import Html exposing (Html, Attribute, button, div, text, table, tr, td, th)
-import Html.Attributes exposing (style, align)
+import Html exposing
+  (Html, Attribute, button, div, text, table, tr, td, th, input, button, br, a, img)
+import Html.Attributes
+  exposing (style, align, value, size, href, src, title, alt, width, height)
 import Html.App as Html
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 
 main =
   Html.beginnerProgram
@@ -67,7 +69,7 @@ model =
 
 type Msg
   = Generate
-  | SetMaxrun Int
+  | SetMaxrun String
 
 update : Msg -> Model -> Model
 update msg model =
@@ -75,14 +77,18 @@ update msg model =
     Generate ->
       model
     SetMaxrun mr ->
-      { model | maxrun = mr }
+      case String.toInt(mr) of
+          Err _ -> model
+          Ok mri ->
+            let m = max 3 (if mri >= 10 then mri % 10 else mri)
+              in { model | maxrun = m }
 
 -- VIEW
 
 tdStyle : List (Attribute Msg)
 tdStyle = [ style [ ("padding", "4px"),
                     ("textAlign", "center"),
-                    ("border", "1px solid black")] ]
+                    ("border", "1px solid black") ] ]
 
 nbsp : String
 nbsp = String.cons (Char.fromCode 160) "" -- \u00A0
@@ -102,18 +108,49 @@ renderRow row =
 renderBoard : Board -> Html Msg
 renderBoard board =
   table
-    [ style [ ("font-family", "\"Lucida Console\", Monaco, monospace"),
-              ("font-size", "18pt"),
-              ("padding", "2px"),
-              ("border", "1px solid black")
+    [ style [ ("font-family", "\"Lucida Console\", Monaco, monospace")
+            , ("font-size", "18pt")
+            , ("padding", "2px")
+            , ("border", "1px solid black")
             ]
     ]
     (List.map renderRow (Array.toList board.array))
 
 view : Model -> Html Msg
 view model =
-  div [ align "center" ]        --deprecated, so sue me
-    [ renderBoard model.board
+  div [ align "center" --deprecated, so sue me
+      , style [ ("margin-top", "5em") ] ]
+    [ div [ style [ ("margin-bottom", "0.5em") ] ]
+              [input [ value (toString model.maxrun)
+                     , size 1
+                     , onInput SetMaxrun
+                     , style [ ("font-size", "14pt") ] ] []
+              , text " "
+              , button [ onClick Generate
+                       , style [ ("font-size", "14pt") ] ]
+                [ text "Generate" ]
+              ]
+    , div [] [ renderBoard model.board
+             , div [ style [ ("margin-top", "2em") ] ]
+               [ a [ href "https://github.com/billstclair/kakuro-master" ]
+                   [ img [ src "images/GitHub-Mark-32px.png"
+                         , title "GitHub"
+                         , alt "GitHub"
+                         , width 32
+                         , height 32]
+                       []
+                   ]
+               , text " "
+               , a [ href "https://steemit.com/created/kakuro-master" ]
+                   [ img [ src "images/steemit-icon-114x114.png"
+                         , title "Steemit"
+                         , alt "Steemit"
+                         , width 32
+                         , height 32]
+                       []
+                   ]
+               ]
+             ]
     ]
 
 {-
