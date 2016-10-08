@@ -12,6 +12,8 @@ If you run ```elm-reactor``` in this directory, you can navigate to ```src/kakur
 
 "```bin/m file```" compiles ```src/file.elm```, leaving the output in ```/tmp/nop.js```. Useful for syntax checking while editing.
 
+```bin/docs``` generates ```documentation.json```, suitable for upload to [package.elm-lang.org/help/docs-preview](http://package.elm-lang.org/help/docs-preview).
+
 ```bin/rsyncit``` is a synchronization script I've been using for years. It is documented [here](https://steemit.com/hacking/@billstclair/rsyncit).
 
 The old JavaScript version is in the ```old``` directory. It is live at <a href='http://kakuro-master.com/'>kakuro-master.com</a>, until I get the generation code updated. Then it goes away and gets replaced with the Elm version.

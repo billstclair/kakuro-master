@@ -13,14 +13,29 @@ module Board exposing
   ( Board, make, get, set, getRow
   )
 
+{-| Two-dimensional game board with integers as elements.
+
+@docs Board
+@docs make
+@docs get
+@docs set
+@docs getRow
+
+-}
+
 import Array exposing (Array)
 
+{-|-}
 type alias Board =
   { rows : Int
   , cols : Int
   , array: Array (Array Int)
   }
       
+{-| Create a new Board of the given size.
+
+    make rows cols
+-}
 make : Int -> Int -> Board
 make rows cols =
   Board
@@ -32,34 +47,43 @@ check : Board -> Int -> Int -> Bool
 check board row col =
   row>=0 && row<board.rows && col>=0 && col<board.cols
 
-get : Board -> Int -> Int -> Maybe Int
-get board row col =
+{-| Get a single element. Returns 0 if row or col is out of range.
+
+    get row col board
+-}
+get : Int -> Int -> Board -> Int
+get row col board =
   case Array.get row board.array of
-      Nothing -> Nothing
-      Just r -> Array.get col r
+      Nothing -> 0
+      Just r ->
+        case Array.get col r of
+            Nothing -> 0
+            Just res -> res
 
-setElement : (Array a) -> Int -> a -> (Array a)
-setElement array idx val =
-  Array.append
-    (Array.slice 0 idx array)
-    (Array.append
-       (Array.repeat 1 val)
-       (Array.slice (idx+1) (Array.length array) array))
+{-| Set a single element. Does nothing if row or col is out of range.
 
-set : Board -> Int -> Int -> Int -> Board
-set board row col val =
+    set row col val board
+-}
+set : Int -> Int -> Int -> Board -> Board
+set row col val board =
   if not (check board row col) then
     board
   else
     case Array.get row board.array of
        Nothing -> board
-       Just r -> { board | array = (setElement
-                                      board.array
-                                      row
-                                      (setElement r col val)) }
+       Just r -> { board |
+                     array = Array.set
+                               row
+                               (Array.set col val r)
+                               board.array
+                 }
 
-getRow : Board -> Int -> Maybe (Array Int)
-getRow board row =
+{-| Return the Array for the given row, or Nothing, if out of range.
+
+    getRow row board
+-}
+getRow : Int -> Board -> Maybe (Array Int)
+getRow row board =
   if row<0 || row>=board.rows then
     Nothing
   else
