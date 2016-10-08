@@ -4,7 +4,8 @@
     "repository": "https://github.com/billstclair/kakuro-master.git",
     "license": "MIT",
     "source-directories": [
-        "."
+      ".",
+      "src"
     ],
     "exposed-modules": [],
     "dependencies": {

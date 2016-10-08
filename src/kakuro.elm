@@ -159,21 +159,20 @@ sqrimg url name size =
       , height size ]
       []
           
-
 view : Model -> Html Msg
 view model =
   div [ align "center" --deprecated, so sue me
       , style [ ("margin-top", "5em") ] ]
     [ div [ style [ ("margin-bottom", "0.5em") ] ]
-              [input [ value (toString model.maxrun)
-                     , size 1
-                     , onInput SetMaxrun
-                     , style [ ("font-size", "14pt") ] ] []
-              , text " "
-              , button [ onClick Generate
-                       , style [ ("font-size", "14pt") ] ]
-                 [ text "Generate" ]
-              ]
+        [input [ value (toString model.maxrun)
+               , size 1
+               , onInput SetMaxrun
+               , style [ ("font-size", "14pt") ] ] []
+        , text " "
+        , button [ onClick Generate
+                 , style [ ("font-size", "14pt") ] ]
+           [ text "Generate" ]
+        ]
     , div [] [ renderBoard model.board
              , div [ style [ ("margin-top", "2em") ] ]
                [ a [ href "https://github.com/billstclair/kakuro-master" ]
