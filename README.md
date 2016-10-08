@@ -1,5 +1,7 @@
 Kakuro in [Elm](http://elm-lang.org/).
 
+There is no game play yet. I'm working on the board generation code, so the display shows the numbers in each square, not the sums of rows and columns. Read the articles linked at the bottom of this file for an idea of my intentions.
+
 Code is in the ```src``` directory, scripts in the ```bin``` directory.
 
 If you run ```elm-reactor``` in this directory, you can navigate to ```src/kakuro.elm``` for development.
@@ -14,6 +16,6 @@ If you run ```elm-reactor``` in this directory, you can navigate to ```src/kakur
 
 The old JavaScript version is in the ```old``` directory. It is live at <a href='http://kakuro-master.com/'>kakuro-master.com</a>, until I get the generation code updated. Then it goes away and gets replaced with the Elm version.
 
-I didn't bother to write Windows scripts, nor will the symbolic link from the ```src/images``` to ```site/images``` work on Windows. Use Linux or macOS.
+I didn't bother to write Windows scripts, nor will the symbolic link from ```src/images``` to ```site/images``` work on Windows. Use Linux or macOS.
 
 Articles at <a href='https://steemit.com/created/kakuro-master'>steemit.com/created/kakuro-master</a>.
