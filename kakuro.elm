@@ -32,10 +32,10 @@ main =
 -- MODEL
 
 initialRows : Int
-initialRows = 10
+initialRows = 9
 
 initialCols: Int
-initialCols = 10
+initialCols = 9
 
 initialMaxrun : Int
 initialMaxrun = 4
@@ -85,6 +85,9 @@ update msg model =
 
 -- VIEW
 
+showDebugNumbers : Bool
+showDebugNumbers = True
+
 tdStyle : List (Attribute Msg)
 tdStyle = [ style [ ("padding", "4px"),
                     ("textAlign", "center"),
@@ -99,22 +102,57 @@ renderElement val =
     tdStyle
     [ text (if val == 0 then nbsp else (toString val)) ]
 
-renderRow : Array Int -> Html Msg
-renderRow row =
+renderRow : Int -> Array Int -> Html Msg
+renderRow rowNum row =
+  let es = (List.map renderElement (Array.toList row))
+      elts = if showDebugNumbers then
+               (debugNumbersIntElement rowNum) :: es
+             else
+               es
+  in
+      tr
+        []
+        elts                         
+
+dnStyle : List (Attribute Msg)
+dnStyle = [ style [ ("padding", "4px"),
+                    ("font-size", "50%"),
+                    ("textAlign", "center"),
+                    ("border", "1px solid black") ] ]
+
+debugNumbersElement : String -> Html Msg
+debugNumbersElement label =
+  td
+    dnStyle
+    [ text label ]
+
+debugNumbersIntElement : Int -> Html Msg
+debugNumbersIntElement num =
+  debugNumbersElement (toString num)                              
+
+debugNumbersTopRow : Board -> Html Msg
+debugNumbersTopRow board =
   tr
     []
-    (List.map renderElement (Array.toList row))                         
+    ((debugNumbersElement nbsp) ::
+       (List.map debugNumbersIntElement [1..board.cols]))
 
 renderBoard : Board -> Html Msg
 renderBoard board =
-  table
-    [ style [ ("font-family", "\"Lucida Console\", Monaco, monospace")
-            , ("font-size", "18pt")
-            , ("padding", "2px")
-            , ("border", "1px solid black")
-            ]
-    ]
-    (List.map renderRow (Array.toList board.array))
+  let rs = (List.map2 renderRow [1..board.cols] (Array.toList board.array))
+      rows = if showDebugNumbers then
+               (debugNumbersTopRow board) :: rs
+             else
+               rs
+  in
+      table
+        [ style [ ("font-family", "\"Lucida Console\", Monaco, monospace")
+                , ("font-size", "18pt")
+                , ("padding", "2px")
+                , ("border", "1px solid black")
+                ]
+        ]
+        rows
 
 view : Model -> Html Msg
 view model =
