@@ -48,9 +48,11 @@ initialCols = 9
 initialMaxrun : Int
 initialMaxrun = 4
 
+pageTitle : String
+pageTitle = KakuroNative.setTitle "Kakuro Master"
+
 type alias Model =
-  { title: String
-  , board : Board
+  { board : Board
   , maxrun : Int
   , gencount : Int
   , seed : Maybe Random.Seed
@@ -73,7 +75,6 @@ initialBoard =
 model : Model
 model =
   Model
-    (KakuroNative.setTitle "Kakuro Master")
     initialBoard  --board
     initialMaxrun --maxrun
     0             --gencount
@@ -182,7 +183,7 @@ view model =
   div [ align "center" --deprecated, so sue me
       ]
     [ KakuroStylesheet.style
-    , h2 [] [text model.title]
+    , h2 [] [text pageTitle]
     , div
         [ id TopInputId ]
         [input [ value <| toString model.maxrun
