@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------
 
 module KakuroStylesheet exposing
-  ( style, stylesheet, KClass(..), KId(..), id, class
+  ( style, KClass(..), KId(..), id, class
   )
 
 import Css exposing (Sel(..))

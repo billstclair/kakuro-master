@@ -52,11 +52,9 @@ type alias Model =
 
 initialBoard : Board
 initialBoard =
-  Board.set
-    6 7 9
-    (Board.set
-       1 2 5
-       (Board.make initialRows initialCols))
+  Board.make initialRows initialCols
+    |> Board.set 6 7 9
+    |> Board.set 1 2 5
 
 model : Model
 model =
@@ -79,7 +77,7 @@ update msg model =
     Generate ->
       model
     SetMaxrun mr ->
-      case String.toInt(mr) of
+      case String.toInt mr of
           Err _ -> model
           Ok mri ->
             let m = max 3 (if mri >= 10 then mri % 10 else mri)
@@ -97,7 +95,7 @@ renderElement : Int -> Html Msg
 renderElement val =
   td
     [ class BoardCellClass ]
-    [ text (if val == 0 then nbsp else (toString val)) ]
+    [ text (if val == 0 then nbsp else toString val) ]
 
 renderRow : Int -> Array Int -> Html Msg
 renderRow rowNum row =
@@ -121,8 +119,8 @@ debugNumbersTopRow : Board -> Html Msg
 debugNumbersTopRow board =
   tr
     []
-    ((debugNumbersElement nbsp) ::
-       (List.map debugNumbersIntElement [0..(board.cols-1)]))
+    (debugNumbersElement nbsp ::
+       List.map debugNumbersIntElement [0..(board.cols-1)])
 
 renderBoard : Board -> Html Msg
 renderBoard board =
@@ -133,7 +131,7 @@ renderBoard board =
                rs
   in
       table
-        [ id BoardId]
+        [ id BoardId ]
         rows
 
 sqrimg : String -> String -> Int -> Html Msg
@@ -150,8 +148,9 @@ view model =
   div [ align "center" --deprecated, so sue me
       ]
     [ KakuroStylesheet.style
-    , div [ id TopInputId ]
-        [input [ value (toString model.maxrun)
+    , div
+        [ id TopInputId ]
+        [input [ value <| toString model.maxrun
                , size 1
                , onInput SetMaxrun
                , class ControlsClass ] []
@@ -160,13 +159,13 @@ view model =
                  , class ControlsClass ]
            [ text "Generate" ]
         ]
-    , div [] [ renderBoard model.board
-             , div [ id FooterId ]
-               [ a [ href "https://github.com/billstclair/kakuro-master" ]
-                   [ sqrimg "images/GitHub-Mark-32px.png" "GitHub" 32 ]
-               , text " "
-               , a [ href "https://steemit.com/created/kakuro-master" ]
-                   [ sqrimg "images/steemit-icon-114x114.png" "Steemit" 32 ]
-               ]
-             ]
+    , div [] [ renderBoard model.board ]
+    , div
+        [ id FooterId ]
+        [ a [ href "https://github.com/billstclair/kakuro-master" ]
+            [ sqrimg "images/GitHub-Mark-32px.png" "GitHub" 32 ]
+        , text " "
+        , a [ href "https://steemit.com/created/kakuro-master" ]
+          [ sqrimg "images/steemit-icon-114x114.png" "Steemit" 32 ]
+      ]
     ]
