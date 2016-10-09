@@ -174,6 +174,11 @@ sqrimg url name size =
       , height size ]
       []
           
+logoLink : String -> String -> String -> Int -> Html Msg
+logoLink url img name size =
+  a [ href url ]
+    [ sqrimg ("images/" ++ img) name size ]
+
 showValue : a -> Html Msg
 showValue seed =
   div [] [text <| toString seed]
@@ -200,13 +205,13 @@ view model =
     , div [] [ renderBoard model.board ]
     , div
         [ id FooterId ]
-        [ a [ href "https://steemit.com/created/kakuro-master" ]
-          [ sqrimg "images/steemit-icon-114x114.png" "Steemit articles" 32 ]
+        [ logoLink "https://steemit.com/created/kakuro-master"
+            "steemit-icon-114x114.png" "Steemit articles" 32
         , text " "
-        , a [ href "https://github.com/billstclair/kakuro-master" ]
-          [ sqrimg "images/GitHub-Mark-32px.png" "GitHub source code" 32 ]
+        , logoLink "https://github.com/billstclair/kakuro-master"
+            "GitHub-Mark-32px.png" "GitHub source code" 32
         , text " "
-        , a [ href "http://elm-lang.org/" ]
-          [ sqrimg "images/elm-logo-125x125.png" "Elm inside" 28 ]
-      ]
+        , logoLink "http://elm-lang.org/"
+            "elm-logo-125x125.png" "Elm inside" 28
+        ]
     ]
