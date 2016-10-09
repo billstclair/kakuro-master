@@ -16,6 +16,9 @@ import Generate
 import Array exposing (Array)
 import Char
 import String
+import Time exposing (Time, second)
+import Random
+import Task
 
 import Html exposing
   (Html, Attribute, button, div, text, table, tr, td, th, input, button, br, a, img)
@@ -25,10 +28,11 @@ import Html.App as Html
 import Html.Events exposing (onClick, onInput)
 
 main =
-  Html.beginnerProgram
-    { model = model
+  Html.program
+    { init = init
     , view = view
     , update = update
+    , subscriptions = subscriptions
     }
 
 -- MODEL
@@ -44,11 +48,18 @@ initialMaxrun = 4
 
 type alias Model =
   { board : Board
-  , rows : Int
-  , cols : Int
   , maxrun : Int
   , gencount : Int
+  , seed : Maybe Random.Seed
+  , time : Time
   }
+
+nowcmd : a -> Cmd Msg
+nowcmd ignore =
+  Task.perform (\x -> Nop) (\x -> Seed x) Time.now
+
+init : (Model, Cmd Msg)
+init = (model, nowcmd 0)
 
 initialBoard : Board
 initialBoard =
@@ -59,29 +70,44 @@ initialBoard =
 model : Model
 model =
   Model
-    initialBoard
-    initialRows
-    initialCols
-    initialMaxrun
-    0
+    initialBoard  --board
+    initialMaxrun --maxrun
+    0             --gencount
+    Nothing       --seed
+    0             --time
 
 -- UPDATE
 
 type Msg
   = Generate
   | SetMaxrun String
+  | Tick Time
+  | Seed Time
+  | Nop
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
     Generate ->
-      model
+      (model, Cmd.none)
     SetMaxrun mr ->
       case String.toInt mr of
-          Err _ -> model
+          Err _ -> (model, Cmd.none)
           Ok mri ->
             let m = max 3 (if mri >= 10 then mri % 10 else mri)
-              in { model | maxrun = m }
+              in ({ model | maxrun = m }, Cmd.none)
+    Tick time ->
+      ({model | time = model.time + 1}, Cmd.none)
+    Seed time ->
+      ({model | seed = Just <| Random.initialSeed (round time)}, Cmd.none)
+    Nop ->
+      (model, Cmd.none)
+          
+-- SUBSCRIPTIONS
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Time.every second Tick
 
 -- VIEW
 
@@ -143,6 +169,10 @@ sqrimg url name size =
       , height size ]
       []
           
+showValue : a -> Html Msg
+showValue seed =
+  div [] [text <| toString seed]
+
 view : Model -> Html Msg
 view model =
   div [ align "center" --deprecated, so sue me
@@ -158,6 +188,8 @@ view model =
         , button [ onClick Generate
                  , class ControlsClass ]
            [ text "Generate" ]
+        -- , text (" " ++ toString model.time)  -- Will eventually be timer
+        -- , showValue model.seed               -- debugging
         ]
     , div [] [ renderBoard model.board ]
     , div
