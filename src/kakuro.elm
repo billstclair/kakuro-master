@@ -54,12 +54,12 @@ type alias Model =
   , time : Time
   }
 
-nowcmd : a -> Cmd Msg
-nowcmd ignore =
+seedCmd : Cmd Msg
+seedCmd =
   Task.perform (\x -> Nop) (\x -> Seed x) Time.now
 
 init : (Model, Cmd Msg)
-init = (model, nowcmd 0)
+init = (model, seedCmd)
 
 initialBoard : Board
 initialBoard =
