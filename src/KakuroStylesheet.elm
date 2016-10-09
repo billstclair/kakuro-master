@@ -43,8 +43,7 @@ rules =
       ]
   , rule
       [ Id TopInputId ]
-      [ ("margin-top", "5em")
-      , ("margin-bottom", "0.5em")
+      [ ("margin-bottom", "0.5em")
       ]
   , rule
       [ Id FooterId ]

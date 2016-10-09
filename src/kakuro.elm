@@ -10,6 +10,7 @@
 ----------------------------------------------------------------------
 
 import KakuroStylesheet exposing (id, class, KId(..), KClass(..))
+import KakuroNative
 import Board exposing(Board)
 import Generate
 
@@ -21,7 +22,8 @@ import Random
 import Task
 
 import Html exposing
-  (Html, Attribute, button, div, text, table, tr, td, th, input, button, br, a, img)
+  (Html, Attribute, button, div, h2, text, table, tr, td, th
+  ,input, button, br, a, img)
 import Html.Attributes
   exposing (style, align, value, size, href, src, title, alt, width, height)
 import Html.App as Html
@@ -47,7 +49,8 @@ initialMaxrun : Int
 initialMaxrun = 4
 
 type alias Model =
-  { board : Board
+  { title: String
+  , board : Board
   , maxrun : Int
   , gencount : Int
   , seed : Maybe Random.Seed
@@ -70,6 +73,7 @@ initialBoard =
 model : Model
 model =
   Model
+    (KakuroNative.setTitle "Kakuro Master")
     initialBoard  --board
     initialMaxrun --maxrun
     0             --gencount
@@ -178,6 +182,7 @@ view model =
   div [ align "center" --deprecated, so sue me
       ]
     [ KakuroStylesheet.style
+    , h2 [] [text model.title]
     , div
         [ id TopInputId ]
         [input [ value <| toString model.maxrun
