@@ -32,6 +32,10 @@ type alias Board =
   , array: Array (Array Int)
   }
       
+makeRow : Int -> (Array Int)
+makeRow cols =
+  Array.repeat cols 0
+
 {-| Create a new Board of the given size.
 
     make rows cols
@@ -41,7 +45,7 @@ make rows cols =
   Board
     rows
     cols
-    (Array.repeat rows (Array.repeat cols 0))
+    (Array.repeat rows (makeRow cols))
 
 check : Board -> Int -> Int -> Bool
 check board row col =
@@ -78,13 +82,12 @@ set row col val board =
                                board.array
                  }
 
-{-| Return the Array for the given row, or Nothing, if out of range.
+{-| Return the Array for the given row, or an all-zero array, if out of range.
 
     getRow row board
 -}
-getRow : Int -> Board -> Maybe (Array Int)
+getRow : Int -> Board -> (Array Int)
 getRow row board =
-  if row<0 || row>=board.rows then
-    Nothing
-  else
-    Array.get row board.array
+  case Array.get row board.array of
+      Nothing -> makeRow board.cols
+      Just row -> row

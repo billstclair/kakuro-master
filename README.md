@@ -4,13 +4,13 @@ There is no game play yet. I'm working on the board generation code, so the disp
 
 Code is in the ```src``` directory, scripts in the ```bin``` directory.
 
-If you run ```elm-reactor``` in this directory, you can navigate to ```src/kakuro.elm``` for development.
+If you run ```elm-reactor``` in this directory, you can navigate to [```src/kakuro.elm```](src/kakuro.elm) for development.
 
 ```bin/build-site``` compiles the application to ```site/index.html```.
 
 ```bin/update-site``` builds the application and syncs the ```site``` directory with the live site.
 
-"```bin/m file```" compiles ```src/file.elm```, leaving the output in ```/tmp/nop.js```. Useful for syntax checking while editing.
+"```bin/m file```" compiles ```src/file.elm```, directing output to ```/dev/null```. Useful for syntax checking while editing.
 
 ```bin/docs``` generates ```documentation.json```, suitable for upload to [package.elm-lang.org/help/docs-preview](http://package.elm-lang.org/help/docs-preview).
 

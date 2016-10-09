@@ -9,6 +9,7 @@
 --
 ----------------------------------------------------------------------
 
+import KakuroStylesheet exposing (id, class, KId(..), KClass(..))
 import Board exposing(Board)
 import Generate
 
@@ -89,18 +90,13 @@ update msg model =
 showDebugNumbers : Bool
 showDebugNumbers = True
 
-tdStyle : List (Attribute Msg)
-tdStyle = [ style [ ("padding", "4px")
-                  , ("textAlign", "center")
-                  , ("border", "1px solid black") ] ]
-
 nbsp : String
 nbsp = String.cons (Char.fromCode 160) "" -- \u00A0
 
 renderElement : Int -> Html Msg
 renderElement val =
   td
-    tdStyle
+    [ class BoardCellClass ]
     [ text (if val == 0 then nbsp else (toString val)) ]
 
 renderRow : Int -> Array Int -> Html Msg
@@ -113,15 +109,9 @@ renderRow rowNum row =
   in
       tr [] elts                         
 
-dnStyle : List (Attribute Msg)
-dnStyle = [ style [ ("padding", "4px")
-                  , ("font-size", "50%")
-                  , ("textAlign", "center")
-                  , ("border", "1px solid black") ] ]
-
 debugNumbersElement : String -> Html Msg
 debugNumbersElement label =
-  td dnStyle [ text label ]
+  td [ class BoardLabelClass ] [ text label ]
 
 debugNumbersIntElement : Int -> Html Msg
 debugNumbersIntElement num =
@@ -143,12 +133,7 @@ renderBoard board =
                rs
   in
       table
-        [ style [ ("font-family", "\"Lucida Console\", Monaco, monospace")
-                , ("font-size", "18pt")
-                , ("padding", "2px")
-                , ("border", "1px solid black")
-                ]
-        ]
+        [ id BoardId]
         rows
 
 sqrimg : String -> String -> Int -> Html Msg
@@ -163,19 +148,20 @@ sqrimg url name size =
 view : Model -> Html Msg
 view model =
   div [ align "center" --deprecated, so sue me
-      , style [ ("margin-top", "5em") ] ]
-    [ div [ style [ ("margin-bottom", "0.5em") ] ]
+      ]
+    [ KakuroStylesheet.style
+    , div [ id TopInputId ]
         [input [ value (toString model.maxrun)
                , size 1
                , onInput SetMaxrun
-               , style [ ("font-size", "14pt") ] ] []
+               , class ControlsClass ] []
         , text " "
         , button [ onClick Generate
-                 , style [ ("font-size", "14pt") ] ]
+                 , class ControlsClass ]
            [ text "Generate" ]
         ]
     , div [] [ renderBoard model.board
-             , div [ style [ ("margin-top", "2em") ] ]
+             , div [ id FooterId ]
                [ a [ href "https://github.com/billstclair/kakuro-master" ]
                    [ sqrimg "images/GitHub-Mark-32px.png" "GitHub" 32 ]
                , text " "
