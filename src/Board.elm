@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------
 
 module Board exposing
-  ( Board, make, get, set, getRow
+  ( Board, make, get, set, getRow, setRow
   )
 
 {-| Two-dimensional game board with integers as elements.
@@ -20,6 +20,7 @@ module Board exposing
 @docs get
 @docs set
 @docs getRow
+@docs setRow
 
 -}
 
@@ -86,8 +87,17 @@ set row col val board =
 
     getRow row board
 -}
-getRow : Int -> Board -> (Array Int)
+getRow : Int -> Board -> Array Int
 getRow row board =
   case Array.get row board.array of
       Nothing -> makeRow board.cols
       Just row -> row
+
+{-| Set row in board to rowArray. Do nothing if row is out of range.
+
+    setRow row rowArray board
+-}
+setRow : Int -> Array Int -> Board -> Board
+setRow row rowArray board =
+  { board | array = Array.set row rowArray board.array }
+  

@@ -94,7 +94,12 @@ update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
     Generate ->
-      (model, Cmd.none)
+      case model.seed of
+        Nothing -> (model, Cmd.none) --we should generate an error here
+        Just seed ->
+          let (board, seed2) = (Generate.generate model.maxrun seed model.board)
+          in
+              ({model | seed = Just seed2, board = board}, Cmd.none)
     SetMaxrun mr ->
       case String.toInt mr of
           Err _ -> (model, Cmd.none)
@@ -194,7 +199,8 @@ view model =
         [input [ value <| toString model.maxrun
                , size 1
                , onInput SetMaxrun
-               , class ControlsClass ] []
+               , class ControlsClass ]
+           []
         , text " "
         , button [ onClick Generate
                  , class ControlsClass ]
