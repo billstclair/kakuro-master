@@ -7,6 +7,9 @@
 -- Distributed under the MIT License
 -- See LICENSE.txt
 --
+-- This is just a bare bones start, and I decided not to pursue it,
+-- using instead precomputed layouts in Puzzles.elm.
+--
 ----------------------------------------------------------------------
 
 module Generate exposing
