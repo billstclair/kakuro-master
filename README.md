@@ -1,8 +1,8 @@
 Kakuro in [Elm](http://elm-lang.org/).
 
-Currently, the UI shows only a 6x6 board, with 68 layouts, selectable via the "Next" button. This will change. I have data for 8x8 and 10x10 boards.
+Currently, the UI shows only a 10x10 board, with 66 layouts, selectable via the "Next" button. This will change. I have data for 8x8 and 10x10 boards.
 
-Currently, the UI shows the solution. Next on my list is to change it to show the sums, then I'll add actual play.
+It now shows the solution. Next I show the sums, and add the game play.
 
 Code is in the ```src``` directory, scripts in the ```bin``` directory.
 
