@@ -6,7 +6,7 @@ To run krazydad.hs, you may need to install Network.Wreq in your Haskell. This t
 
 Then, to extract puzzles to file:
 
-    runhaskell crazydad.hs
+    runhaskell crazydad.hs >file
     
 Or to print the extraction for one file, in ghci:
 
