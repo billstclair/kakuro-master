@@ -23,7 +23,6 @@ import String
 import Char
 import Array
 import List.Extra as LE
-import Debug
 
 digits : List Char
 digits = String.toList "123456789"
@@ -107,6 +106,13 @@ numberOfBoardsOfKind : Int -> Int
 numberOfBoardsOfKind kind =
   List.length (boardsOfKind kind)
 
-nextBoardOfKind : Int -> Int -> Maybe (Int, Board)
+nextBoardOfKind : Int -> Int -> (Int, Board)
 nextBoardOfKind kind number =
-  List.head (LE.dropWhile (\(n,b) -> n<=number) (boardsOfKind kind))
+  case List.head (LE.dropWhile (\(n,b) -> n<=number) (boardsOfKind kind))
+  of
+      Nothing ->
+        case List.head (boardsOfKind kind) of
+            Nothing -> (0, Board.make kind kind)
+            Just res -> res
+      Just res ->
+        res

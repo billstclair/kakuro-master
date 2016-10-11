@@ -6,4 +6,4 @@ DIR="$( dirname "${BASH_SOURCE[0]}" )"
 
 $DIR/build-site
 cd $DIR/../site
-$DIR/rsyncit
+../$DIR/rsyncit

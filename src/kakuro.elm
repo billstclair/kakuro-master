@@ -12,7 +12,7 @@
 import KakuroStylesheet exposing (id, class, KId(..), KClass(..))
 import KakuroNative
 import Board exposing(Board)
-import Generate
+import PuzzleDB exposing (boardKinds, nextBoardOfKind)
 
 import Array exposing (Array)
 import Char
@@ -39,25 +39,20 @@ main =
 
 -- MODEL
 
-initialRows : Int
-initialRows = 9
-
-initialCols: Int
-initialCols = 9
-
-initialMaxrun : Int
-initialMaxrun = 4
+initialKind : Int
+initialKind = 6
 
 pageTitle : String
 pageTitle = KakuroNative.setTitle "Kakuro Master"
 
 type alias Model =
-  { board : Board
-  , maxrun : Int
-  , gencount : Int
-  , seed : Maybe Random.Seed
-  , time : Time
-  }
+      { board : Board
+      , kind : Int
+      , index : Int
+      , gencount : Int
+      , seed : Maybe Random.Seed
+      , time : Time
+      }
 
 seedCmd : Cmd Msg
 seedCmd =
@@ -66,26 +61,28 @@ seedCmd =
 init : (Model, Cmd Msg)
 init = (model, seedCmd)
 
-initialBoard : Board
-initialBoard =
-  Board.make initialRows initialCols
+defaultBoard : Board
+defaultBoard =
+  Board.make 6 6
     |> Board.set 6 7 9
     |> Board.set 1 2 5
 
 model : Model
 model =
-  Model
-    initialBoard  --board
-    initialMaxrun --maxrun
-    0             --gencount
-    Nothing       --seed
-    0             --time
+  let (idx, board) = PuzzleDB.nextBoardOfKind initialKind 0
+  in
+      Model
+        board         --board
+        initialKind   --kind
+        idx           --index
+        0             --gencount
+        Nothing       --seed
+        0             --time
 
 -- UPDATE
 
 type Msg
   = Generate
-  | SetMaxrun String
   | Tick Time
   | Seed Time
   | Nop
@@ -94,18 +91,10 @@ update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
     Generate ->
-      case model.seed of
-        Nothing -> (model, Cmd.none) --we should generate an error here
-        Just seed ->
-          let (board, seed2) = (Generate.generate model.maxrun seed model.board)
-          in
-              ({model | seed = Just seed2, board = board}, Cmd.none)
-    SetMaxrun mr ->
-      case String.toInt mr of
-          Err _ -> (model, Cmd.none)
-          Ok mri ->
-            let m = max 3 (if mri >= 10 then mri % 10 else mri)
-              in ({ model | maxrun = m }, Cmd.none)
+      let (idx, board) = PuzzleDB.nextBoardOfKind model.kind model.index
+      in
+          ({model | index = idx, board = board, gencount = (model.gencount+1)},
+           Cmd.none)
     Tick time ->
       ({model | time = model.time + 1}, Cmd.none)
     Seed time ->
@@ -196,15 +185,12 @@ view model =
     , h2 [] [text pageTitle]
     , div
         [ id TopInputId ]
-        [input [ value <| toString model.maxrun
-               , size 1
-               , onInput SetMaxrun
-               , class ControlsClass ]
-           []
-        , text " "
-        , button [ onClick Generate
+        [ button [ onClick Generate
                  , class ControlsClass ]
-           [ text "Generate" ]
+           [ text "Next" ]
+        , br [][]
+        , text "Board Number: "
+        , text (toString model.index)
         -- , text (" " ++ toString model.time)  -- Will eventually be timer
         -- , showValue model.seed               -- debugging
         ]
