@@ -140,7 +140,7 @@ putPuzzleSpecs count puzzle =
     spec <- getPuzzleSpec puzzle
     let Puzzle kind volume book number = puzzle in
       printf
-        "(%d, %d, %d, %d, \"%s\")\n"
+        "    (%d, %d, %d, %d, \"%s\"),\n"
         (kindNumber $ puzzleKind puzzle)
         (puzzleVolume puzzle)
         (puzzleBook puzzle)
