@@ -18,7 +18,7 @@ module Generate exposing
 @docs generate
 -}
 
-import Board exposing (Board, make, get, set, getRow)
+import Board exposing (Board)
 
 import Array exposing (Array)
 import Random
@@ -29,7 +29,7 @@ import Random
 -}
 generate : Int -> Random.Seed -> Board -> (Board, Random.Seed)
 generate maxrun seed board =
-  make board.rows board.cols
+  Board.make board.rows board.cols
   |> generateRows 0 maxrun (skip maxrun board) seed
 
 random : Int -> Int -> Random.Seed -> (Int, Random.Seed)
@@ -66,7 +66,7 @@ generateRuns start maxrun maxSkip seed rowArray =
       else
         let (run, seed2) = random 2 maxmaxrun seed
             (ra, seed3) = generateRun run start seed2 rowArray
-            ms = max 1 (min maxSkip (len - start - run - 3))
+            ms = max 1 <| min maxSkip <| len - start - run - 3
             (sk, seed4) = random 1 ms seed3
             start2 = start + run + sk
         in

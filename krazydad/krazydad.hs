@@ -6,7 +6,7 @@
 --
 -- Or, in ghci:
 --   :l krazydad
---   main
+--   getPuzzleSpec $ Puzzle 6 1 1 1
 --
 
 import Network.Wreq (get, responseBody)
