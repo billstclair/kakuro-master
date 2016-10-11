@@ -12,7 +12,7 @@
 import KakuroStylesheet exposing (id, class, KId(..), KClass(..))
 import KakuroNative
 import Board exposing(Board)
-import PuzzleDB exposing (boardKinds, nextBoardOfKind)
+import PuzzleDB
 
 import Array exposing (Array)
 import Char
@@ -40,7 +40,7 @@ main =
 -- MODEL
 
 initialKind : Int
-initialKind = 6
+initialKind = 10
 
 pageTitle : String
 pageTitle = KakuroNative.setTitle "Kakuro Master"
