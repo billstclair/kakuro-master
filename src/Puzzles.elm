@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------
 --
 -- Puzzles.elm
--- "Database" of Kakuro puzzles
+-- Raw list of Kakuro puzzle data.
 -- Copyright (c) 2016 Bill St. Clair <billstclair@gmail.com>
 -- Some rights reserved.
 -- Distributed under the MIT License
@@ -18,7 +18,7 @@
 ----------------------------------------------------------------------
 
 module Puzzles exposing
-  (puzzles
+  ( puzzles
   )
 
 puzzles : List (Int, Int, Int, Int, String) -- [(kind, volume, book, number, spec)]
