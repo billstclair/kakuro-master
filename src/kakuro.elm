@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------
 --
 -- kakuro.elm
--- kakuro main screen
+-- kakuro-master.com main screen
 -- Copyright (c) 2016 Bill St. Clair <billstclair@gmail.com>
 -- Some rights reserved.
 -- Distributed under the MIT License
@@ -13,6 +13,8 @@ import KakuroStylesheet exposing (id, class, KId(..), KClass(..))
 import KakuroNative
 import Board exposing(Board)
 import PuzzleDB
+import Entities exposing (nbsp, copyright)
+import DebuggingRender
 
 import Array exposing (Array)
 import Char
@@ -110,58 +112,6 @@ subscriptions model =
 
 -- VIEW
 
-showDebugNumbers : Bool
-showDebugNumbers = True
-
-nbsp : String
-nbsp = String.cons (Char.fromCode 160) "" -- \u00A0
-
-copy: String
-copy = String.cons (Char.fromCode 169) ""
-
-renderElement : Int -> Html Msg
-renderElement val =
-  td
-    [ class BoardCellClass ]
-    [ text (if val == 0 then nbsp else toString val) ]
-
-renderRow : Int -> Array Int -> Html Msg
-renderRow rowNum row =
-  let es = (List.map renderElement (Array.toList row))
-      elts = if showDebugNumbers then
-               (debugNumbersIntElement rowNum) :: es
-             else
-               es
-  in
-      tr [] elts                         
-
-debugNumbersElement : String -> Html Msg
-debugNumbersElement label =
-  td [ class BoardLabelClass ] [ text label ]
-
-debugNumbersIntElement : Int -> Html Msg
-debugNumbersIntElement num =
-  debugNumbersElement (toString num)                              
-
-debugNumbersTopRow : (Board Int) -> Html Msg
-debugNumbersTopRow board =
-  tr
-    []
-    (debugNumbersElement nbsp ::
-       List.map debugNumbersIntElement [0..(board.cols-1)])
-
-renderBoard : (Board Int) -> Html Msg
-renderBoard board =
-  let rs = (List.map2 renderRow [0..(board.cols-1)] (Array.toList board.array))
-      rows = if showDebugNumbers then
-               (debugNumbersTopRow board) :: rs
-             else
-               rs
-  in
-      table
-        [ id BoardId ]
-        rows
-
 sqrimg : String -> String -> Int -> Html Msg
 sqrimg url name size =
   img [ src url
@@ -197,10 +147,10 @@ view model =
         -- , text (" " ++ toString model.time)  -- Will eventually be timer
         -- , showValue model.seed               -- debugging
         ]
-    , div [] [ renderBoard model.board ]
+    , div [] [ DebuggingRender.renderBoard model.board ]
     , div
         [ id FooterId ]
-        [ text ("Copyright " ++ copy ++ " 2016 Bill St. Clair <")
+        [ text (copyright ++ " 2016 Bill St. Clair <")
         , a [ href "mailto: billstclair@gmail.com" ]
           [text "billsclair@gmail.com" ]
         , text ">"
