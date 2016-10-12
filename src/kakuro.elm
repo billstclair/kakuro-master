@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------
 
 import KakuroStylesheet exposing (id, class, KId(..), KClass(..))
-import KakuroNative
+import KakuroNative exposing (sha256)
 import Board exposing(Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
@@ -144,6 +144,8 @@ view model =
         , br [][]
         , text "Board Number: "
         , text (toString model.index)
+        , br [][]
+        -- , text ("sha256(\"foo\"): " ++ sha256("foo"))
         -- , text (" " ++ toString model.time)  -- Will eventually be timer
         -- , showValue model.seed               -- debugging
         ]

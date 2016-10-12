@@ -14,8 +14,12 @@ module Entities exposing (..)
 import String
 import Char
 
+stringFromCode : Int -> String
+stringFromCode code =
+  String.cons (Char.fromCode code) ""
+
 nbsp : String
-nbsp = String.cons (Char.fromCode 160) "" -- \u00A0
+nbsp = stringFromCode 160   -- \u00A0
 
 copyright: String
-copyright = String.cons (Char.fromCode 169) ""
+copyright = stringFromCode 169  -- \u00A9
