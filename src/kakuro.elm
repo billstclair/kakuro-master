@@ -116,6 +116,9 @@ showDebugNumbers = True
 nbsp : String
 nbsp = String.cons (Char.fromCode 160) "" -- \u00A0
 
+copy: String
+copy = String.cons (Char.fromCode 169) ""
+
 renderElement : Int -> Html Msg
 renderElement val =
   td
@@ -197,7 +200,12 @@ view model =
     , div [] [ renderBoard model.board ]
     , div
         [ id FooterId ]
-        [ logoLink "https://steemit.com/created/kakuro-master"
+        [ text ("Copyright " ++ copy ++ " 2016 Bill St. Clair <")
+        , a [ href "mailto: billstclair@gmail.com" ]
+          [text "billsclair@gmail.com" ]
+        , text ">"
+        , br [][]
+        , logoLink "https://steemit.com/created/kakuro-master"
             "steemit-icon-114x114.png" "Steemit articles" 32
         , text " "
         , logoLink "https://github.com/billstclair/kakuro-master"
@@ -206,4 +214,5 @@ view model =
         , logoLink "http://elm-lang.org/"
             "elm-logo-125x125.png" "Elm inside" 28
         ]
+        
     ]

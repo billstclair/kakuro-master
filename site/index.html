@@ -10808,6 +10808,10 @@ var _billstclair$kakuro_master$Main$debugNumbersIntElement = function (num) {
 	return _billstclair$kakuro_master$Main$debugNumbersElement(
 		_elm_lang$core$Basics$toString(num));
 };
+var _billstclair$kakuro_master$Main$copy = A2(
+	_elm_lang$core$String$cons,
+	_elm_lang$core$Char$fromCode(169),
+	'');
 var _billstclair$kakuro_master$Main$nbsp = A2(
 	_elm_lang$core$String$cons,
 	_elm_lang$core$Char$fromCode(160),
@@ -11019,6 +11023,28 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Copyright ',
+							A2(_elm_lang$core$Basics_ops['++'], _billstclair$kakuro_master$Main$copy, ' 2016 Bill St. Clair <'))),
+						A2(
+						_elm_lang$html$Html$a,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$href('mailto: billstclair@gmail.com')
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('billsclair@gmail.com')
+							])),
+						_elm_lang$html$Html$text('>'),
+						A2(
+						_elm_lang$html$Html$br,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[])),
 						A4(_billstclair$kakuro_master$Main$logoLink, 'https://steemit.com/created/kakuro-master', 'steemit-icon-114x114.png', 'Steemit articles', 32),
 						_elm_lang$html$Html$text(' '),
 						A4(_billstclair$kakuro_master$Main$logoLink, 'https://github.com/billstclair/kakuro-master', 'GitHub-Mark-32px.png', 'GitHub source code', 32),
