@@ -46,7 +46,7 @@ pageTitle : String
 pageTitle = KakuroNative.setTitle "Kakuro Master"
 
 type alias Model =
-      { board : Board
+      { board : Board Int
       , kind : Int
       , index : Int
       , gencount : Int
@@ -61,9 +61,9 @@ seedCmd =
 init : (Model, Cmd Msg)
 init = (model, seedCmd)
 
-defaultBoard : Board
+defaultBoard : Board Int
 defaultBoard =
-  Board.make 6 6
+  Board.make 6 6 0
     |> Board.set 6 7 9
     |> Board.set 1 2 5
 
@@ -143,14 +143,14 @@ debugNumbersIntElement : Int -> Html Msg
 debugNumbersIntElement num =
   debugNumbersElement (toString num)                              
 
-debugNumbersTopRow : Board -> Html Msg
+debugNumbersTopRow : (Board Int) -> Html Msg
 debugNumbersTopRow board =
   tr
     []
     (debugNumbersElement nbsp ::
        List.map debugNumbersIntElement [0..(board.cols-1)])
 
-renderBoard : Board -> Html Msg
+renderBoard : (Board Int) -> Html Msg
 renderBoard board =
   let rs = (List.map2 renderRow [0..(board.cols-1)] (Array.toList board.array))
       rows = if showDebugNumbers then

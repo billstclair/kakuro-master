@@ -30,23 +30,23 @@ import Random
 
     generate maxrun seed board
 -}
-generate : Int -> Random.Seed -> Board -> (Board, Random.Seed)
+generate : Int -> Random.Seed -> (Board Int) -> ((Board Int), Random.Seed)
 generate maxrun seed board =
-  Board.make board.rows board.cols
+  Board.make board.rows board.cols 0
   |> generateRows 0 maxrun (skip maxrun board) seed
 
 random : Int -> Int -> Random.Seed -> (Int, Random.Seed)
 random min max seed =
   Random.step (Random.int min max) seed
 
-skip : Int -> Board -> Int
+skip : Int -> (Board Int) -> Int
 skip maxrun board =
   if board.cols > 2*maxrun then
     max 1 (board.cols//2 - maxrun)
   else
     max 1 (board.cols - maxrun)
 
-generateRows : Int -> Int -> Int -> Random.Seed -> Board -> (Board, Random.Seed)
+generateRows : Int -> Int -> Int -> Random.Seed -> (Board Int) -> ((Board Int), Random.Seed)
 generateRows row maxrun maxSkip seed board =
   let (start, seed) = random 0 maxSkip seed
       (rowArray, seed2) = generateRuns start maxrun maxSkip seed

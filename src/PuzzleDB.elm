@@ -34,7 +34,7 @@ specCharToInt char =
   else
     0
 
-fillBoardFromSpec : Int -> Int -> String -> Board -> Board
+fillBoardFromSpec : Int -> Int -> String -> Board Int -> Board Int
 fillBoardFromSpec row kind specTail board =
   if row >= kind then
     board
@@ -49,9 +49,9 @@ fillBoardFromSpec row kind specTail board =
     in
         fillBoardFromSpec (row+1) kind tail newBoard
 
-boardFromSpec : Int -> String -> Board
+boardFromSpec : Int -> String -> Board Int
 boardFromSpec kind spec =
-  fillBoardFromSpec 0 kind spec (Board.make kind kind)
+  fillBoardFromSpec 0 kind spec (Board.make kind kind 0)
 
 comparableForSpec : (Int, Int, Int, Int, String) -> (Int, Int, Int, Int)
 comparableForSpec (k, v, b, n, s) =
@@ -67,7 +67,7 @@ log str a b =
   in
       b
 
-segregatePuzzles : List (Int, Int, Int, Int, String) -> List (Int, List Board) -> List (Int, List (Int, Board))
+segregatePuzzles : List (Int, Int, Int, Int, String) -> List (Int, List (Board Int)) -> List (Int, List (Int, (Board Int)))
 segregatePuzzles specs res =
   case specs of
       [] ->
@@ -90,13 +90,13 @@ segregatePuzzles specs res =
         in
             segregatePuzzles tail newres
 
-kindedBoards : List (Int, List (Int, Board))
+kindedBoards : List (Int, List (Int, (Board Int)))
 kindedBoards = segregatePuzzles (sortSpecs Puzzles.puzzles) []
 
 boardKinds : List Int
 boardKinds = List.map fst kindedBoards
 
-boardsOfKind : Int -> List (Int, Board)
+boardsOfKind : Int -> List (Int, (Board Int))
 boardsOfKind kind =
   case LE.find (\(k,b) -> k == kind) kindedBoards of
       Nothing -> []
@@ -106,13 +106,13 @@ numberOfBoardsOfKind : Int -> Int
 numberOfBoardsOfKind kind =
   List.length (boardsOfKind kind)
 
-nextBoardOfKind : Int -> Int -> (Int, Board)
+nextBoardOfKind : Int -> Int -> (Int, (Board Int))
 nextBoardOfKind kind number =
   case List.head (LE.dropWhile (\(n,b) -> n<=number) (boardsOfKind kind))
   of
       Nothing ->
         case List.head (boardsOfKind kind) of
-            Nothing -> (0, Board.make kind kind)
+            Nothing -> (0, Board.make kind kind 0)
             Just res -> res
       Just res ->
         res

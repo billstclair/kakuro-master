@@ -27,28 +27,30 @@ module Board exposing
 import Array exposing (Array)
 
 {-|-}
-type alias Board =
+type alias Board a =
   { rows : Int
   , cols : Int
-  , array: Array (Array Int)
+  , default: a
+  , array: Array (Array a)
   }
       
-makeRow : Int -> (Array Int)
-makeRow cols =
-  Array.repeat cols 0
+makeRow : Int -> a -> (Array a)
+makeRow cols default =
+  Array.repeat cols default
 
 {-| Create a new Board of the given size.
 
     make rows cols
 -}
-make : Int -> Int -> Board
-make rows cols =
+make : Int -> Int -> a -> Board a
+make rows cols default =
   Board
     rows
     cols
-    (Array.repeat rows (makeRow cols))
+    default
+    (Array.repeat rows (makeRow cols default))
 
-check : Board -> Int -> Int -> Bool
+check : Board a -> Int -> Int -> Bool
 check board row col =
   row>=0 && row<board.rows && col>=0 && col<board.cols
 
@@ -56,20 +58,20 @@ check board row col =
 
     get row col board
 -}
-get : Int -> Int -> Board -> Int
+get : Int -> Int -> Board a -> a
 get row col board =
   case Array.get row board.array of
-      Nothing -> 0
+      Nothing -> board.default
       Just r ->
         case Array.get col r of
-            Nothing -> 0
+            Nothing -> board.default
             Just res -> res
 
 {-| Set a single element. Does nothing if row or col is out of range.
 
     set row col val board
 -}
-set : Int -> Int -> Int -> Board -> Board
+set : Int -> Int -> a -> Board a -> Board a
 set row col val board =
   if not (check board row col) then
     board
@@ -87,17 +89,17 @@ set row col val board =
 
     getRow row board
 -}
-getRow : Int -> Board -> Array Int
+getRow : Int -> Board a -> Array a
 getRow row board =
   case Array.get row board.array of
-      Nothing -> makeRow board.cols
+      Nothing -> makeRow board.cols board.default
       Just row -> row
 
 {-| Set row in board to rowArray. Do nothing if row is out of range.
 
     setRow row rowArray board
 -}
-setRow : Int -> Array Int -> Board -> Board
+setRow : Int -> Array a -> Board a -> Board a
 setRow row rowArray board =
   { board | array = Array.set row rowArray board.array }
   
