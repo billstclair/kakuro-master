@@ -102,4 +102,4 @@ getRow row board =
 setRow : Int -> Array a -> Board a -> Board a
 setRow row rowArray board =
   { board | array = Array.set row rowArray board.array }
-  
+
