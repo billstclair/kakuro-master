@@ -157,32 +157,48 @@ computeLabels board =
   computeLabelsLoop
     0 0 board <| Board.make (board.rows+1) (board.cols+1) emptyLabels
 
+renderCell : Int -> Int -> Board Int -> LabelsBoard -> Html a
+renderCell row col board labelsBoard =
+  cell 1
+
+renderColsLoop : Int -> Int -> List (Html a) -> Board Int -> LabelsBoard -> List (Html a)
+renderColsLoop row col res board labelsBoard =
+  if col >= labelsBoard.cols then
+    res
+  else
+    renderColsLoop row
+                   (col+1)
+                   ((renderCell row col board labelsBoard) :: res)
+                   board
+                   labelsBoard
+
+renderCols : Int -> Board Int -> LabelsBoard -> List (Html a)
+renderCols row board labelsBoard =
+  renderColsLoop row 0 [] board labelsBoard
+
+renderRow : Int -> Board Int -> LabelsBoard -> Html a
+renderRow row board labelsBoard =
+  tr [] <| renderCols row board labelsBoard
+
+renderRowsLoop : Int -> List (Html a) -> Board Int -> LabelsBoard -> List (Html a)
+renderRowsLoop row res board labelsBoard =
+  if row >= labelsBoard.rows then
+    res
+  else
+    renderRowsLoop (row+1)
+                   ((renderRow row board labelsBoard) :: res)
+                   board
+                   labelsBoard
+      
+
+renderRows : Board Int -> LabelsBoard -> List (Html a)
+renderRows board labelsBoard =
+  renderRowsLoop 0 [] board labelsBoard
+
 render : Board Int -> Html a
 render board =
   div []
     [ Styles.Board.style
     , table [ class Table ]
-      [ tr []
-          [ cell 1
-          , label 26 17
-          , cell 3
-          , selectedErrorCell 4
-          , cell 5
-          , emptyCell
-          , selectedCell 7
-          , cell 8
-          , errorCell 9
-          ]
-      , tr []
-         (map cell [1..9])
-      , tr []
-          ( cell 1
-            ::
-            hintCell [3, 5, 7, 8]
-            ::
-            (map cell [3..9])
-          )
-      , tr []
-          (map cell [1..9])
-      ]
+        (renderRows board <| computeLabels board)
     ]

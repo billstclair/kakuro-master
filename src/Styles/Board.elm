@@ -42,7 +42,9 @@ rules =
   [ rule
       [ Type "tr" ]
       [ ("padding", "0")
-      , ("margin", "0") ]
+      , ("margin", "0")
+      , ("board", "none")
+      ]
   , rule
       [ Type "td" ]
       [ ("width", "1.5em")
@@ -54,8 +56,8 @@ rules =
       ]
   , rule
       [ Class Table ]
-      [ ("border", "1px solid black")
-      , ("font-family", "monospace")
+      [ ("font-family", "monospace")
+      , ("border", "1px solid black")
       ]
   , rule
       [ Class CellTd ]
@@ -77,6 +79,7 @@ rules =
       [ Class LabelTable]
       [ ("width", "99%")
       , ("height", "99%")
+      , ("border", "none")
       ]
   , rule
       [ Class LabelTr]
