@@ -9,12 +9,13 @@
 --
 ----------------------------------------------------------------------
 
-import KakuroStylesheet exposing (id, class, KId(..), KClass(..))
+import Styles.Page exposing (id, class, PId(..), PClass(..))
 import KakuroNative exposing (sha256)
 import Board exposing(Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
 import DebuggingRender
+import RenderBoard
 
 import Array exposing (Array)
 import Char
@@ -25,7 +26,7 @@ import Task
 
 import Html exposing
   (Html, Attribute, button, div, h2, text, table, tr, td, th
-  ,input, button, br, a, img)
+  ,input, button, a, img, span)
 import Html.Attributes
   exposing (style, align, value, size, href, src, title, alt, width, height)
 import Html.App as Html
@@ -130,39 +131,52 @@ showValue : a -> Html Msg
 showValue seed =
   div [] [text <| toString seed]
 
+br : Html a
+br = Html.br [] []
+
+mailLink : String -> Html Msg
+mailLink email =
+  span []
+    [ text "<"
+    , a [ href ("mailto: " ++ email) ]
+      [ text email ]
+    , text ">"
+    ]
+
+space : Html Msg
+space = text " "
+
 view : Model -> Html Msg
 view model =
   div [ align "center" --deprecated, so sue me
       ]
-    [ KakuroStylesheet.style
+    [ Styles.Page.style
     , h2 [] [text pageTitle]
     , div
         [ id TopInputId ]
         [ button [ onClick Generate
                  , class ControlsClass ]
            [ text "Next" ]
-        , br [][]
+        , br
         , text "Board Number: "
         , text (toString model.index)
-        , br [][]
+        , br
         -- , text ("sha256(\"foo\"): " ++ sha256("foo"))
         -- , text (" " ++ toString model.time)  -- Will eventually be timer
         -- , showValue model.seed               -- debugging
         ]
-    , div [] [ DebuggingRender.renderBoard model.board ]
+    , div [] [ RenderBoard.render model.board ]
     , div
         [ id FooterId ]
-        [ text (copyright ++ " 2016 Bill St. Clair <")
-        , a [ href "mailto: billstclair@gmail.com" ]
-          [text "billsclair@gmail.com" ]
-        , text ">"
-        , br [][]
+        [ text (copyright ++ " 2016 Bill St. Clair ")
+        , mailLink "billstclair.com"
+        , br
         , logoLink "https://steemit.com/created/kakuro-master"
             "steemit-icon-114x114.png" "Steemit articles" 32
-        , text " "
+        , space
         , logoLink "https://github.com/billstclair/kakuro-master"
             "GitHub-Mark-32px.png" "GitHub source code" 32
-        , text " "
+        , space
         , logoLink "http://elm-lang.org/"
             "elm-logo-125x125.png" "Elm inside" 28
         ]

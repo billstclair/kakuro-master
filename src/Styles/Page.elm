@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------
 --
--- KakuroStylesheet.elm
+-- Styles/Page.elm
 -- The CSS Stylesheet for the Kakuro page
 -- Copyright (c) 2016 Bill St. Clair <billstclair@gmail.com>
 -- Some rights reserved.
@@ -9,18 +9,18 @@
 --
 ----------------------------------------------------------------------
 
-module KakuroStylesheet exposing
-  ( style, KClass(..), KId(..), id, class
+module Styles.Page exposing
+  ( style, PClass(..), PId(..), id, class
   )
 
 import Css exposing (Sel(..))
 import Html.Attributes
 
-type KClass = BoardCellClass
+type PClass = BoardCellClass
             | BoardLabelClass
             | ControlsClass
 
-type KId = BoardId
+type PId = BoardId
          | TopInputId
          | FooterId
 

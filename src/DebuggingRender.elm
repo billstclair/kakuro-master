@@ -11,7 +11,7 @@
 
 module DebuggingRender exposing (renderBoard)
 
-import KakuroStylesheet exposing (id, class, KId(..), KClass(..))
+import Styles.Page exposing (id, class, PId(..), PClass(..))
 import Board exposing(Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
