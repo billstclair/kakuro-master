@@ -30,14 +30,14 @@ br : Html a
 br =
   Html.br [][]
 
-classedCell : Int -> Attribute a -> Html a
-classedCell num attribute =
-  td [ attribute ]
+classedCell : Int -> List BClass -> Html a
+classedCell num classTypes =
+  td [ classes (CellTd :: classTypes) ]
     [ text (toString num) ]
 
 cell : Int -> Html a
 cell num =
-  classedCell num (class CellTd)
+  classedCell num []
 
 emptyCell : Html a
 emptyCell =
@@ -48,7 +48,15 @@ emptyCell =
 
 errorCell : Int -> Html a
 errorCell num =
-  classedCell num (classes [ Error, CellTd ])
+  classedCell num [ Error ]
+
+selectedCell : Int -> Html a
+selectedCell num =
+  classedCell num [ Selected ]
+
+selectedErrorCell : Int -> Html a
+selectedErrorCell num =
+  classedCell num [ SelectedError ]
 
 hintChars : List Int -> Int -> String
 hintChars hints hint =
@@ -101,10 +109,10 @@ render board =
           [ cell 1
           , label 26 17
           , cell 3
-          , classedCell 4 (classes [ SelectedError, CellTd ])
+          , selectedErrorCell 4
           , cell 5
           , emptyCell
-          , classedCell 7 (classes [ Selected, CellTd ])
+          , selectedCell 7
           , cell 8
           , errorCell 9
           ]
