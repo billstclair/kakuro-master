@@ -3747,11 +3747,11 @@ var _billstclair$kakuro_master$Board$get = F3(
 	function (row, col, board) {
 		var _p0 = A2(_elm_lang$core$Array$get, row, board.array);
 		if (_p0.ctor === 'Nothing') {
-			return 0;
+			return board.$default;
 		} else {
 			var _p1 = A2(_elm_lang$core$Array$get, col, _p0._0);
 			if (_p1.ctor === 'Nothing') {
-				return 0;
+				return board.$default;
 			} else {
 				return _p1._0;
 			}
@@ -3783,46 +3783,39 @@ var _billstclair$kakuro_master$Board$set = F4(
 			}
 		}
 	});
-var _billstclair$kakuro_master$Board$makeRow = function (cols) {
-	return A2(_elm_lang$core$Array$repeat, cols, 0);
-};
+var _billstclair$kakuro_master$Board$makeRow = F2(
+	function (cols, $default) {
+		return A2(_elm_lang$core$Array$repeat, cols, $default);
+	});
 var _billstclair$kakuro_master$Board$getRow = F2(
 	function (row, board) {
 		var _p3 = A2(_elm_lang$core$Array$get, row, board.array);
 		if (_p3.ctor === 'Nothing') {
-			return _billstclair$kakuro_master$Board$makeRow(board.cols);
+			return A2(_billstclair$kakuro_master$Board$makeRow, board.cols, board.$default);
 		} else {
 			return _p3._0;
 		}
 	});
-var _billstclair$kakuro_master$Board$Board = F3(
-	function (a, b, c) {
-		return {rows: a, cols: b, array: c};
+var _billstclair$kakuro_master$Board$Board = F4(
+	function (a, b, c, d) {
+		return {rows: a, cols: b, $default: c, array: d};
 	});
-var _billstclair$kakuro_master$Board$make = F2(
-	function (rows, cols) {
-		return A3(
+var _billstclair$kakuro_master$Board$makeWithInitial = F4(
+	function (rows, cols, $default, initial) {
+		return A4(
 			_billstclair$kakuro_master$Board$Board,
 			rows,
 			cols,
+			$default,
 			A2(
 				_elm_lang$core$Array$repeat,
 				rows,
-				_billstclair$kakuro_master$Board$makeRow(cols)));
+				A2(_billstclair$kakuro_master$Board$makeRow, cols, initial)));
 	});
-var _billstclair$kakuro_master$Native_Kakuro = function() {
-
-function setTitle(title) {
-  document.title = title;
-  return title;
-}
-
-return {
-  setTitle: setTitle
-};
-
-}();
-var _billstclair$kakuro_master$KakuroNative$setTitle = _billstclair$kakuro_master$Native_Kakuro.setTitle;
+var _billstclair$kakuro_master$Board$make = F3(
+	function (rows, cols, $default) {
+		return A4(_billstclair$kakuro_master$Board$makeWithInitial, rows, cols, $default, $default);
+	});
 //import Maybe, Native.List, Native.Utils, Result //
 
 var _elm_lang$core$Native_String = function() {
@@ -8134,25 +8127,25 @@ var _massung$elm_css$Css$Visited = {ctor: 'Visited'};
 var _massung$elm_css$Css$Link = {ctor: 'Link'};
 var _massung$elm_css$Css$Default = {ctor: 'Default'};
 var _massung$elm_css$Css$Any = {ctor: 'Any'};
-var _billstclair$kakuro_master$KakuroStylesheet$rule = F2(
+var _billstclair$kakuro_master$Styles_Page$rule = F2(
 	function (selectors, descriptor) {
 		return {selectors: selectors, descriptor: descriptor};
 	});
-var _billstclair$kakuro_master$KakuroStylesheet$imports = _elm_lang$core$Native_List.fromArray(
+var _billstclair$kakuro_master$Styles_Page$imports = _elm_lang$core$Native_List.fromArray(
 	[]);
-var _billstclair$kakuro_master$KakuroStylesheet$ControlsClass = {ctor: 'ControlsClass'};
-var _billstclair$kakuro_master$KakuroStylesheet$BoardLabelClass = {ctor: 'BoardLabelClass'};
-var _billstclair$kakuro_master$KakuroStylesheet$BoardCellClass = {ctor: 'BoardCellClass'};
-var _billstclair$kakuro_master$KakuroStylesheet$FooterId = {ctor: 'FooterId'};
-var _billstclair$kakuro_master$KakuroStylesheet$TopInputId = {ctor: 'TopInputId'};
-var _billstclair$kakuro_master$KakuroStylesheet$BoardId = {ctor: 'BoardId'};
-var _billstclair$kakuro_master$KakuroStylesheet$rules = _elm_lang$core$Native_List.fromArray(
+var _billstclair$kakuro_master$Styles_Page$ControlsClass = {ctor: 'ControlsClass'};
+var _billstclair$kakuro_master$Styles_Page$BoardLabelClass = {ctor: 'BoardLabelClass'};
+var _billstclair$kakuro_master$Styles_Page$BoardCellClass = {ctor: 'BoardCellClass'};
+var _billstclair$kakuro_master$Styles_Page$FooterId = {ctor: 'FooterId'};
+var _billstclair$kakuro_master$Styles_Page$TopInputId = {ctor: 'TopInputId'};
+var _billstclair$kakuro_master$Styles_Page$BoardId = {ctor: 'BoardId'};
+var _billstclair$kakuro_master$Styles_Page$rules = _elm_lang$core$Native_List.fromArray(
 	[
 		A2(
-		_billstclair$kakuro_master$KakuroStylesheet$rule,
+		_billstclair$kakuro_master$Styles_Page$rule,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_massung$elm_css$Css$Id(_billstclair$kakuro_master$KakuroStylesheet$BoardId)
+				_massung$elm_css$Css$Id(_billstclair$kakuro_master$Styles_Page$BoardId)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -8162,40 +8155,40 @@ var _billstclair$kakuro_master$KakuroStylesheet$rules = _elm_lang$core$Native_Li
 				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'}
 			])),
 		A2(
-		_billstclair$kakuro_master$KakuroStylesheet$rule,
+		_billstclair$kakuro_master$Styles_Page$rule,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_massung$elm_css$Css$Id(_billstclair$kakuro_master$KakuroStylesheet$TopInputId)
+				_massung$elm_css$Css$Id(_billstclair$kakuro_master$Styles_Page$TopInputId)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				{ctor: '_Tuple2', _0: 'margin-bottom', _1: '0.5em'}
 			])),
 		A2(
-		_billstclair$kakuro_master$KakuroStylesheet$rule,
+		_billstclair$kakuro_master$Styles_Page$rule,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_massung$elm_css$Css$Id(_billstclair$kakuro_master$KakuroStylesheet$FooterId)
+				_massung$elm_css$Css$Id(_billstclair$kakuro_master$Styles_Page$FooterId)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				{ctor: '_Tuple2', _0: 'margin-top', _1: '2em'}
 			])),
 		A2(
-		_billstclair$kakuro_master$KakuroStylesheet$rule,
+		_billstclair$kakuro_master$Styles_Page$rule,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$KakuroStylesheet$ControlsClass)
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Page$ControlsClass)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				{ctor: '_Tuple2', _0: 'font-size', _1: '14pt'}
 			])),
 		A2(
-		_billstclair$kakuro_master$KakuroStylesheet$rule,
+		_billstclair$kakuro_master$Styles_Page$rule,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$KakuroStylesheet$BoardCellClass)
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Page$BoardCellClass)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -8204,10 +8197,10 @@ var _billstclair$kakuro_master$KakuroStylesheet$rules = _elm_lang$core$Native_Li
 				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'}
 			])),
 		A2(
-		_billstclair$kakuro_master$KakuroStylesheet$rule,
+		_billstclair$kakuro_master$Styles_Page$rule,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$KakuroStylesheet$BoardLabelClass)
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Page$BoardLabelClass)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -8217,16 +8210,16 @@ var _billstclair$kakuro_master$KakuroStylesheet$rules = _elm_lang$core$Native_Li
 				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'}
 			]))
 	]);
-var _billstclair$kakuro_master$KakuroStylesheet$stylesheet = A2(_massung$elm_css$Css$stylesheet, _billstclair$kakuro_master$KakuroStylesheet$imports, _billstclair$kakuro_master$KakuroStylesheet$rules);
-var _billstclair$kakuro_master$KakuroStylesheet$style = A2(
+var _billstclair$kakuro_master$Styles_Page$stylesheet = A2(_massung$elm_css$Css$stylesheet, _billstclair$kakuro_master$Styles_Page$imports, _billstclair$kakuro_master$Styles_Page$rules);
+var _billstclair$kakuro_master$Styles_Page$style = A2(
 	_massung$elm_css$Css$style,
 	_elm_lang$core$Native_List.fromArray(
 		[
 			_elm_lang$html$Html_Attributes$scoped(true)
 		]),
-	_billstclair$kakuro_master$KakuroStylesheet$stylesheet);
-var _billstclair$kakuro_master$KakuroStylesheet$id = _billstclair$kakuro_master$KakuroStylesheet$stylesheet.id;
-var _billstclair$kakuro_master$KakuroStylesheet$class = _billstclair$kakuro_master$KakuroStylesheet$stylesheet.$class;
+	_billstclair$kakuro_master$Styles_Page$stylesheet);
+var _billstclair$kakuro_master$Styles_Page$id = _billstclair$kakuro_master$Styles_Page$stylesheet.id;
+var _billstclair$kakuro_master$Styles_Page$class = _billstclair$kakuro_master$Styles_Page$stylesheet.$class;
 var _billstclair$kakuro_master$Puzzles$puzzles = _elm_lang$core$Native_List.fromArray(
 	[
 		{ctor: '_Tuple5', _0: 6, _1: 1, _2: 1, _3: 1, _4: '.38.31.13.12..139..798..31.92.92.21.'},
@@ -9673,7 +9666,7 @@ var _billstclair$kakuro_master$PuzzleDB$boardFromSpec = F2(
 			0,
 			kind,
 			spec,
-			A2(_billstclair$kakuro_master$Board$make, kind, kind));
+			A3(_billstclair$kakuro_master$Board$make, kind, kind, 0));
 	});
 var _billstclair$kakuro_master$PuzzleDB$segregatePuzzles = F2(
 	function (specs, res) {
@@ -9778,7 +9771,7 @@ var _billstclair$kakuro_master$PuzzleDB$nextBoardOfKind = F2(
 				return {
 					ctor: '_Tuple2',
 					_0: 0,
-					_1: A2(_billstclair$kakuro_master$Board$make, kind, kind)
+					_1: A3(_billstclair$kakuro_master$Board$make, kind, kind, 0)
 				};
 			} else {
 				return _p14._0;
@@ -9787,6 +9780,961 @@ var _billstclair$kakuro_master$PuzzleDB$nextBoardOfKind = F2(
 			return _p13._0;
 		}
 	});
+var _billstclair$kakuro_master$Entities$stringFromCode = function (code) {
+	return _elm_lang$core$String$fromList(
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$core$Char$fromCode(code)
+			]));
+};
+var _billstclair$kakuro_master$Entities$nbsp = _billstclair$kakuro_master$Entities$stringFromCode(160);
+var _billstclair$kakuro_master$Entities$copyright = _billstclair$kakuro_master$Entities$stringFromCode(169);
+var _billstclair$kakuro_master$DebuggingRender$debugNumbersElement = function (label) {
+	return A2(
+		_elm_lang$html$Html$td,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_billstclair$kakuro_master$Styles_Page$class(_billstclair$kakuro_master$Styles_Page$BoardLabelClass)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(label)
+			]));
+};
+var _billstclair$kakuro_master$DebuggingRender$debugNumbersIntElement = function (num) {
+	return _billstclair$kakuro_master$DebuggingRender$debugNumbersElement(
+		_elm_lang$core$Basics$toString(num));
+};
+var _billstclair$kakuro_master$DebuggingRender$debugNumbersTopRow = function (board) {
+	return A2(
+		_elm_lang$html$Html$tr,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		A2(
+			_elm_lang$core$List_ops['::'],
+			_billstclair$kakuro_master$DebuggingRender$debugNumbersElement(_billstclair$kakuro_master$Entities$nbsp),
+			A2(
+				_elm_lang$core$List$map,
+				_billstclair$kakuro_master$DebuggingRender$debugNumbersIntElement,
+				_elm_lang$core$Native_List.range(0, board.cols - 1))));
+};
+var _billstclair$kakuro_master$DebuggingRender$renderElement = function (val) {
+	return A2(
+		_elm_lang$html$Html$td,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_billstclair$kakuro_master$Styles_Page$class(_billstclair$kakuro_master$Styles_Page$BoardCellClass)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(
+				_elm_lang$core$Native_Utils.eq(val, 0) ? _billstclair$kakuro_master$Entities$nbsp : _elm_lang$core$Basics$toString(val))
+			]));
+};
+var _billstclair$kakuro_master$DebuggingRender$showDebugNumbers = true;
+var _billstclair$kakuro_master$DebuggingRender$renderRow = F2(
+	function (rowNum, row) {
+		var es = A2(
+			_elm_lang$core$List$map,
+			_billstclair$kakuro_master$DebuggingRender$renderElement,
+			_elm_lang$core$Array$toList(row));
+		var elts = _billstclair$kakuro_master$DebuggingRender$showDebugNumbers ? A2(
+			_elm_lang$core$List_ops['::'],
+			_billstclair$kakuro_master$DebuggingRender$debugNumbersIntElement(rowNum),
+			es) : es;
+		return A2(
+			_elm_lang$html$Html$tr,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			elts);
+	});
+var _billstclair$kakuro_master$DebuggingRender$renderBoard = function (board) {
+	var rs = A3(
+		_elm_lang$core$List$map2,
+		_billstclair$kakuro_master$DebuggingRender$renderRow,
+		_elm_lang$core$Native_List.range(0, board.cols - 1),
+		_elm_lang$core$Array$toList(board.array));
+	var rows = _billstclair$kakuro_master$DebuggingRender$showDebugNumbers ? A2(
+		_elm_lang$core$List_ops['::'],
+		_billstclair$kakuro_master$DebuggingRender$debugNumbersTopRow(board),
+		rs) : rs;
+	return A2(
+		_elm_lang$html$Html$table,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_billstclair$kakuro_master$Styles_Page$id(_billstclair$kakuro_master$Styles_Page$BoardId)
+			]),
+		rows);
+};
+var _billstclair$kakuro_master$Native_Kakuro = function() {
+
+function setTitle(title) {
+  document.title = title;
+  return title;
+}
+
+var res = {
+  setTitle: setTitle
+};
+
+sha256(res);
+
+return res;
+
+/**
+ * [js-sha256]{@link https://github.com/emn178/js-sha256}
+ *
+ * @version 0.3.2
+ * @author Chen, Yi-Cyuan [emn178@gmail.com]
+ * @copyright Chen, Yi-Cyuan 2014-2016
+ * @license MIT
+ */
+function sha256 (root) {
+  'use strict';
+
+  var HEX_CHARS = '0123456789abcdef'.split('');
+  var EXTRA = [-2147483648, 8388608, 32768, 128];
+  var SHIFT = [24, 16, 8, 0];
+  var K =[0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+          0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+          0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+          0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+          0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+          0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+          0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+          0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+
+  var blocks = [];
+
+  var sha224 = function (message) {
+    return sha256(message, true);
+  };
+
+  var sha256 = function (message, is224) {
+    var h0, h1, h2, h3, h4, h5, h6, h7, block, code, first = true, end = false,
+        i, j, index = 0, start = 0, bytes = 0, length = message.length,
+        s0, s1, maj, t1, t2, ch, ab, da, cd, bc;
+
+    if (is224) {
+      h0 = 0xc1059ed8;
+      h1 = 0x367cd507;
+      h2 = 0x3070dd17;
+      h3 = 0xf70e5939;
+      h4 = 0xffc00b31;
+      h5 = 0x68581511;
+      h6 = 0x64f98fa7;
+      h7 = 0xbefa4fa4;
+    } else { // 256
+      h0 = 0x6a09e667;
+      h1 = 0xbb67ae85;
+      h2 = 0x3c6ef372;
+      h3 = 0xa54ff53a;
+      h4 = 0x510e527f;
+      h5 = 0x9b05688c;
+      h6 = 0x1f83d9ab;
+      h7 = 0x5be0cd19;
+    }
+    block = 0;
+    do {
+      blocks[0] = block;
+      blocks[16] = blocks[1] = blocks[2] = blocks[3] =
+      blocks[4] = blocks[5] = blocks[6] = blocks[7] =
+      blocks[8] = blocks[9] = blocks[10] = blocks[11] =
+      blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
+
+        for (i = start;index < length && i < 64;++index) {
+          code = message.charCodeAt(index);
+          if (code < 0x80) {
+            blocks[i >> 2] |= code << SHIFT[i++ & 3];
+          } else if (code < 0x800) {
+            blocks[i >> 2] |= (0xc0 | (code >> 6)) << SHIFT[i++ & 3];
+            blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+          } else if (code < 0xd800 || code >= 0xe000) {
+            blocks[i >> 2] |= (0xe0 | (code >> 12)) << SHIFT[i++ & 3];
+            blocks[i >> 2] |= (0x80 | ((code >> 6) & 0x3f)) << SHIFT[i++ & 3];
+            blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+          } else {
+            code = 0x10000 + (((code & 0x3ff) << 10) | (message.charCodeAt(++index) & 0x3ff));
+            blocks[i >> 2] |= (0xf0 | (code >> 18)) << SHIFT[i++ & 3];
+            blocks[i >> 2] |= (0x80 | ((code >> 12) & 0x3f)) << SHIFT[i++ & 3];
+            blocks[i >> 2] |= (0x80 | ((code >> 6) & 0x3f)) << SHIFT[i++ & 3];
+            blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+          }
+        }
+
+      bytes += i - start;
+      start = i - 64;
+      if (index == length) {
+        blocks[i >> 2] |= EXTRA[i & 3];
+        ++index;
+      }
+      block = blocks[16];
+      if (index > length && i < 56) {
+        blocks[15] = bytes << 3;
+        end = true;
+      }
+
+      var a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+      for (j = 16;j < 64;++j) {
+        // rightrotate
+        t1 = blocks[j - 15];
+        s0 = ((t1 >>> 7) | (t1 << 25)) ^ ((t1 >>> 18) | (t1 << 14)) ^ (t1 >>> 3);
+        t1 = blocks[j - 2];
+        s1 = ((t1 >>> 17) | (t1 << 15)) ^ ((t1 >>> 19) | (t1 << 13)) ^ (t1 >>> 10);
+        blocks[j] = blocks[j - 16] + s0 + blocks[j - 7] + s1 << 0;
+      }
+
+      bc = b & c;
+      for (j = 0;j < 64;j += 4) {
+        if (first) {
+          if (is224) {
+            ab = 300032;
+            t1 = blocks[0] - 1413257819;
+            h = t1 - 150054599 << 0;
+            d = t1 + 24177077 << 0;
+          } else {
+            ab = 704751109;
+            t1 = blocks[0] - 210244248;
+            h = t1 - 1521486534 << 0;
+            d = t1 + 143694565 << 0;
+          }
+          first = false;
+        } else {
+          s0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+          s1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+          ab = a & b;
+          maj = ab ^ (a & c) ^ bc;
+          ch = (e & f) ^ (~e & g);
+          t1 = h + s1 + ch + K[j] + blocks[j];
+          t2 = s0 + maj;
+          h = d + t1 << 0;
+          d = t1 + t2 << 0;
+        }
+        s0 = ((d >>> 2) | (d << 30)) ^ ((d >>> 13) | (d << 19)) ^ ((d >>> 22) | (d << 10));
+        s1 = ((h >>> 6) | (h << 26)) ^ ((h >>> 11) | (h << 21)) ^ ((h >>> 25) | (h << 7));
+        da = d & a;
+        maj = da ^ (d & b) ^ ab;
+        ch = (h & e) ^ (~h & f);
+        t1 = g + s1 + ch + K[j + 1] + blocks[j + 1];
+        t2 = s0 + maj;
+        g = c + t1 << 0;
+        c = t1 + t2 << 0;
+        s0 = ((c >>> 2) | (c << 30)) ^ ((c >>> 13) | (c << 19)) ^ ((c >>> 22) | (c << 10));
+        s1 = ((g >>> 6) | (g << 26)) ^ ((g >>> 11) | (g << 21)) ^ ((g >>> 25) | (g << 7));
+        cd = c & d;
+        maj = cd ^ (c & a) ^ da;
+        ch = (g & h) ^ (~g & e);
+        t1 = f + s1 + ch + K[j + 2] + blocks[j + 2];
+        t2 = s0 + maj;
+        f = b + t1 << 0;
+        b = t1 + t2 << 0;
+        s0 = ((b >>> 2) | (b << 30)) ^ ((b >>> 13) | (b << 19)) ^ ((b >>> 22) | (b << 10));
+        s1 = ((f >>> 6) | (f << 26)) ^ ((f >>> 11) | (f << 21)) ^ ((f >>> 25) | (f << 7));
+        bc = b & c;
+        maj = bc ^ (b & d) ^ cd;
+        ch = (f & g) ^ (~f & h);
+        t1 = e + s1 + ch + K[j + 3] + blocks[j + 3];
+        t2 = s0 + maj;
+        e = a + t1 << 0;
+        a = t1 + t2 << 0;
+      }
+
+      h0 = h0 + a << 0;
+      h1 = h1 + b << 0;
+      h2 = h2 + c << 0;
+      h3 = h3 + d << 0;
+      h4 = h4 + e << 0;
+      h5 = h5 + f << 0;
+      h6 = h6 + g << 0;
+      h7 = h7 + h << 0;
+    } while (!end);
+
+    var hex = HEX_CHARS[(h0 >> 28) & 0x0F] + HEX_CHARS[(h0 >> 24) & 0x0F] +
+              HEX_CHARS[(h0 >> 20) & 0x0F] + HEX_CHARS[(h0 >> 16) & 0x0F] +
+              HEX_CHARS[(h0 >> 12) & 0x0F] + HEX_CHARS[(h0 >> 8) & 0x0F] +
+              HEX_CHARS[(h0 >> 4) & 0x0F] + HEX_CHARS[h0 & 0x0F] +
+              HEX_CHARS[(h1 >> 28) & 0x0F] + HEX_CHARS[(h1 >> 24) & 0x0F] +
+              HEX_CHARS[(h1 >> 20) & 0x0F] + HEX_CHARS[(h1 >> 16) & 0x0F] +
+              HEX_CHARS[(h1 >> 12) & 0x0F] + HEX_CHARS[(h1 >> 8) & 0x0F] +
+              HEX_CHARS[(h1 >> 4) & 0x0F] + HEX_CHARS[h1 & 0x0F] +
+              HEX_CHARS[(h2 >> 28) & 0x0F] + HEX_CHARS[(h2 >> 24) & 0x0F] +
+              HEX_CHARS[(h2 >> 20) & 0x0F] + HEX_CHARS[(h2 >> 16) & 0x0F] +
+              HEX_CHARS[(h2 >> 12) & 0x0F] + HEX_CHARS[(h2 >> 8) & 0x0F] +
+              HEX_CHARS[(h2 >> 4) & 0x0F] + HEX_CHARS[h2 & 0x0F] +
+              HEX_CHARS[(h3 >> 28) & 0x0F] + HEX_CHARS[(h3 >> 24) & 0x0F] +
+              HEX_CHARS[(h3 >> 20) & 0x0F] + HEX_CHARS[(h3 >> 16) & 0x0F] +
+              HEX_CHARS[(h3 >> 12) & 0x0F] + HEX_CHARS[(h3 >> 8) & 0x0F] +
+              HEX_CHARS[(h3 >> 4) & 0x0F] + HEX_CHARS[h3 & 0x0F] +
+              HEX_CHARS[(h4 >> 28) & 0x0F] + HEX_CHARS[(h4 >> 24) & 0x0F] +
+              HEX_CHARS[(h4 >> 20) & 0x0F] + HEX_CHARS[(h4 >> 16) & 0x0F] +
+              HEX_CHARS[(h4 >> 12) & 0x0F] + HEX_CHARS[(h4 >> 8) & 0x0F] +
+              HEX_CHARS[(h4 >> 4) & 0x0F] + HEX_CHARS[h4 & 0x0F] +
+              HEX_CHARS[(h5 >> 28) & 0x0F] + HEX_CHARS[(h5 >> 24) & 0x0F] +
+              HEX_CHARS[(h5 >> 20) & 0x0F] + HEX_CHARS[(h5 >> 16) & 0x0F] +
+              HEX_CHARS[(h5 >> 12) & 0x0F] + HEX_CHARS[(h5 >> 8) & 0x0F] +
+              HEX_CHARS[(h5 >> 4) & 0x0F] + HEX_CHARS[h5 & 0x0F] +
+              HEX_CHARS[(h6 >> 28) & 0x0F] + HEX_CHARS[(h6 >> 24) & 0x0F] +
+              HEX_CHARS[(h6 >> 20) & 0x0F] + HEX_CHARS[(h6 >> 16) & 0x0F] +
+              HEX_CHARS[(h6 >> 12) & 0x0F] + HEX_CHARS[(h6 >> 8) & 0x0F] +
+              HEX_CHARS[(h6 >> 4) & 0x0F] + HEX_CHARS[h6 & 0x0F];
+    if (!is224) {
+      hex += HEX_CHARS[(h7 >> 28) & 0x0F] + HEX_CHARS[(h7 >> 24) & 0x0F] +
+             HEX_CHARS[(h7 >> 20) & 0x0F] + HEX_CHARS[(h7 >> 16) & 0x0F] +
+             HEX_CHARS[(h7 >> 12) & 0x0F] + HEX_CHARS[(h7 >> 8) & 0x0F] +
+             HEX_CHARS[(h7 >> 4) & 0x0F] + HEX_CHARS[h7 & 0x0F];
+    }
+    return hex;
+  };
+  
+  if (root) {
+    root.sha256 = sha256;
+    root.sha224 = sha224;
+  }
+}
+
+}();
+
+var _billstclair$kakuro_master$KakuroNative$sha256 = _billstclair$kakuro_master$Native_Kakuro.sha256;
+var _billstclair$kakuro_master$KakuroNative$setTitle = _billstclair$kakuro_master$Native_Kakuro.setTitle;
+var _billstclair$kakuro_master$Styles_Board$rule = F2(
+	function (selectors, descriptor) {
+		return {selectors: selectors, descriptor: descriptor};
+	});
+var _billstclair$kakuro_master$Styles_Board$imports = _elm_lang$core$Native_List.fromArray(
+	[]);
+var _billstclair$kakuro_master$Styles_Board$Selected = {ctor: 'Selected'};
+var _billstclair$kakuro_master$Styles_Board$SelectedError = {ctor: 'SelectedError'};
+var _billstclair$kakuro_master$Styles_Board$Error = {ctor: 'Error'};
+var _billstclair$kakuro_master$Styles_Board$Hint = {ctor: 'Hint'};
+var _billstclair$kakuro_master$Styles_Board$RightLabelTd = {ctor: 'RightLabelTd'};
+var _billstclair$kakuro_master$Styles_Board$BottomLabelTd = {ctor: 'BottomLabelTd'};
+var _billstclair$kakuro_master$Styles_Board$LabelTd = {ctor: 'LabelTd'};
+var _billstclair$kakuro_master$Styles_Board$LabelTr = {ctor: 'LabelTr'};
+var _billstclair$kakuro_master$Styles_Board$LabelTable = {ctor: 'LabelTable'};
+var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
+var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
+var _billstclair$kakuro_master$Styles_Board$CellTd = {ctor: 'CellTd'};
+var _billstclair$kakuro_master$Styles_Board$Table = {ctor: 'Table'};
+var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.fromArray(
+	[
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Type('tr')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'},
+				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
+				{ctor: '_Tuple2', _0: 'board', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Type('td')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '1.5em'},
+				{ctor: '_Tuple2', _0: 'height', _1: '1.5em'},
+				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '2px'},
+				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '24pt'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Table)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-family', _1: 'monospace'},
+				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$CellTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Label)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'background-image', _1: 'url(\'images/diagonal-line-200x200.png\')'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$EmptyCell)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#e0e0e0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTable)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTr)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
+				{ctor: '_Tuple2', _0: 'border', _1: 'none'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'},
+				{ctor: '_Tuple2', _0: 'margin', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$BottomLabelTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'},
+				{ctor: '_Tuple2', _0: 'vertical-align', _1: 'center'},
+				{ctor: '_Tuple2', _0: 'text-align', _1: 'right'},
+				{ctor: '_Tuple2', _0: 'width', _1: ' 50%'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
+				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$RightLabelTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'},
+				{ctor: '_Tuple2', _0: 'vertical-align', _1: 'bottom'},
+				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
+				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Hint)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '100%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '100%'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '12pt'},
+				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Error)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'background-color', _1: 'red'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$SelectedError)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#FF8080'},
+				{ctor: '_Tuple2', _0: 'color', _1: 'white'},
+				{ctor: '_Tuple2', _0: 'border', _1: '2px solid black'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Selected)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#d0d0d0'},
+				{ctor: '_Tuple2', _0: 'color', _1: 'white'},
+				{ctor: '_Tuple2', _0: 'border', _1: '2px solid black'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
+			]))
+	]);
+var _billstclair$kakuro_master$Styles_Board$stylesheet = A2(_massung$elm_css$Css$stylesheet, _billstclair$kakuro_master$Styles_Board$imports, _billstclair$kakuro_master$Styles_Board$rules);
+var _billstclair$kakuro_master$Styles_Board$style = A2(
+	_massung$elm_css$Css$style,
+	_elm_lang$core$Native_List.fromArray(
+		[
+			_elm_lang$html$Html_Attributes$scoped(true)
+		]),
+	_billstclair$kakuro_master$Styles_Board$stylesheet);
+var _billstclair$kakuro_master$Styles_Board$class = _billstclair$kakuro_master$Styles_Board$stylesheet.$class;
+var _billstclair$kakuro_master$Styles_Board$classes = _billstclair$kakuro_master$Styles_Board$stylesheet.classes;
+var _billstclair$kakuro_master$RenderBoard$sumRowLoop = F4(
+	function (row, col, sum, board) {
+		sumRowLoop:
+		while (true) {
+			var elt = A3(_billstclair$kakuro_master$Board$get, row - 1, col, board);
+			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
+				return sum;
+			} else {
+				var _v0 = row,
+					_v1 = col + 1,
+					_v2 = sum + elt,
+					_v3 = board;
+				row = _v0;
+				col = _v1;
+				sum = _v2;
+				board = _v3;
+				continue sumRowLoop;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$sumRow = F3(
+	function (row, col, board) {
+		return A4(_billstclair$kakuro_master$RenderBoard$sumRowLoop, row, col, 0, board);
+	});
+var _billstclair$kakuro_master$RenderBoard$sumColLoop = F4(
+	function (row, col, sum, board) {
+		sumColLoop:
+		while (true) {
+			var elt = A3(_billstclair$kakuro_master$Board$get, row, col - 1, board);
+			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
+				return sum;
+			} else {
+				var _v4 = row + 1,
+					_v5 = col,
+					_v6 = sum + elt,
+					_v7 = board;
+				row = _v4;
+				col = _v5;
+				sum = _v6;
+				board = _v7;
+				continue sumColLoop;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$sumCol = F3(
+	function (row, col, board) {
+		return A4(_billstclair$kakuro_master$RenderBoard$sumColLoop, row, col, 0, board);
+	});
+var _billstclair$kakuro_master$RenderBoard$computeLabel = F4(
+	function (row, col, res, board) {
+		if (!_elm_lang$core$Native_Utils.eq(
+			A3(_billstclair$kakuro_master$Board$get, row - 1, col - 1, board),
+			0)) {
+			return res;
+		} else {
+			var colsum = A3(_billstclair$kakuro_master$RenderBoard$sumCol, row, col, board);
+			var rowsum = A3(_billstclair$kakuro_master$RenderBoard$sumRow, row, col, board);
+			return (_elm_lang$core$Native_Utils.eq(rowsum, 0) && _elm_lang$core$Native_Utils.eq(colsum, 0)) ? res : A4(
+				_billstclair$kakuro_master$Board$set,
+				row,
+				col,
+				{ctor: '_Tuple2', _0: rowsum, _1: colsum},
+				res);
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$computeLabelsColsLoop = F4(
+	function (row, col, res, board) {
+		computeLabelsColsLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(col, res.cols) > -1) {
+				return res;
+			} else {
+				var _v8 = row,
+					_v9 = col + 1,
+					_v10 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
+					_v11 = board;
+				row = _v8;
+				col = _v9;
+				res = _v10;
+				board = _v11;
+				continue computeLabelsColsLoop;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$computeLabelsCols = F3(
+	function (row, res, board) {
+		return A4(_billstclair$kakuro_master$RenderBoard$computeLabelsColsLoop, row, 0, res, board);
+	});
+var _billstclair$kakuro_master$RenderBoard$computeLabelsRowLoop = F3(
+	function (row, res, board) {
+		computeLabelsRowLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(row, res.rows) > -1) {
+				return res;
+			} else {
+				var _v12 = row + 1,
+					_v13 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
+					_v14 = board;
+				row = _v12;
+				res = _v13;
+				board = _v14;
+				continue computeLabelsRowLoop;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$emptyLabels = {ctor: '_Tuple2', _0: 0, _1: 0};
+var _billstclair$kakuro_master$RenderBoard$computeLabelsRow = F2(
+	function (row, board) {
+		var res = A3(_billstclair$kakuro_master$Board$make, board.rows + 1, board.cols + 1, _billstclair$kakuro_master$RenderBoard$emptyLabels);
+		return A3(_billstclair$kakuro_master$RenderBoard$computeLabelsRowLoop, row, res, board);
+	});
+var _billstclair$kakuro_master$RenderBoard$computeLabels = function (board) {
+	return A2(_billstclair$kakuro_master$RenderBoard$computeLabelsRow, 0, board);
+};
+var _billstclair$kakuro_master$RenderBoard$labelCell = F2(
+	function (right, bottom) {
+		return A2(
+			_elm_lang$html$Html$td,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(
+					_elm_lang$html$Html$div,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Label)
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							A2(
+							_elm_lang$html$Html$table,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$LabelTable)
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									A2(
+									_elm_lang$html$Html$tr,
+									_elm_lang$core$Native_List.fromArray(
+										[
+											_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$LabelTr)
+										]),
+									_elm_lang$core$Native_List.fromArray(
+										[
+											A2(
+											_elm_lang$html$Html$td,
+											_elm_lang$core$Native_List.fromArray(
+												[
+													_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$LabelTd)
+												]),
+											_elm_lang$core$Native_List.fromArray(
+												[
+													_elm_lang$html$Html$text(_billstclair$kakuro_master$Entities$nbsp)
+												])),
+											A2(
+											_elm_lang$html$Html$td,
+											_elm_lang$core$Native_List.fromArray(
+												[
+													_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$RightLabelTd)
+												]),
+											_elm_lang$core$Native_List.fromArray(
+												[
+													_elm_lang$html$Html$text(
+													_elm_lang$core$Native_Utils.eq(right, 0) ? _billstclair$kakuro_master$Entities$nbsp : _elm_lang$core$Basics$toString(right))
+												]))
+										])),
+									A2(
+									_elm_lang$html$Html$tr,
+									_elm_lang$core$Native_List.fromArray(
+										[
+											_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$LabelTr)
+										]),
+									_elm_lang$core$Native_List.fromArray(
+										[
+											A2(
+											_elm_lang$html$Html$td,
+											_elm_lang$core$Native_List.fromArray(
+												[
+													_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$BottomLabelTd)
+												]),
+											_elm_lang$core$Native_List.fromArray(
+												[
+													_elm_lang$html$Html$text(
+													_elm_lang$core$Native_Utils.eq(bottom, 0) ? _billstclair$kakuro_master$Entities$nbsp : _elm_lang$core$Basics$toString(bottom))
+												])),
+											A2(
+											_elm_lang$html$Html$td,
+											_elm_lang$core$Native_List.fromArray(
+												[
+													_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$LabelTd)
+												]),
+											_elm_lang$core$Native_List.fromArray(
+												[
+													_elm_lang$html$Html$text(_billstclair$kakuro_master$Entities$nbsp)
+												]))
+										]))
+								]))
+						]))
+				]));
+	});
+var _billstclair$kakuro_master$RenderBoard$hintChars = F2(
+	function (hints, hint) {
+		return A2(
+			_elm_lang$core$String$append,
+			A2(_elm_lang$core$List$member, hint, hints) ? _elm_lang$core$Basics$toString(hint) : _billstclair$kakuro_master$Entities$nbsp,
+			_billstclair$kakuro_master$Entities$nbsp);
+	});
+var _billstclair$kakuro_master$RenderBoard$hintRow = F3(
+	function (min, max, hints) {
+		return _elm_lang$html$Html$text(
+			A2(
+				_elm_lang$core$String$left,
+				(2 * (max - min)) + 1,
+				_elm_lang$core$String$concat(
+					A2(
+						_elm_lang$core$List$map,
+						_billstclair$kakuro_master$RenderBoard$hintChars(hints),
+						_elm_lang$core$Native_List.range(min, max)))));
+	});
+var _billstclair$kakuro_master$RenderBoard$emptyCell = A2(
+	_elm_lang$html$Html$td,
+	_elm_lang$core$Native_List.fromArray(
+		[
+			_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$CellTd)
+		]),
+	_elm_lang$core$Native_List.fromArray(
+		[
+			A2(
+			_elm_lang$html$Html$div,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$EmptyCell)
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html$text(_billstclair$kakuro_master$Entities$nbsp)
+				]))
+		]));
+var _billstclair$kakuro_master$RenderBoard$classedCell = F2(
+	function (num, classTypes) {
+		return A2(
+			_elm_lang$html$Html$td,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_billstclair$kakuro_master$Styles_Board$classes(
+					A2(_elm_lang$core$List_ops['::'], _billstclair$kakuro_master$Styles_Board$CellTd, classTypes))
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html$text(
+					_elm_lang$core$Basics$toString(num))
+				]));
+	});
+var _billstclair$kakuro_master$RenderBoard$cell = function (num) {
+	return A2(
+		_billstclair$kakuro_master$RenderBoard$classedCell,
+		num,
+		_elm_lang$core$Native_List.fromArray(
+			[]));
+};
+var _billstclair$kakuro_master$RenderBoard$renderCell = F4(
+	function (row, col, board, labelsBoard) {
+		var _p0 = A3(_billstclair$kakuro_master$Board$get, row, col, labelsBoard);
+		var right = _p0._0;
+		var bottom = _p0._1;
+		if (_elm_lang$core$Native_Utils.eq(right, 0) && _elm_lang$core$Native_Utils.eq(bottom, 0)) {
+			var val = A3(_billstclair$kakuro_master$Board$get, row - 1, col - 1, board);
+			return _elm_lang$core$Native_Utils.eq(val, 0) ? _billstclair$kakuro_master$RenderBoard$emptyCell : _billstclair$kakuro_master$RenderBoard$cell(val);
+		} else {
+			return A2(_billstclair$kakuro_master$RenderBoard$labelCell, right, bottom);
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$renderColsLoop = F5(
+	function (row, col, res, board, labelsBoard) {
+		renderColsLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(col, labelsBoard.cols) > -1) {
+				return _elm_lang$core$List$reverse(res);
+			} else {
+				var _v15 = row,
+					_v16 = col + 1,
+					_v17 = A2(
+					_elm_lang$core$List_ops['::'],
+					A4(_billstclair$kakuro_master$RenderBoard$renderCell, row, col, board, labelsBoard),
+					res),
+					_v18 = board,
+					_v19 = labelsBoard;
+				row = _v15;
+				col = _v16;
+				res = _v17;
+				board = _v18;
+				labelsBoard = _v19;
+				continue renderColsLoop;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$renderCols = F3(
+	function (row, board, labelsBoard) {
+		return A5(
+			_billstclair$kakuro_master$RenderBoard$renderColsLoop,
+			row,
+			0,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			board,
+			labelsBoard);
+	});
+var _billstclair$kakuro_master$RenderBoard$renderRow = F3(
+	function (row, board, labelsBoard) {
+		return A2(
+			_elm_lang$html$Html$tr,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			A3(_billstclair$kakuro_master$RenderBoard$renderCols, row, board, labelsBoard));
+	});
+var _billstclair$kakuro_master$RenderBoard$renderRowsLoop = F4(
+	function (row, res, board, labelsBoard) {
+		renderRowsLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(row, labelsBoard.rows) > -1) {
+				return _elm_lang$core$List$reverse(res);
+			} else {
+				var _v20 = row + 1,
+					_v21 = A2(
+					_elm_lang$core$List_ops['::'],
+					A3(_billstclair$kakuro_master$RenderBoard$renderRow, row, board, labelsBoard),
+					res),
+					_v22 = board,
+					_v23 = labelsBoard;
+				row = _v20;
+				res = _v21;
+				board = _v22;
+				labelsBoard = _v23;
+				continue renderRowsLoop;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$renderRows = F2(
+	function (board, labelsBoard) {
+		return A4(
+			_billstclair$kakuro_master$RenderBoard$renderRowsLoop,
+			0,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			board,
+			labelsBoard);
+	});
+var _billstclair$kakuro_master$RenderBoard$render = function (board) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_billstclair$kakuro_master$Styles_Board$style,
+				A2(
+				_elm_lang$html$Html$table,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Table)
+					]),
+				A2(
+					_billstclair$kakuro_master$RenderBoard$renderRows,
+					board,
+					_billstclair$kakuro_master$RenderBoard$computeLabels(board)))
+			]));
+};
+var _billstclair$kakuro_master$RenderBoard$errorCell = function (num) {
+	return A2(
+		_billstclair$kakuro_master$RenderBoard$classedCell,
+		num,
+		_elm_lang$core$Native_List.fromArray(
+			[_billstclair$kakuro_master$Styles_Board$Error]));
+};
+var _billstclair$kakuro_master$RenderBoard$selectedCell = function (num) {
+	return A2(
+		_billstclair$kakuro_master$RenderBoard$classedCell,
+		num,
+		_elm_lang$core$Native_List.fromArray(
+			[_billstclair$kakuro_master$Styles_Board$Selected]));
+};
+var _billstclair$kakuro_master$RenderBoard$selectedErrorCell = function (num) {
+	return A2(
+		_billstclair$kakuro_master$RenderBoard$classedCell,
+		num,
+		_elm_lang$core$Native_List.fromArray(
+			[_billstclair$kakuro_master$Styles_Board$SelectedError]));
+};
+var _billstclair$kakuro_master$RenderBoard$br = A2(
+	_elm_lang$html$Html$br,
+	_elm_lang$core$Native_List.fromArray(
+		[]),
+	_elm_lang$core$Native_List.fromArray(
+		[]));
+var _billstclair$kakuro_master$RenderBoard$hintCell = function (hints) {
+	return A2(
+		_elm_lang$html$Html$td,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Hint)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A3(_billstclair$kakuro_master$RenderBoard$hintRow, 1, 3, hints),
+						_billstclair$kakuro_master$RenderBoard$br,
+						A3(_billstclair$kakuro_master$RenderBoard$hintRow, 4, 6, hints),
+						_billstclair$kakuro_master$RenderBoard$br,
+						A3(_billstclair$kakuro_master$RenderBoard$hintRow, 7, 9, hints)
+					]))
+			]));
+};
 //import Native.Scheduler //
 
 var _elm_lang$core$Native_Time = function() {
@@ -10749,6 +11697,35 @@ var _elm_lang$html$Html_Events$Options = F2(
 	function (a, b) {
 		return {stopPropagation: a, preventDefault: b};
 	});
+var _billstclair$kakuro_master$Main$space = _elm_lang$html$Html$text(' ');
+var _billstclair$kakuro_master$Main$mailLink = function (email) {
+	return A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text('<'),
+				A2(
+				_elm_lang$html$Html$a,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$href(
+						A2(_elm_lang$core$Basics_ops['++'], 'mailto: ', email))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(email)
+					])),
+				_elm_lang$html$Html$text('>')
+			]));
+};
+var _billstclair$kakuro_master$Main$br = A2(
+	_elm_lang$html$Html$br,
+	_elm_lang$core$Native_List.fromArray(
+		[]),
+	_elm_lang$core$Native_List.fromArray(
+		[]));
 var _billstclair$kakuro_master$Main$showValue = function (seed) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -10792,90 +11769,8 @@ var _billstclair$kakuro_master$Main$logoLink = F4(
 					size)
 				]));
 	});
-var _billstclair$kakuro_master$Main$debugNumbersElement = function (label) {
-	return A2(
-		_elm_lang$html$Html$td,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_billstclair$kakuro_master$KakuroStylesheet$class(_billstclair$kakuro_master$KakuroStylesheet$BoardLabelClass)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html$text(label)
-			]));
-};
-var _billstclair$kakuro_master$Main$debugNumbersIntElement = function (num) {
-	return _billstclair$kakuro_master$Main$debugNumbersElement(
-		_elm_lang$core$Basics$toString(num));
-};
-var _billstclair$kakuro_master$Main$copy = A2(
-	_elm_lang$core$String$cons,
-	_elm_lang$core$Char$fromCode(169),
-	'');
-var _billstclair$kakuro_master$Main$nbsp = A2(
-	_elm_lang$core$String$cons,
-	_elm_lang$core$Char$fromCode(160),
-	'');
-var _billstclair$kakuro_master$Main$renderElement = function (val) {
-	return A2(
-		_elm_lang$html$Html$td,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_billstclair$kakuro_master$KakuroStylesheet$class(_billstclair$kakuro_master$KakuroStylesheet$BoardCellClass)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html$text(
-				_elm_lang$core$Native_Utils.eq(val, 0) ? _billstclair$kakuro_master$Main$nbsp : _elm_lang$core$Basics$toString(val))
-			]));
-};
-var _billstclair$kakuro_master$Main$debugNumbersTopRow = function (board) {
-	return A2(
-		_elm_lang$html$Html$tr,
-		_elm_lang$core$Native_List.fromArray(
-			[]),
-		A2(
-			_elm_lang$core$List_ops['::'],
-			_billstclair$kakuro_master$Main$debugNumbersElement(_billstclair$kakuro_master$Main$nbsp),
-			A2(
-				_elm_lang$core$List$map,
-				_billstclair$kakuro_master$Main$debugNumbersIntElement,
-				_elm_lang$core$Native_List.range(0, board.cols - 1))));
-};
-var _billstclair$kakuro_master$Main$showDebugNumbers = true;
-var _billstclair$kakuro_master$Main$renderRow = F2(
-	function (rowNum, row) {
-		var es = A2(
-			_elm_lang$core$List$map,
-			_billstclair$kakuro_master$Main$renderElement,
-			_elm_lang$core$Array$toList(row));
-		var elts = _billstclair$kakuro_master$Main$showDebugNumbers ? A2(
-			_elm_lang$core$List_ops['::'],
-			_billstclair$kakuro_master$Main$debugNumbersIntElement(rowNum),
-			es) : es;
-		return A2(
-			_elm_lang$html$Html$tr,
-			_elm_lang$core$Native_List.fromArray(
-				[]),
-			elts);
-	});
-var _billstclair$kakuro_master$Main$renderBoard = function (board) {
-	var rs = A3(
-		_elm_lang$core$List$map2,
-		_billstclair$kakuro_master$Main$renderRow,
-		_elm_lang$core$Native_List.range(0, board.cols - 1),
-		_elm_lang$core$Array$toList(board.array));
-	var rows = _billstclair$kakuro_master$Main$showDebugNumbers ? A2(
-		_elm_lang$core$List_ops['::'],
-		_billstclair$kakuro_master$Main$debugNumbersTopRow(board),
-		rs) : rs;
-	return A2(
-		_elm_lang$html$Html$table,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_billstclair$kakuro_master$KakuroStylesheet$id(_billstclair$kakuro_master$KakuroStylesheet$BoardId)
-			]),
-		rows);
+var _billstclair$kakuro_master$Main$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
 };
 var _billstclair$kakuro_master$Main$update = F2(
 	function (msg, model) {
@@ -10926,7 +11821,7 @@ var _billstclair$kakuro_master$Main$defaultBoard = A4(
 		6,
 		7,
 		9,
-		A2(_billstclair$kakuro_master$Board$make, 6, 6)));
+		A3(_billstclair$kakuro_master$Board$make, 6, 6, 0)));
 var _billstclair$kakuro_master$Main$pageTitle = _billstclair$kakuro_master$KakuroNative$setTitle('Kakuro Master');
 var _billstclair$kakuro_master$Main$initialKind = 10;
 var _billstclair$kakuro_master$Main$Model = F6(
@@ -10956,9 +11851,6 @@ var _billstclair$kakuro_master$Main$init = {ctor: '_Tuple2', _0: _billstclair$ka
 var _billstclair$kakuro_master$Main$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
 };
-var _billstclair$kakuro_master$Main$subscriptions = function (model) {
-	return A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second, _billstclair$kakuro_master$Main$Tick);
-};
 var _billstclair$kakuro_master$Main$Generate = {ctor: 'Generate'};
 var _billstclair$kakuro_master$Main$view = function (model) {
 	return A2(
@@ -10969,7 +11861,7 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_billstclair$kakuro_master$KakuroStylesheet$style,
+				_billstclair$kakuro_master$Styles_Page$style,
 				A2(
 				_elm_lang$html$Html$h2,
 				_elm_lang$core$Native_List.fromArray(
@@ -10982,7 +11874,7 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_billstclair$kakuro_master$KakuroStylesheet$id(_billstclair$kakuro_master$KakuroStylesheet$TopInputId)
+						_billstclair$kakuro_master$Styles_Page$id(_billstclair$kakuro_master$Styles_Page$TopInputId)
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
@@ -10991,21 +11883,17 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 						_elm_lang$core$Native_List.fromArray(
 							[
 								_elm_lang$html$Html_Events$onClick(_billstclair$kakuro_master$Main$Generate),
-								_billstclair$kakuro_master$KakuroStylesheet$class(_billstclair$kakuro_master$KakuroStylesheet$ControlsClass)
+								_billstclair$kakuro_master$Styles_Page$class(_billstclair$kakuro_master$Styles_Page$ControlsClass)
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[
 								_elm_lang$html$Html$text('Next')
 							])),
-						A2(
-						_elm_lang$html$Html$br,
-						_elm_lang$core$Native_List.fromArray(
-							[]),
-						_elm_lang$core$Native_List.fromArray(
-							[])),
+						_billstclair$kakuro_master$Main$br,
 						_elm_lang$html$Html$text('Board Number: '),
 						_elm_lang$html$Html$text(
-						_elm_lang$core$Basics$toString(model.index))
+						_elm_lang$core$Basics$toString(model.index)),
+						_billstclair$kakuro_master$Main$br
 					])),
 				A2(
 				_elm_lang$html$Html$div,
@@ -11013,42 +11901,24 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 					[]),
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_billstclair$kakuro_master$Main$renderBoard(model.board)
+						_billstclair$kakuro_master$RenderBoard$render(model.board)
 					])),
 				A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_billstclair$kakuro_master$KakuroStylesheet$id(_billstclair$kakuro_master$KakuroStylesheet$FooterId)
+						_billstclair$kakuro_master$Styles_Page$id(_billstclair$kakuro_master$Styles_Page$FooterId)
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'Copyright ',
-							A2(_elm_lang$core$Basics_ops['++'], _billstclair$kakuro_master$Main$copy, ' 2016 Bill St. Clair <'))),
-						A2(
-						_elm_lang$html$Html$a,
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_elm_lang$html$Html_Attributes$href('mailto: billstclair@gmail.com')
-							]),
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_elm_lang$html$Html$text('billsclair@gmail.com')
-							])),
-						_elm_lang$html$Html$text('>'),
-						A2(
-						_elm_lang$html$Html$br,
-						_elm_lang$core$Native_List.fromArray(
-							[]),
-						_elm_lang$core$Native_List.fromArray(
-							[])),
+						A2(_elm_lang$core$Basics_ops['++'], _billstclair$kakuro_master$Entities$copyright, ' 2016 Bill St. Clair ')),
+						_billstclair$kakuro_master$Main$mailLink('billstclair.com'),
+						_billstclair$kakuro_master$Main$br,
 						A4(_billstclair$kakuro_master$Main$logoLink, 'https://steemit.com/created/kakuro-master', 'steemit-icon-114x114.png', 'Steemit articles', 32),
-						_elm_lang$html$Html$text(' '),
+						_billstclair$kakuro_master$Main$space,
 						A4(_billstclair$kakuro_master$Main$logoLink, 'https://github.com/billstclair/kakuro-master', 'GitHub-Mark-32px.png', 'GitHub source code', 32),
-						_elm_lang$html$Html$text(' '),
+						_billstclair$kakuro_master$Main$space,
 						A4(_billstclair$kakuro_master$Main$logoLink, 'http://elm-lang.org/', 'elm-logo-125x125.png', 'Elm inside', 28)
 					]))
 			]));
