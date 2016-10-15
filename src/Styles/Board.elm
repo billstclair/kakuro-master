@@ -89,7 +89,7 @@ rules =
   , rule
       [ Class LabelTd]
       [ ("width", "50%")
-      , ("font-size", "12pt")
+      , ("font-size", "10pt")
       , ("border", "none")
       , ("padding", "0")
       , ("margin", "0")
@@ -100,7 +100,7 @@ rules =
       , ("vertical-align", "center")
       , ("text-align", "right")
       , ("width"," 50%")
-      , ("font-size", "12pt")
+      , ("font-size", "10pt")
       , ("border", "none")
       ]
   , rule
@@ -109,7 +109,7 @@ rules =
       , ("vertical-align", "bottom")
       , ("text-align", "center")
       , ("width", "50%")
-      , ("font-size", "12pt")
+      , ("font-size", "10pt")
       , ("border", "none")
       ]
   , rule

@@ -21,6 +21,8 @@ import Char
 import String
 import List exposing (map)
 
+import Debug exposing (log)
+
 import Html exposing
   (Html, Attribute, div, text, table, tr, td, th, a, img)
 import Html.Attributes
@@ -83,17 +85,19 @@ hintCell hints =
         ]
     ]
 
-label : Int -> Int -> Html a
-label right bottom =
+labelCell : Int -> Int -> Html a
+labelCell right bottom =
   td []
     [ div [ class Label ]
         [ table [ class LabelTable ]
             [ tr [ class LabelTr ]
                 [ td [ class LabelTd ] [ text nbsp ]
-                , td [ class RightLabelTd ] [ text (toString right) ]
+                , td [ class RightLabelTd ]
+                  [ text <| if right == 0 then nbsp else (toString right) ]
                 ]
             , tr [ class LabelTr ]
-              [ td [ class BottomLabelTd ] [ text (toString bottom) ]
+              [ td [ class BottomLabelTd ]
+                  [ text <| if bottom == 0 then nbsp else (toString bottom) ]
               , td [ class LabelTd ] [ text nbsp ]
               ]
             ]
@@ -109,66 +113,100 @@ type alias LabelsBoard =
 emptyLabels : Labels
 emptyLabels = (0, 0)
 
-sumRowLoop : Int -> Int -> Int -> (Board Int) -> Int
-sumRowLoop row col sum board =
-  let elt = get row col board
-  in
-      if elt == 0 then
-        sum
-      else
-        sumRowLoop row (col+1) (sum + elt) board    
-
 sumColLoop : Int -> Int -> Int -> (Board Int) -> Int
 sumColLoop row col sum board =
-  let elt = get row col board
+  let elt = get row (col-1) board
   in
       if elt == 0 then
         sum
       else
         sumColLoop (row+1) col (sum + elt) board
 
-computeLabel : Int -> Int -> Board Int -> Labels
-computeLabel row col board =
-  let rowsum = sumRowLoop row col 0 board
-      colsum = sumColLoop row col 0 board
-  in
-    if rowsum==0 && colsum==0 then
-      emptyLabels
-    else
-      (rowsum, colsum)
+sumCol : Int -> Int -> Board Int -> Int
+sumCol row col board =
+  sumColLoop row col 0 board
 
-computeLabelsLoop : Int -> Int -> Board Int -> LabelsBoard -> LabelsBoard
-computeLabelsLoop row col board res =
-  if (get (row-1) (col-1) board) == 0 then
-    let res2 = set row col (computeLabel row col board) res
-    in
-        if col >= res2.cols then
-          if row >= res2.rows then
-            res2
-          else
-            computeLabelsLoop (row+1) 0 board res2
-        else
-          computeLabelsLoop row (col+1) board res2
-  else
+sumRowLoop : Int -> Int -> Int -> (Board Int) -> Int
+sumRowLoop row col sum board =
+  let elt = get (row-1) col board
+  in
+      if elt == 0 then
+        sum
+      else
+        sumRowLoop row (col+1) (sum + elt) board    
+
+sumRow : Int -> Int -> Board Int -> Int
+sumRow row col board =
+  sumRowLoop row col 0 board
+
+computeLabel : Int -> Int -> LabelsBoard -> Board Int -> LabelsBoard
+computeLabel row col res board =
+  if (get (row-1) (col-1) board) /= 0 then
     res
+  else
+    let rowsum = sumRow row col board
+        colsum = sumCol row col board
+    in
+        if rowsum==0 && colsum == 0 then
+          res
+        else
+          set row col (rowsum, colsum) res
+
+computeLabelsColsLoop : Int -> Int -> LabelsBoard -> Board Int -> LabelsBoard
+computeLabelsColsLoop row col res board =
+  if col >= res.cols then
+    res
+  else
+    computeLabelsColsLoop row
+                          (col+1)
+                          (computeLabel row col res board)
+                          board
+
+computeLabelsCols : Int -> LabelsBoard -> Board Int -> LabelsBoard
+computeLabelsCols row res board =
+  computeLabelsColsLoop row 0 res board
+
+computeLabelsRowLoop : Int -> LabelsBoard -> Board Int -> LabelsBoard
+computeLabelsRowLoop row res board =
+  if row >= res.rows then
+    res
+  else
+    computeLabelsRowLoop (row+1)
+                         (computeLabelsCols row res board)
+                         board
+
+computeLabelsRow : Int -> Board Int -> LabelsBoard
+computeLabelsRow row board =
+  let res = Board.make (board.rows+1) (board.cols+1) emptyLabels
+  in
+      computeLabelsRowLoop row res board
 
 computeLabels : Board Int -> LabelsBoard
 computeLabels board =
-  computeLabelsLoop
-    0 0 board <| Board.make (board.rows+1) (board.cols+1) emptyLabels
+  computeLabelsRow 0 board
 
 renderCell : Int -> Int -> Board Int -> LabelsBoard -> Html a
 renderCell row col board labelsBoard =
-  cell 1
+  let (right, bottom) = get row col labelsBoard
+  in
+      if right==0 && bottom==0 then
+        let val = get (row-1) (col-1) board
+        in
+            if val == 0 then
+              emptyCell
+            else
+              cell val
+      else
+        labelCell right bottom               
 
 renderColsLoop : Int -> Int -> List (Html a) -> Board Int -> LabelsBoard -> List (Html a)
 renderColsLoop row col res board labelsBoard =
   if col >= labelsBoard.cols then
-    res
+    List.reverse res
   else
     renderColsLoop row
                    (col+1)
-                   ((renderCell row col board labelsBoard) :: res)
+                   (renderCell row col board labelsBoard :: res)
                    board
                    labelsBoard
 
@@ -183,13 +221,12 @@ renderRow row board labelsBoard =
 renderRowsLoop : Int -> List (Html a) -> Board Int -> LabelsBoard -> List (Html a)
 renderRowsLoop row res board labelsBoard =
   if row >= labelsBoard.rows then
-    res
+    List.reverse res
   else
     renderRowsLoop (row+1)
-                   ((renderRow row board labelsBoard) :: res)
+                   (renderRow row board labelsBoard :: res)
                    board
                    labelsBoard
-      
 
 renderRows : Board Int -> LabelsBoard -> List (Html a)
 renderRows board labelsBoard =

@@ -10,13 +10,14 @@
 ----------------------------------------------------------------------
 
 module Board exposing
-  ( Board, make, get, set, getRow, setRow
+  ( Board, make, makeWithInitial, get, set, getRow, setRow
   )
 
 {-| Two-dimensional game board with integers as elements.
 
 @docs Board
 @docs make
+@docs makeWithInitial
 @docs get
 @docs set
 @docs getRow
@@ -38,17 +39,26 @@ makeRow : Int -> a -> (Array a)
 makeRow cols default =
   Array.repeat cols default
 
-{-| Create a new Board of the given size.
+{-| Create a new Board of the given size, initialized with the default value.
 
-    make rows cols
+    make rows cols default
 -}
 make : Int -> Int -> a -> Board a
 make rows cols default =
+  makeWithInitial rows cols default default
+
+{-| Create a new Board of the given size, initialized with a different value.
+
+    makeWithInitial rows cols default initial
+-}
+makeWithInitial : Int -> Int -> a -> a -> Board a
+makeWithInitial rows cols default initial =
   Board
     rows
     cols
     default
-    (Array.repeat rows (makeRow cols default))
+    (Array.repeat rows (makeRow cols initial))
+  
 
 check : Board a -> Int -> Int -> Bool
 check board row col =
