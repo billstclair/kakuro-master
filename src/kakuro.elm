@@ -15,7 +15,7 @@ import Board exposing(Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
 import DebuggingRender
-import RenderBoard
+import RenderBoard exposing (IntBoard, LabelsBoard, HintsBoard, GameState)
 
 import Array exposing (Array)
 import Char
@@ -49,10 +49,11 @@ pageTitle : String
 pageTitle = KakuroNative.setTitle "Kakuro Master"
 
 type alias Model =
-      { board : Board Int
+      { board : IntBoard
       , kind : Int
       , index : Int
       , gencount : Int
+      , gameState : GameState
       , seed : Maybe Random.Seed
       , time : Time
       }
@@ -64,7 +65,7 @@ seedCmd =
 init : (Model, Cmd Msg)
 init = (model, seedCmd)
 
-defaultBoard : Board Int
+defaultBoard : IntBoard
 defaultBoard =
   Board.make 6 6 0
     |> Board.set 6 7 9
@@ -73,12 +74,14 @@ defaultBoard =
 model : Model
 model =
   let (idx, board) = PuzzleDB.nextBoardOfKind initialKind 0
+      state = RenderBoard.makeGameState board
   in
       Model
         board         --board
         initialKind   --kind
         idx           --index
         0             --gencount
+        state         --gameState
         Nothing       --seed
         0             --time
 
@@ -95,8 +98,14 @@ update msg model =
   case msg of
     Generate ->
       let (idx, board) = PuzzleDB.nextBoardOfKind model.kind model.index
+          state = RenderBoard.makeGameState board
       in
-          ({model | index = idx, board = board, gencount = (model.gencount+1)},
+          ({model |
+             index = idx
+           , board = board
+           , gencount = (model.gencount+1)
+           , gameState = state
+           },
            Cmd.none)
     Tick time ->
       ({model | time = model.time + 1}, Cmd.none)
@@ -166,7 +175,7 @@ view model =
         -- , text (" " ++ toString model.time)  -- Will eventually be timer
         -- , showValue model.seed               -- debugging
         ]
-    , div [] [ RenderBoard.render model.board ]
+    , div [] [ RenderBoard.render model.gameState ]
     , div
         [ id FooterId ]
         [ text (copyright ++ " 2016 Bill St. Clair ")

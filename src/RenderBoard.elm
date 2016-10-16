@@ -9,7 +9,13 @@
 --
 ----------------------------------------------------------------------
 
-module RenderBoard exposing (render, computeLabels)
+module RenderBoard exposing ( IntBoard
+                            , Labels, LabelsBoard
+                            , Hints, HintsBoard
+                            , GameState
+                            , makeGameState
+                            , render
+                            )
 
 import Styles.Board exposing (class, classes, BClass(..))
 import Board exposing(Board, get, set)
@@ -104,16 +110,35 @@ labelCell right bottom =
         ]
     ]
 
+type alias IntBoard =
+  Board Int
+
 type alias Labels =
   (Int, Int)
 
 type alias LabelsBoard =
   Board Labels
 
+type alias Hints =
+  List Int
+
+type alias HintsBoard =
+  Board Hints
+
+type alias GameState =
+  { board : IntBoard
+  , labels: LabelsBoard
+  , guesses : IntBoard
+  , hints : HintsBoard
+  }
+
 emptyLabels : Labels
 emptyLabels = (0, 0)
 
-sumColLoop : Int -> Int -> Int -> (Board Int) -> Int
+emptyHints : Hints
+emptyHints = []
+
+sumColLoop : Int -> Int -> Int -> (IntBoard) -> Int
 sumColLoop row col sum board =
   let elt = get row (col-1) board
   in
@@ -122,11 +147,11 @@ sumColLoop row col sum board =
       else
         sumColLoop (row+1) col (sum + elt) board
 
-sumCol : Int -> Int -> Board Int -> Int
+sumCol : Int -> Int -> IntBoard -> Int
 sumCol row col board =
   sumColLoop row col 0 board
 
-sumRowLoop : Int -> Int -> Int -> (Board Int) -> Int
+sumRowLoop : Int -> Int -> Int -> (IntBoard) -> Int
 sumRowLoop row col sum board =
   let elt = get (row-1) col board
   in
@@ -135,11 +160,11 @@ sumRowLoop row col sum board =
       else
         sumRowLoop row (col+1) (sum + elt) board    
 
-sumRow : Int -> Int -> Board Int -> Int
+sumRow : Int -> Int -> IntBoard -> Int
 sumRow row col board =
   sumRowLoop row col 0 board
 
-computeLabel : Int -> Int -> LabelsBoard -> Board Int -> LabelsBoard
+computeLabel : Int -> Int -> LabelsBoard -> IntBoard -> LabelsBoard
 computeLabel row col res board =
   if (get (row-1) (col-1) board) /= 0 then
     res
@@ -152,7 +177,7 @@ computeLabel row col res board =
         else
           set row col (rowsum, colsum) res
 
-computeLabelsColsLoop : Int -> Int -> LabelsBoard -> Board Int -> LabelsBoard
+computeLabelsColsLoop : Int -> Int -> LabelsBoard -> IntBoard -> LabelsBoard
 computeLabelsColsLoop row col res board =
   if col >= res.cols then
     res
@@ -162,11 +187,11 @@ computeLabelsColsLoop row col res board =
                           (computeLabel row col res board)
                           board
 
-computeLabelsCols : Int -> LabelsBoard -> Board Int -> LabelsBoard
+computeLabelsCols : Int -> LabelsBoard -> IntBoard -> LabelsBoard
 computeLabelsCols row res board =
   computeLabelsColsLoop row 0 res board
 
-computeLabelsRowLoop : Int -> LabelsBoard -> Board Int -> LabelsBoard
+computeLabelsRowLoop : Int -> LabelsBoard -> IntBoard -> LabelsBoard
 computeLabelsRowLoop row res board =
   if row >= res.rows then
     res
@@ -175,22 +200,24 @@ computeLabelsRowLoop row res board =
                          (computeLabelsCols row res board)
                          board
 
-computeLabelsRow : Int -> Board Int -> LabelsBoard
+computeLabelsRow : Int -> IntBoard -> LabelsBoard
 computeLabelsRow row board =
   let res = Board.make (board.rows+1) (board.cols+1) emptyLabels
   in
       computeLabelsRowLoop row res board
 
-computeLabels : Board Int -> LabelsBoard
+computeLabels : IntBoard -> LabelsBoard
 computeLabels board =
   computeLabelsRow 0 board
 
-renderCell : Int -> Int -> Board Int -> LabelsBoard -> Html a
-renderCell row col board labelsBoard =
-  let (right, bottom) = get row col labelsBoard
+renderCell : Int -> Int -> GameState -> Html a
+renderCell row col state =
+  let labels = state.labels
+      guesses = state.guesses
+      (right, bottom) = get row col labels
   in
       if right==0 && bottom==0 then
-        let val = get (row-1) (col-1) board
+        let val = get (row-1) (col-1) guesses
         in
             if val == 0 then
               emptyCell
@@ -199,43 +226,50 @@ renderCell row col board labelsBoard =
       else
         labelCell right bottom               
 
-renderColsLoop : Int -> Int -> List (Html a) -> Board Int -> LabelsBoard -> List (Html a)
-renderColsLoop row col res board labelsBoard =
-  if col >= labelsBoard.cols then
+renderColsLoop : Int -> Int -> List (Html a) -> GameState -> List (Html a)
+renderColsLoop row col res state =
+  if col >= state.labels.cols then
     List.reverse res
   else
-    renderColsLoop row
-                   (col+1)
-                   (renderCell row col board labelsBoard :: res)
-                   board
-                   labelsBoard
+    renderColsLoop
+      row
+      (col+1)
+      (renderCell row col state :: res)
+      state
+          
+renderCols : Int -> GameState -> List (Html a)
+renderCols row state =
+  renderColsLoop row 0 [] state
 
-renderCols : Int -> Board Int -> LabelsBoard -> List (Html a)
-renderCols row board labelsBoard =
-  renderColsLoop row 0 [] board labelsBoard
+renderRow : Int -> GameState -> Html a
+renderRow row state =
+   tr [] <| renderCols row state
 
-renderRow : Int -> Board Int -> LabelsBoard -> Html a
-renderRow row board labelsBoard =
-  tr [] <| renderCols row board labelsBoard
-
-renderRowsLoop : Int -> List (Html a) -> Board Int -> LabelsBoard -> List (Html a)
-renderRowsLoop row res board labelsBoard =
-  if row >= labelsBoard.rows then
+renderRowsLoop : Int -> List (Html a) -> GameState -> List (Html a)
+renderRowsLoop row res state =
+  if row >= state.labels.rows then
     List.reverse res
   else
     renderRowsLoop (row+1)
-                   (renderRow row board labelsBoard :: res)
-                   board
-                   labelsBoard
+                   (renderRow row state :: res)
+                   state
 
-renderRows : Board Int -> LabelsBoard -> List (Html a)
-renderRows board labelsBoard =
-  renderRowsLoop 0 [] board labelsBoard
+renderRows : GameState -> List (Html a)
+renderRows state =
+  renderRowsLoop 0 [] state
 
-render : Board Int -> Html a
-render board =
+makeGameState : IntBoard -> GameState
+makeGameState board =
+  GameState
+    board
+    (computeLabels board)
+    (Board.make board.rows board.cols board.default)
+    (Board.make board.rows board.cols emptyHints)
+
+render : GameState -> Html a
+render state =
   div []
     [ Styles.Board.style
     , table [ class Table ]
-        (renderRows board <| computeLabels board)
+        (renderRows state)
     ]
