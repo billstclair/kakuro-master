@@ -9,14 +9,15 @@
 --
 ----------------------------------------------------------------------
 
-module RenderBoard exposing ( IntBoard
-                            , Labels, LabelsBoard
-                            , Hints, HintsBoard
-                            , GameState
-                            , makeGameState
+module RenderBoard exposing ( makeGameState
                             , render
                             )
 
+import SharedTypes exposing (GameState
+                            , IntBoard
+                            , Labels, LabelsBoard
+                            , Hints, HintsBoard
+                            )
 import Styles.Board exposing (class, classes, BClass(..))
 import Board exposing(Board, get, set)
 import PuzzleDB
@@ -116,28 +117,6 @@ labelCell right bottom =
             ]
         ]
     ]
-
-type alias IntBoard =
-  Board Int
-
-type alias Labels =
-  (Int, Int)
-
-type alias LabelsBoard =
-  Board Labels
-
-type alias Hints =
-  List Int
-
-type alias HintsBoard =
-  Board Hints
-
-type alias GameState =
-  { board : IntBoard
-  , labels: LabelsBoard
-  , guesses : IntBoard
-  , hints : HintsBoard
-  }
 
 emptyLabels : Labels
 emptyLabels = (0, 0)

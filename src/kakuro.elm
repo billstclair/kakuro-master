@@ -9,13 +9,15 @@
 --
 ----------------------------------------------------------------------
 
+import SharedTypes exposing ( Model, Msg, Msg (..)
+                            , IntBoard, HintsBoard, GameState)
 import Styles.Page exposing (id, class, PId(..), PClass(..))
 import KakuroNative exposing (sha256)
 import Board exposing(Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
 import DebuggingRender
-import RenderBoard exposing (IntBoard, LabelsBoard, HintsBoard, GameState)
+import RenderBoard
 
 import Array exposing (Array)
 import Char
@@ -48,15 +50,6 @@ initialKind = 10
 pageTitle : String
 pageTitle = KakuroNative.setTitle "Kakuro Master"
 
-type alias Model =
-      { kind : Int
-      , index : Int
-      , gencount : Int
-      , gameState : GameState
-      , seed : Maybe Random.Seed
-      , time : Time
-      }
-
 seedCmd : Cmd Msg
 seedCmd =
   Task.perform (\x -> Nop) (\x -> Seed x) Time.now
@@ -84,12 +77,6 @@ model =
         0             --time
 
 -- UPDATE
-
-type Msg
-  = Generate
-  | Tick Time
-  | Seed Time
-  | Nop
 
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
