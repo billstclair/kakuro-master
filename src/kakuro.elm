@@ -21,10 +21,13 @@ import RenderBoard
 
 import Array exposing (Array)
 import Char
+import List
 import String
 import Time exposing (Time, second)
 import Random
 import Task
+
+import Debug exposing (log)
 
 import Html exposing
   (Html, Attribute, button, div, h2, text, table, tr, td, th
@@ -78,6 +81,38 @@ model =
 
 -- UPDATE
 
+charToDigit : Int -> Char -> Int
+charToDigit default char =
+  let res = Char.toCode char - Char.toCode '0'
+  in
+      if res>=0 && res<=9 then
+        res
+      else
+        default
+
+maybeCharToInt:  Int -> Maybe Char -> Int
+maybeCharToInt default mstr =
+  case mstr of
+      Nothing ->
+        default
+      Just char ->
+        charToDigit default char
+
+updateSelectedCell : String -> Model -> Model
+updateSelectedCell idStr model =
+  let chars = String.toList idStr
+      row = maybeCharToInt -1 <| List.head chars
+      col = maybeCharToInt -1 <| List.head <| List.drop 2 chars
+  in
+      if row >= 0 && col >= 0 then
+        let gameState = model.gameState
+        in
+            { model | gameState =
+                { gameState | selectedCell = Just (row, col) }
+            }
+      else
+        model
+
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
@@ -95,6 +130,8 @@ update msg model =
       ({model | time = model.time + 1}, Cmd.none)
     Seed time ->
       ({model | seed = Just <| Random.initialSeed (round time)}, Cmd.none)
+    ClickCell id ->
+      (updateSelectedCell id model, Cmd.none)
     Nop ->
       (model, Cmd.none)
           

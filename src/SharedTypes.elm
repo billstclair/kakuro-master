@@ -36,6 +36,7 @@ type Msg
   = Generate
   | Tick Time
   | Seed Time
+  | ClickCell String
   | Nop
 
 type alias IntBoard =
@@ -58,4 +59,5 @@ type alias GameState =
   , labels: LabelsBoard
   , guesses : IntBoard
   , hints : HintsBoard
+  , selectedCell : Maybe (Int, Int)
   }

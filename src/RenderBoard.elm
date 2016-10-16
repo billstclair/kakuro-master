@@ -17,11 +17,13 @@ import SharedTypes exposing (GameState
                             , IntBoard
                             , Labels, LabelsBoard
                             , Hints, HintsBoard
+                            , Msg (ClickCell)
                             )
 import Styles.Board exposing (class, classes, BClass(..))
 import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
+import Events exposing (onClickWithId)
 
 import Array exposing (Array)
 import Char
@@ -30,23 +32,32 @@ import List exposing (map)
 
 import Debug exposing (log)
 
+import Json.Decode as Json
+
 import Html exposing
   (Html, Attribute, div, text, table, tr, td, th, a, img)
 import Html.Attributes
-  exposing (style, value, href, src, title, alt)
+  exposing (style, value, href, src, title, alt, id)
+import Html.Events exposing (on)
 
 br : Html a
 br =
   Html.br [][]
 
-classedCell : Int -> List BClass -> Html a
-classedCell num classTypes =
-  td [ classes <| CellTd :: classTypes ]
+cellId : Int -> Int -> Attribute m
+cellId row col =
+  id ((toString row) ++ "," ++ (toString col))
+
+classedCell : Int -> Int -> Int -> List BClass -> Html Msg
+classedCell num row col classTypes =
+  td [ classes <| CellTd :: classTypes
+     , cellId row col
+     , onClickWithId ClickCell]
     [ text <| toString num ]
 
-cell : Int -> Html a
-cell num =
-  classedCell num []
+cell : Bool -> Int -> Int -> Int -> Html Msg
+cell isSelected num row col =
+  classedCell num row col (if isSelected then [ Selected ] else [])
 
 emptyCell : Html a
 emptyCell =
@@ -55,24 +66,32 @@ emptyCell =
         [ text nbsp ]
     ]
 
-unfilledCell : Html a
-unfilledCell =
-  td [ class CellTd ]
-    [ div [ class UnfilledCell ]
-        [ text nbsp ]
+unfilledCell : Bool -> Int -> Int -> Html Msg
+unfilledCell isSelected row col =
+  let cls = if isSelected then
+              classes [CellTd, Selected]
+            else
+              class CellTd
+  in
+      td [ cls
+         , onClickWithId ClickCell]
+      [ div [ class UnfilledCell
+            , cellId row col
+            ]
+          [ text nbsp ]
     ]
 
-errorCell : Int -> Html a
-errorCell num =
-  classedCell num [ Error ]
+errorCell : Int -> Int -> Int -> Html Msg
+errorCell num row col =
+  classedCell num row col [ Error ]
 
-selectedCell : Int -> Html a
-selectedCell num =
-  classedCell num [ Selected ]
+selectedCell : Int -> Int -> Int -> Html Msg
+selectedCell num row col =
+  classedCell num row col [ Selected ]
 
-selectedErrorCell : Int -> Html a
-selectedErrorCell num =
-  classedCell num [ SelectedError ]
+selectedErrorCell : Int -> Int -> Int -> Html Msg
+selectedErrorCell num row col =
+  classedCell num row col [ SelectedError ]
 
 hintChars : List Int -> Int -> String
 hintChars hints hint =
@@ -87,9 +106,9 @@ hintRow min max hints =
   |> String.left (2*(max-min)+1)
   |> text
 
-hintCell : List Int -> Html a
-hintCell hints =
-  td []
+hintCell : List Int -> Int -> Int -> Html a
+hintCell hints row col =
+  td [ cellId row col ]
     [ div [ class Hint ]
         [ hintRow 1 3 hints
         , br
@@ -196,25 +215,31 @@ computeLabels : IntBoard -> LabelsBoard
 computeLabels board =
   computeLabelsRow 0 board
 
-renderCell : Int -> Int -> GameState -> Html a
+renderCell : Int -> Int -> GameState -> Html Msg
 renderCell row col state =
   let labels = state.labels
       (right, bottom) = get row col labels
+      bRow = row - 1
+      bCol = col - 1
+      selected = state.selectedCell
+      isSelected = case selected of
+                     Nothing -> False
+                     Just x -> x == (bRow, bCol)
   in
       if right==0 && bottom==0 then
-        let val = (get (row-1) (col-1) state.guesses)
+        let val = (get bRow bCol state.guesses)
         in
             if val == 0 then
-              if (get (row-1) (col-1) state.board) == 0 then
+              if (get bRow bCol state.board) == 0 then
                 emptyCell
               else
-                unfilledCell
+                unfilledCell isSelected bRow bCol
             else
-              cell val
+              cell isSelected val bRow bCol
       else
         labelCell right bottom               
 
-renderColsLoop : Int -> Int -> List (Html a) -> GameState -> List (Html a)
+renderColsLoop : Int -> Int -> List (Html Msg) -> GameState -> List (Html Msg)
 renderColsLoop row col res state =
   if col >= state.labels.cols then
     List.reverse res
@@ -225,15 +250,15 @@ renderColsLoop row col res state =
       (renderCell row col state :: res)
       state
           
-renderCols : Int -> GameState -> List (Html a)
+renderCols : Int -> GameState -> List (Html Msg)
 renderCols row state =
   renderColsLoop row 0 [] state
 
-renderRow : Int -> GameState -> Html a
+renderRow : Int -> GameState -> Html Msg
 renderRow row state =
    tr [] <| renderCols row state
 
-renderRowsLoop : Int -> List (Html a) -> GameState -> List (Html a)
+renderRowsLoop : Int -> List (Html Msg) -> GameState -> List (Html Msg)
 renderRowsLoop row res state =
   if row >= state.labels.rows then
     List.reverse res
@@ -242,19 +267,20 @@ renderRowsLoop row res state =
                    (renderRow row state :: res)
                    state
 
-renderRows : GameState -> List (Html a)
+renderRows : GameState -> List (Html Msg)
 renderRows state =
   renderRowsLoop 0 [] state
 
 makeGameState : IntBoard -> GameState
 makeGameState board =
   GameState
-    board
-    (computeLabels board)
-    (Board.make board.rows board.cols board.default)
-    (Board.make board.rows board.cols emptyHints)
+    board                       --board
+    (computeLabels board)       --labels
+    (Board.make board.rows board.cols board.default) --guesses
+    (Board.make board.rows board.cols emptyHints)    --hints
+    Nothing                                          --selectedCell
 
-render : GameState -> Html a
+render : GameState -> Html Msg
 render state =
   div []
     [ Styles.Board.style

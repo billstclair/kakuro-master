@@ -134,14 +134,12 @@ rules =
       [ Class SelectedError]
       [ ("background-color", "#FF8080")
       , ("color", "white")
-      , ("border", "2px solid black")
+      , ("border", "3px solid black")
       , ("padding", "0")
       ]
   , rule
       [ Class Selected]
-      [ ("background-color", "#d0d0d0")
-      , ("color", "white")
-      , ("border", "2px solid black")
+      [ ("border", "3px solid black")
       , ("padding", "0")
       ]
   ]
