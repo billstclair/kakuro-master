@@ -54,6 +54,13 @@ emptyCell =
         [ text nbsp ]
     ]
 
+unfilledCell : Html a
+unfilledCell =
+  td [ class CellTd ]
+    [ div [ class UnfilledCell ]
+        [ text nbsp ]
+    ]
+
 errorCell : Int -> Html a
 errorCell num =
   classedCell num [ Error ]
@@ -213,14 +220,16 @@ computeLabels board =
 renderCell : Int -> Int -> GameState -> Html a
 renderCell row col state =
   let labels = state.labels
-      guesses = state.guesses
       (right, bottom) = get row col labels
   in
       if right==0 && bottom==0 then
-        let val = get (row-1) (col-1) guesses
+        let val = (get (row-1) (col-1) state.guesses)
         in
             if val == 0 then
-              emptyCell
+              if (get (row-1) (col-1) state.board) == 0 then
+                emptyCell
+              else
+                unfilledCell
             else
               cell val
       else

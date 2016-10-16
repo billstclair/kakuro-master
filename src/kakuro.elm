@@ -49,8 +49,7 @@ pageTitle : String
 pageTitle = KakuroNative.setTitle "Kakuro Master"
 
 type alias Model =
-      { board : IntBoard
-      , kind : Int
+      { kind : Int
       , index : Int
       , gencount : Int
       , gameState : GameState
@@ -77,7 +76,6 @@ model =
       state = RenderBoard.makeGameState board
   in
       Model
-        board         --board
         initialKind   --kind
         idx           --index
         0             --gencount
@@ -98,13 +96,12 @@ update msg model =
   case msg of
     Generate ->
       let (idx, board) = PuzzleDB.nextBoardOfKind model.kind model.index
-          state = RenderBoard.makeGameState board
+          gameState = RenderBoard.makeGameState board
       in
           ({model |
              index = idx
-           , board = board
            , gencount = (model.gencount+1)
-           , gameState = state
+           , gameState = gameState
            },
            Cmd.none)
     Tick time ->

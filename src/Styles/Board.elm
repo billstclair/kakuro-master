@@ -19,6 +19,7 @@ type BClass = Table
             | CellTd
             | Label
             | EmptyCell
+            | UnfilledCell
             | LabelTable
             | LabelTr
             | LabelTd
@@ -73,7 +74,13 @@ rules =
       [ Class EmptyCell ]
       [ ("width", "99%")
       , ("height", "99%")
-      , ("background-color", "#e0e0e0")
+      , ("background-color", "#808080")
+      ]
+  , rule
+      [ Class UnfilledCell ]
+      [ ("width", "99%")
+      , ("height", "99%")
+      , ("background-color", "#ffffff")
       ]
   , rule
       [ Class LabelTable]
