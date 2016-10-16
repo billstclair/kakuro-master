@@ -10421,6 +10421,8 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsRowLoop = F3(
 			}
 		}
 	});
+var _billstclair$kakuro_master$RenderBoard$emptyHints = _elm_lang$core$Native_List.fromArray(
+	[]);
 var _billstclair$kakuro_master$RenderBoard$emptyLabels = {ctor: '_Tuple2', _0: 0, _1: 0};
 var _billstclair$kakuro_master$RenderBoard$computeLabelsRow = F2(
 	function (row, board) {
@@ -10578,94 +10580,89 @@ var _billstclair$kakuro_master$RenderBoard$cell = function (num) {
 		_elm_lang$core$Native_List.fromArray(
 			[]));
 };
-var _billstclair$kakuro_master$RenderBoard$renderCell = F4(
-	function (row, col, board, labelsBoard) {
-		var _p0 = A3(_billstclair$kakuro_master$Board$get, row, col, labelsBoard);
+var _billstclair$kakuro_master$RenderBoard$renderCell = F3(
+	function (row, col, state) {
+		var guesses = state.guesses;
+		var labels = state.labels;
+		var _p0 = A3(_billstclair$kakuro_master$Board$get, row, col, labels);
 		var right = _p0._0;
 		var bottom = _p0._1;
 		if (_elm_lang$core$Native_Utils.eq(right, 0) && _elm_lang$core$Native_Utils.eq(bottom, 0)) {
-			var val = A3(_billstclair$kakuro_master$Board$get, row - 1, col - 1, board);
+			var val = A3(_billstclair$kakuro_master$Board$get, row - 1, col - 1, guesses);
 			return _elm_lang$core$Native_Utils.eq(val, 0) ? _billstclair$kakuro_master$RenderBoard$emptyCell : _billstclair$kakuro_master$RenderBoard$cell(val);
 		} else {
 			return A2(_billstclair$kakuro_master$RenderBoard$labelCell, right, bottom);
 		}
 	});
-var _billstclair$kakuro_master$RenderBoard$renderColsLoop = F5(
-	function (row, col, res, board, labelsBoard) {
+var _billstclair$kakuro_master$RenderBoard$renderColsLoop = F4(
+	function (row, col, res, state) {
 		renderColsLoop:
 		while (true) {
-			if (_elm_lang$core$Native_Utils.cmp(col, labelsBoard.cols) > -1) {
+			if (_elm_lang$core$Native_Utils.cmp(col, state.labels.cols) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
 				var _v15 = row,
 					_v16 = col + 1,
 					_v17 = A2(
 					_elm_lang$core$List_ops['::'],
-					A4(_billstclair$kakuro_master$RenderBoard$renderCell, row, col, board, labelsBoard),
+					A3(_billstclair$kakuro_master$RenderBoard$renderCell, row, col, state),
 					res),
-					_v18 = board,
-					_v19 = labelsBoard;
+					_v18 = state;
 				row = _v15;
 				col = _v16;
 				res = _v17;
-				board = _v18;
-				labelsBoard = _v19;
+				state = _v18;
 				continue renderColsLoop;
 			}
 		}
 	});
-var _billstclair$kakuro_master$RenderBoard$renderCols = F3(
-	function (row, board, labelsBoard) {
-		return A5(
+var _billstclair$kakuro_master$RenderBoard$renderCols = F2(
+	function (row, state) {
+		return A4(
 			_billstclair$kakuro_master$RenderBoard$renderColsLoop,
 			row,
 			0,
 			_elm_lang$core$Native_List.fromArray(
 				[]),
-			board,
-			labelsBoard);
+			state);
 	});
-var _billstclair$kakuro_master$RenderBoard$renderRow = F3(
-	function (row, board, labelsBoard) {
+var _billstclair$kakuro_master$RenderBoard$renderRow = F2(
+	function (row, state) {
 		return A2(
 			_elm_lang$html$Html$tr,
 			_elm_lang$core$Native_List.fromArray(
 				[]),
-			A3(_billstclair$kakuro_master$RenderBoard$renderCols, row, board, labelsBoard));
+			A2(_billstclair$kakuro_master$RenderBoard$renderCols, row, state));
 	});
-var _billstclair$kakuro_master$RenderBoard$renderRowsLoop = F4(
-	function (row, res, board, labelsBoard) {
+var _billstclair$kakuro_master$RenderBoard$renderRowsLoop = F3(
+	function (row, res, state) {
 		renderRowsLoop:
 		while (true) {
-			if (_elm_lang$core$Native_Utils.cmp(row, labelsBoard.rows) > -1) {
+			if (_elm_lang$core$Native_Utils.cmp(row, state.labels.rows) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v20 = row + 1,
-					_v21 = A2(
+				var _v19 = row + 1,
+					_v20 = A2(
 					_elm_lang$core$List_ops['::'],
-					A3(_billstclair$kakuro_master$RenderBoard$renderRow, row, board, labelsBoard),
+					A2(_billstclair$kakuro_master$RenderBoard$renderRow, row, state),
 					res),
-					_v22 = board,
-					_v23 = labelsBoard;
-				row = _v20;
-				res = _v21;
-				board = _v22;
-				labelsBoard = _v23;
+					_v21 = state;
+				row = _v19;
+				res = _v20;
+				state = _v21;
 				continue renderRowsLoop;
 			}
 		}
 	});
-var _billstclair$kakuro_master$RenderBoard$renderRows = F2(
-	function (board, labelsBoard) {
-		return A4(
-			_billstclair$kakuro_master$RenderBoard$renderRowsLoop,
-			0,
-			_elm_lang$core$Native_List.fromArray(
-				[]),
-			board,
-			labelsBoard);
-	});
-var _billstclair$kakuro_master$RenderBoard$render = function (board) {
+var _billstclair$kakuro_master$RenderBoard$renderRows = function (state) {
+	return A3(
+		_billstclair$kakuro_master$RenderBoard$renderRowsLoop,
+		0,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		state);
+};
+var _billstclair$kakuro_master$RenderBoard$render = function (state) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
@@ -10679,10 +10676,7 @@ var _billstclair$kakuro_master$RenderBoard$render = function (board) {
 					[
 						_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Table)
 					]),
-				A2(
-					_billstclair$kakuro_master$RenderBoard$renderRows,
-					board,
-					_billstclair$kakuro_master$RenderBoard$computeLabels(board)))
+				_billstclair$kakuro_master$RenderBoard$renderRows(state))
 			]));
 };
 var _billstclair$kakuro_master$RenderBoard$errorCell = function (num) {
@@ -10734,6 +10728,18 @@ var _billstclair$kakuro_master$RenderBoard$hintCell = function (hints) {
 						A3(_billstclair$kakuro_master$RenderBoard$hintRow, 7, 9, hints)
 					]))
 			]));
+};
+var _billstclair$kakuro_master$RenderBoard$GameState = F4(
+	function (a, b, c, d) {
+		return {board: a, labels: b, guesses: c, hints: d};
+	});
+var _billstclair$kakuro_master$RenderBoard$makeGameState = function (board) {
+	return A4(
+		_billstclair$kakuro_master$RenderBoard$GameState,
+		board,
+		_billstclair$kakuro_master$RenderBoard$computeLabels(board),
+		A3(_billstclair$kakuro_master$Board$make, board.rows, board.cols, board.$default),
+		A3(_billstclair$kakuro_master$Board$make, board.rows, board.cols, _billstclair$kakuro_master$RenderBoard$emptyHints));
 };
 //import Native.Scheduler //
 
@@ -11780,11 +11786,12 @@ var _billstclair$kakuro_master$Main$update = F2(
 				var _p1 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, model.kind, model.index);
 				var idx = _p1._0;
 				var board = _p1._1;
+				var state = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{index: idx, board: board, gencount: model.gencount + 1}),
+						{index: idx, board: board, gencount: model.gencount + 1, gameState: state}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Tick':
@@ -11824,15 +11831,16 @@ var _billstclair$kakuro_master$Main$defaultBoard = A4(
 		A3(_billstclair$kakuro_master$Board$make, 6, 6, 0)));
 var _billstclair$kakuro_master$Main$pageTitle = _billstclair$kakuro_master$KakuroNative$setTitle('Kakuro Master');
 var _billstclair$kakuro_master$Main$initialKind = 10;
-var _billstclair$kakuro_master$Main$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {board: a, kind: b, index: c, gencount: d, seed: e, time: f};
+var _billstclair$kakuro_master$Main$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {board: a, kind: b, index: c, gencount: d, gameState: e, seed: f, time: g};
 	});
 var _billstclair$kakuro_master$Main$model = function () {
 	var _p2 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, _billstclair$kakuro_master$Main$initialKind, 0);
 	var idx = _p2._0;
 	var board = _p2._1;
-	return A6(_billstclair$kakuro_master$Main$Model, board, _billstclair$kakuro_master$Main$initialKind, idx, 0, _elm_lang$core$Maybe$Nothing, 0);
+	var state = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
+	return A7(_billstclair$kakuro_master$Main$Model, board, _billstclair$kakuro_master$Main$initialKind, idx, 0, state, _elm_lang$core$Maybe$Nothing, 0);
 }();
 var _billstclair$kakuro_master$Main$Nop = {ctor: 'Nop'};
 var _billstclair$kakuro_master$Main$Seed = function (a) {
@@ -11901,7 +11909,7 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 					[]),
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_billstclair$kakuro_master$RenderBoard$render(model.board)
+						_billstclair$kakuro_master$RenderBoard$render(model.gameState)
 					])),
 				A2(
 				_elm_lang$html$Html$div,
