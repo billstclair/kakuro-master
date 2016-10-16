@@ -10111,6 +10111,7 @@ var _billstclair$kakuro_master$Styles_Board$BottomLabelTd = {ctor: 'BottomLabelT
 var _billstclair$kakuro_master$Styles_Board$LabelTd = {ctor: 'LabelTd'};
 var _billstclair$kakuro_master$Styles_Board$LabelTr = {ctor: 'LabelTr'};
 var _billstclair$kakuro_master$Styles_Board$LabelTable = {ctor: 'LabelTable'};
+var _billstclair$kakuro_master$Styles_Board$UnfilledCell = {ctor: 'UnfilledCell'};
 var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
 var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
 var _billstclair$kakuro_master$Styles_Board$CellTd = {ctor: 'CellTd'};
@@ -10187,7 +10188,19 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 			[
 				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
 				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'background-color', _1: '#e0e0e0'}
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$UnfilledCell)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#ffffff'}
 			])),
 		A2(
 		_billstclair$kakuro_master$Styles_Board$rule,
@@ -10539,6 +10552,25 @@ var _billstclair$kakuro_master$RenderBoard$hintRow = F3(
 						_billstclair$kakuro_master$RenderBoard$hintChars(hints),
 						_elm_lang$core$Native_List.range(min, max)))));
 	});
+var _billstclair$kakuro_master$RenderBoard$unfilledCell = A2(
+	_elm_lang$html$Html$td,
+	_elm_lang$core$Native_List.fromArray(
+		[
+			_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$CellTd)
+		]),
+	_elm_lang$core$Native_List.fromArray(
+		[
+			A2(
+			_elm_lang$html$Html$div,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$UnfilledCell)
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html$text(_billstclair$kakuro_master$Entities$nbsp)
+				]))
+		]));
 var _billstclair$kakuro_master$RenderBoard$emptyCell = A2(
 	_elm_lang$html$Html$td,
 	_elm_lang$core$Native_List.fromArray(
@@ -10582,14 +10614,15 @@ var _billstclair$kakuro_master$RenderBoard$cell = function (num) {
 };
 var _billstclair$kakuro_master$RenderBoard$renderCell = F3(
 	function (row, col, state) {
-		var guesses = state.guesses;
 		var labels = state.labels;
 		var _p0 = A3(_billstclair$kakuro_master$Board$get, row, col, labels);
 		var right = _p0._0;
 		var bottom = _p0._1;
 		if (_elm_lang$core$Native_Utils.eq(right, 0) && _elm_lang$core$Native_Utils.eq(bottom, 0)) {
-			var val = A3(_billstclair$kakuro_master$Board$get, row - 1, col - 1, guesses);
-			return _elm_lang$core$Native_Utils.eq(val, 0) ? _billstclair$kakuro_master$RenderBoard$emptyCell : _billstclair$kakuro_master$RenderBoard$cell(val);
+			var val = A3(_billstclair$kakuro_master$Board$get, row - 1, col - 1, state.guesses);
+			return _elm_lang$core$Native_Utils.eq(val, 0) ? (_elm_lang$core$Native_Utils.eq(
+				A3(_billstclair$kakuro_master$Board$get, row - 1, col - 1, state.board),
+				0) ? _billstclair$kakuro_master$RenderBoard$emptyCell : _billstclair$kakuro_master$RenderBoard$unfilledCell) : _billstclair$kakuro_master$RenderBoard$cell(val);
 		} else {
 			return A2(_billstclair$kakuro_master$RenderBoard$labelCell, right, bottom);
 		}
@@ -11786,12 +11819,12 @@ var _billstclair$kakuro_master$Main$update = F2(
 				var _p1 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, model.kind, model.index);
 				var idx = _p1._0;
 				var board = _p1._1;
-				var state = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
+				var gameState = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{index: idx, board: board, gencount: model.gencount + 1, gameState: state}),
+						{index: idx, gencount: model.gencount + 1, gameState: gameState}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Tick':
@@ -11831,16 +11864,16 @@ var _billstclair$kakuro_master$Main$defaultBoard = A4(
 		A3(_billstclair$kakuro_master$Board$make, 6, 6, 0)));
 var _billstclair$kakuro_master$Main$pageTitle = _billstclair$kakuro_master$KakuroNative$setTitle('Kakuro Master');
 var _billstclair$kakuro_master$Main$initialKind = 10;
-var _billstclair$kakuro_master$Main$Model = F7(
-	function (a, b, c, d, e, f, g) {
-		return {board: a, kind: b, index: c, gencount: d, gameState: e, seed: f, time: g};
+var _billstclair$kakuro_master$Main$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {kind: a, index: b, gencount: c, gameState: d, seed: e, time: f};
 	});
 var _billstclair$kakuro_master$Main$model = function () {
 	var _p2 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, _billstclair$kakuro_master$Main$initialKind, 0);
 	var idx = _p2._0;
 	var board = _p2._1;
 	var state = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
-	return A7(_billstclair$kakuro_master$Main$Model, board, _billstclair$kakuro_master$Main$initialKind, idx, 0, state, _elm_lang$core$Maybe$Nothing, 0);
+	return A6(_billstclair$kakuro_master$Main$Model, _billstclair$kakuro_master$Main$initialKind, idx, 0, state, _elm_lang$core$Maybe$Nothing, 0);
 }();
 var _billstclair$kakuro_master$Main$Nop = {ctor: 'Nop'};
 var _billstclair$kakuro_master$Main$Seed = function (a) {
