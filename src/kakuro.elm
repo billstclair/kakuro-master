@@ -145,7 +145,7 @@ mailLink : String -> Html Msg
 mailLink email =
   span []
     [ text "<"
-    , a [ href ("mailto: " ++ email) ]
+    , a [ href ("mailto:" ++ email) ]
       [ text email ]
     , text ">"
     ]
