@@ -176,7 +176,7 @@ view model =
     , div
         [ id FooterId ]
         [ text (copyright ++ " 2016 Bill St. Clair ")
-        , mailLink "billstclair.com"
+        , mailLink "billstclair@gmail.com"
         , br
         , logoLink "https://steemit.com/created/kakuro-master"
             "steemit-icon-114x114.png" "Steemit articles" 32
