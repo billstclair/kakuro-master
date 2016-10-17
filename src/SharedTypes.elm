@@ -11,6 +11,7 @@
 
 module SharedTypes exposing ( Model
                             , Msg, Msg (..)
+                            , Selection
                             , GameState
                             , IntBoard
                             , Labels, LabelsBoard
@@ -22,6 +23,7 @@ import PuzzleDB
 
 import Random
 import Time exposing (Time, second)
+import Keyboard
 
 type alias Model =
       { kind : Int
@@ -37,7 +39,7 @@ type Msg
   | Tick Time
   | Seed Time
   | ClickCell String
-  | PressKey Int
+  | PressKey Keyboard.KeyCode
   | Nop
 
 type alias IntBoard =
@@ -55,10 +57,13 @@ type alias Hints =
 type alias HintsBoard =
   Board Hints
 
+type alias Selection =
+  (Int, Int)
+
 type alias GameState =
   { board : IntBoard
   , labels: LabelsBoard
   , guesses : IntBoard
   , hints : HintsBoard
-  , selectedCell : Maybe (Int, Int)
+  , selection : Maybe Selection
   }

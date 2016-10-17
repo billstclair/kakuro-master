@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------
 
 import SharedTypes exposing ( Model, Msg, Msg (..)
-                            , IntBoard, HintsBoard, GameState)
+                            , IntBoard, HintsBoard, Selection, GameState)
 import Styles.Page exposing (id, class, PId(..), PClass(..))
 import KakuroNative exposing (sha256)
 import Board exposing(Board)
@@ -22,6 +22,7 @@ import RenderBoard
 import Array exposing (Array)
 import Char
 import List
+import List.Extra as LE
 import String
 import Time exposing (Time, second)
 import Random
@@ -30,13 +31,13 @@ import Task
 import Debug exposing (log)
 
 import Html exposing
-  (Html, Attribute, button, div, h2, text, table, tr, td, th
+  (Html, Attribute, button, div, p, h2, text, table, tr, td, th
   ,input, button, a, img, span)
 import Html.Attributes
   exposing (style, align, value, size, href, src, title, alt, width, height)
 import Html.App as Html
 import Html.Events exposing (onClick, onInput)
-import Events exposing (onKeyPress)
+import Keyboard exposing (KeyCode)
 
 main =
   Html.program
@@ -109,7 +110,7 @@ updateSelectedCell idStr model =
         let gameState = model.gameState
         in
             { model | gameState =
-                { gameState | selectedCell = Just (row, col) }
+                { gameState | selection = Just (row, col) }
             }
       else
         model
@@ -118,11 +119,87 @@ keyCodeToDigit : Int -> Int -> Int
 keyCodeToDigit default keyCode =
   charToDigit default (Char.fromCode keyCode)
 
-processKeyPress : Int -> Model -> Model
-processKeyPress keyCode model =
+type Direction
+  = Up
+  | Down
+  | Right
+  | Left
+
+newLocationLoop : Selection -> Selection -> Selection -> Selection -> IntBoard-> Maybe Selection
+newLocationLoop min max delta res board =
+  if res < min || res >= max then
+    Nothing
+  else
+    let (row, col) = res
+        (dr, dc) = delta
+        nrow = row + dr
+        ncol = col + dc
+        nres = (nrow, ncol)
+    in
+        if (Board.get nrow ncol board) /= 0 then
+          Just nres
+        else
+          newLocationLoop min max delta nres board
+
+newLocation : Selection -> Selection -> IntBoard -> Maybe Selection
+newLocation delta selection board =
+  let (dr, dc) = delta
+      (r, c) = selection
+      min = if dr == 0 then (r, 0) else (0, c)
+      max = if dr == 0 then (r, board.cols) else ( board.rows, c)
+  in
+      newLocationLoop min max delta selection board
+
+moveSelection : Direction -> Model -> Model
+moveSelection direction model =
   let gameState = model.gameState
-      selection = gameState.selectedCell
+      selection = case gameState.selection of
+                      Nothing -> (0, 0)
+                      Just sel -> sel
       board = gameState.board
+      newSelection = case direction of
+                         Up ->    newLocation (-1, 0) selection board
+                         Down ->  newLocation (1, 0)  selection board
+                         Right -> newLocation (0, 1)  selection board
+                         Left ->  newLocation (0, -1) selection board
+  in
+      case newSelection of
+          Nothing -> model
+          _ ->
+            { model | gameState =
+                { gameState | selection = newSelection
+                }
+            }
+
+movementKeyDirections : List (Char, Direction)
+movementKeyDirections = [ ('w', Up)
+                        , ('a', Left)
+                        , ('s', Down)
+                        , ('d', Right)
+                        , ('i', Up)
+                        , ('j', Left)
+                        , ('k', Down)
+                        , ('l', Right)
+                        ]
+
+-- Process WASD or IJKL.
+-- Arrows keys are apparently trapped by the DOM somewhere.
+-- Need to figure out how to stop that so we see them.
+processMovementKeys : Int -> Model -> Maybe Model
+processMovementKeys keyCode model =
+  let char = Char.toLower <| Char.fromCode keyCode
+  in
+      case LE.find (\x -> (fst x) == char) movementKeyDirections of
+          Nothing ->
+            Nothing
+          Just (_, direction) ->
+            Just <| moveSelection direction model
+
+processDigitKeys : Int -> Model -> Model
+processDigitKeys keyCode model =
+  let gameState = model.gameState
+      selection = gameState.selection
+      guesses = gameState.guesses
   in
       case selection of
           Nothing ->
@@ -135,11 +212,18 @@ processKeyPress keyCode model =
                   model
                 else
                   { model | gameState =
-                      { gameState | board =
-                          Board.set row col digit board
+                      { gameState | guesses =
+                          Board.set row col digit guesses
                       }
                   }
                   
+processKeyPress : Int -> Model -> Model
+processKeyPress keyCode model =
+  case processMovementKeys keyCode model of
+      Nothing ->
+        processDigitKeys keyCode model
+      Just model ->
+        model
 
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
@@ -161,7 +245,7 @@ update msg model =
     ClickCell id ->
       (updateSelectedCell id model, Cmd.none)
     PressKey code ->
-      (processKeyPress (log "PressKey" code) model, Cmd.none)
+      (processKeyPress code model, Cmd.none)
     Nop ->
       (model, Cmd.none)
           
@@ -170,7 +254,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
   --Time.every second Tick
-  Sub.none
+  Keyboard.presses (PressKey)
 
 -- VIEW
 
@@ -210,7 +294,6 @@ space = text " "
 view : Model -> Html Msg
 view model =
   div [ align "center" --deprecated, so sue me
-      , onKeyPress PressKey
       ]
     [ Styles.Page.style
     , h2 [] [text pageTitle]
@@ -228,6 +311,15 @@ view model =
         -- , showValue model.seed               -- debugging
         ]
     , div [] [ RenderBoard.render model.gameState ]
+    , div []
+        [ p []
+            [ text "Click to select. WASD or IJKL to move."
+            , br
+            , text "1-9 to enter number. 0 or space to erase."
+            , br
+            , text "No validation done yet. That's next."
+            ]
+        ]
     , div
         [ id FooterId ]
         [ text (copyright ++ " 2016 Bill St. Clair ")

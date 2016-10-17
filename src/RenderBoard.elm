@@ -17,13 +17,13 @@ import SharedTypes exposing (GameState
                             , IntBoard
                             , Labels, LabelsBoard
                             , Hints, HintsBoard
-                            , Msg (ClickCell, PressKey)
+                            , Msg (ClickCell)
                             )
 import Styles.Board exposing (class, classes, BClass(..))
 import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
-import Events exposing (onClickWithId, onKeyPress)
+import Events exposing (onClickWithId)
 
 import Array exposing (Array)
 import Char
@@ -223,8 +223,8 @@ renderCell row col state =
       (right, bottom) = get row col labels
       bRow = row - 1
       bCol = col - 1
-      selected = state.selectedCell
-      isSelected = case selected of
+      selection = state.selection
+      isSelected = case selection of
                      Nothing -> False
                      Just x -> x == (bRow, bCol)
   in
@@ -280,7 +280,7 @@ makeGameState board =
     (computeLabels board)       --labels
     (Board.make board.rows board.cols board.default) --guesses
     (Board.make board.rows board.cols emptyHints)    --hints
-    Nothing                                          --selectedCell
+    Nothing                                          --selection
 
 render : GameState -> Html Msg
 render state =

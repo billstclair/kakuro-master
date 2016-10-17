@@ -9,12 +9,12 @@
 --
 ----------------------------------------------------------------------
 
-module Events exposing (onClickWithId, onKeyPress)
+module Events exposing (onClickWithId)
 
 import Html exposing (Attribute)
 import Html.Attributes exposing (id)
-import Html.Events exposing (on, onWithOptions, keyCode, Options)
-import Json.Decode as Json exposing ((:=))
+import Html.Events exposing (on)
+import Json.Decode as Json
 
 targetId : Json.Decoder String
 targetId =
@@ -23,25 +23,3 @@ targetId =
 onClickWithId : (String -> msg) -> Attribute msg
 onClickWithId msg =
   on "click" (Json.map msg targetId)
-
-key : Json.Decoder Int
-key =
-  ("key" := Json.int)
-
-keyIdentifier : Json.Decoder Int
-keyIdentifier =
-  ("keyIdentifier" := Json.int)
-
-code : Json.Decoder Int
-code =
-  ("code" := Json.int)
-
-preventDefaultOptions =
-  Options False True
-
-onKeyPress : (Int -> msg) -> Attribute msg
-onKeyPress tagger =
-  onWithOptions
-    "keypress"
-    preventDefaultOptions
-    (Json.map tagger keyCode)
