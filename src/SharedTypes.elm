@@ -37,6 +37,7 @@ type Msg
   | Tick Time
   | Seed Time
   | ClickCell String
+  | PressKey Int
   | Nop
 
 type alias IntBoard =

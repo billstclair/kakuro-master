@@ -36,6 +36,7 @@ import Html.Attributes
   exposing (style, align, value, size, href, src, title, alt, width, height)
 import Html.App as Html
 import Html.Events exposing (onClick, onInput)
+import Events exposing (onKeyPress)
 
 main =
   Html.program
@@ -113,6 +114,33 @@ updateSelectedCell idStr model =
       else
         model
 
+keyCodeToDigit : Int -> Int -> Int
+keyCodeToDigit default keyCode =
+  charToDigit default (Char.fromCode keyCode)
+
+processKeyPress : Int -> Model -> Model
+processKeyPress keyCode model =
+  let gameState = model.gameState
+      selection = gameState.selectedCell
+      board = gameState.board
+  in
+      case selection of
+          Nothing ->
+            model
+          Just (row, col) ->
+            let char = Char.fromCode keyCode
+                digit = charToDigit -1 (if char == ' ' then '0' else char)
+            in
+                if digit < 0 then
+                  model
+                else
+                  { model | gameState =
+                      { gameState | board =
+                          Board.set row col digit board
+                      }
+                  }
+                  
+
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
@@ -132,6 +160,8 @@ update msg model =
       ({model | seed = Just <| Random.initialSeed (round time)}, Cmd.none)
     ClickCell id ->
       (updateSelectedCell id model, Cmd.none)
+    PressKey code ->
+      (processKeyPress (log "PressKey" code) model, Cmd.none)
     Nop ->
       (model, Cmd.none)
           
@@ -180,6 +210,7 @@ space = text " "
 view : Model -> Html Msg
 view model =
   div [ align "center" --deprecated, so sue me
+      , onKeyPress PressKey
       ]
     [ Styles.Page.style
     , h2 [] [text pageTitle]

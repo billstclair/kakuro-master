@@ -17,13 +17,13 @@ import SharedTypes exposing (GameState
                             , IntBoard
                             , Labels, LabelsBoard
                             , Hints, HintsBoard
-                            , Msg (ClickCell)
+                            , Msg (ClickCell, PressKey)
                             )
 import Styles.Board exposing (class, classes, BClass(..))
 import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
-import Events exposing (onClickWithId)
+import Events exposing (onClickWithId, onKeyPress)
 
 import Array exposing (Array)
 import Char
@@ -52,7 +52,8 @@ classedCell : Int -> Int -> Int -> List BClass -> Html Msg
 classedCell num row col classTypes =
   td [ classes <| CellTd :: classTypes
      , cellId row col
-     , onClickWithId ClickCell]
+     , onClickWithId ClickCell
+     ]
     [ text <| toString num ]
 
 cell : Bool -> Int -> Int -> Int -> Html Msg
@@ -74,7 +75,8 @@ unfilledCell isSelected row col =
               class CellTd
   in
       td [ cls
-         , onClickWithId ClickCell]
+         , onClickWithId ClickCell
+         ]
       [ div [ class UnfilledCell
             , cellId row col
             ]
