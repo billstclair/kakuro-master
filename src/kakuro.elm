@@ -185,6 +185,10 @@ movementKeyDirections = [ ('w', Up)
                         , ('j', Left)
                         , ('k', Down)
                         , ('l', Right)
+                        , ('&', Up)
+                        , ('%', Left)
+                        , ('(', Down)
+                        , ('\'', Right)
                         ]
 
 -- Process WASD or IJKL.
@@ -259,7 +263,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
   --Time.every second Tick
-  Keyboard.presses (PressKey)
+  Keyboard.downs (PressKey)
 
 -- VIEW
 
@@ -318,13 +322,11 @@ view model =
     , div [] [ RenderBoard.render model.gameState ]
     , div []
         [ p []
-            [ text "Click to select. WASD or IJKL to move."
+            [ text "Click to select. Arrows, WASD, or IJKL to move."
             , br
             , text "1-9 to enter number. 0 or space to erase."
             , br
             , text "No validation done yet. That's next."
-            , br
-            , text "(Keyboard input doesn't work in Firefox)"
             ]
         ]
     , div
