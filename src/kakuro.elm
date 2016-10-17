@@ -125,21 +125,20 @@ type Direction
   | Right
   | Left
 
-newLocationLoop : Bool -> Selection -> Selection -> Selection -> Selection -> IntBoard-> Maybe Selection
-newLocationLoop isFirst min max delta res board =
-  if (not isFirst) && (res < min || res >= max) then
-    Nothing
-  else
-    let (row, col) = res
-        (dr, dc) = delta
-        nrow = row + dr
-        ncol = col + dc
-        nres = (nrow, ncol)
-    in
-        if (Board.get nrow ncol board) /= 0 then
-          Just nres
-        else
-          newLocationLoop False min max delta nres board
+newLocationLoop : Selection -> Selection -> Selection -> Selection -> IntBoard-> Maybe Selection
+newLocationLoop min max delta res board =
+  let (row, col) = res
+      (dr, dc) = delta
+      nrow = row + dr
+      ncol = col + dc
+      nres = (nrow, ncol)
+  in
+      if nres < min || nres >= max then
+        Nothing
+      else if (Board.get nrow ncol board) /= 0 then
+        Just nres
+      else
+        newLocationLoop min max delta nres board
 
 newLocation : Selection -> Selection -> IntBoard -> Maybe Selection
 newLocation delta selection board =
@@ -148,7 +147,7 @@ newLocation delta selection board =
       min = if dr == 0 then (r, 0) else (0, c)
       max = if dr == 0 then (r, board.cols) else (board.rows, c)
   in
-      newLocationLoop True min max delta selection board
+      newLocationLoop min max delta selection board
 
 moveSelection : Direction -> Model -> Model
 moveSelection direction model =
