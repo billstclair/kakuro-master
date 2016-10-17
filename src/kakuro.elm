@@ -324,6 +324,8 @@ view model =
             , text "1-9 to enter number. 0 or space to erase."
             , br
             , text "No validation done yet. That's next."
+            , br
+            , text "(Keyboard input doesn't work in Firefox)"
             ]
         ]
     , div
