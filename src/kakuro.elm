@@ -125,9 +125,9 @@ type Direction
   | Right
   | Left
 
-newLocationLoop : Selection -> Selection -> Selection -> Selection -> IntBoard-> Maybe Selection
-newLocationLoop min max delta res board =
-  if res < min || res >= max then
+newLocationLoop : Bool -> Selection -> Selection -> Selection -> Selection -> IntBoard-> Maybe Selection
+newLocationLoop isFirst min max delta res board =
+  if (not isFirst) && (res < min || res >= max) then
     Nothing
   else
     let (row, col) = res
@@ -139,24 +139,30 @@ newLocationLoop min max delta res board =
         if (Board.get nrow ncol board) /= 0 then
           Just nres
         else
-          newLocationLoop min max delta nres board
+          newLocationLoop False min max delta nres board
 
 newLocation : Selection -> Selection -> IntBoard -> Maybe Selection
 newLocation delta selection board =
   let (dr, dc) = delta
       (r, c) = selection
       min = if dr == 0 then (r, 0) else (0, c)
-      max = if dr == 0 then (r, board.cols) else ( board.rows, c)
+      max = if dr == 0 then (r, board.cols) else (board.rows, c)
   in
-      newLocationLoop min max delta selection board
+      newLocationLoop True min max delta selection board
 
 moveSelection : Direction -> Model -> Model
 moveSelection direction model =
   let gameState = model.gameState
-      selection = case gameState.selection of
-                      Nothing -> (0, 0)
-                      Just sel -> sel
       board = gameState.board
+      rows = board.rows
+      cols = board.cols
+      selection = case gameState.selection of
+                      Nothing -> case direction of
+                                     Up ->    (rows, 0)
+                                     Down ->  (-1, 0)
+                                     Right -> (0, -1)
+                                     Left ->  (0, cols)
+                      Just sel -> sel
       newSelection = case direction of
                          Up ->    newLocation (-1, 0) selection board
                          Down ->  newLocation (1, 0)  selection board
