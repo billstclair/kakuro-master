@@ -328,6 +328,11 @@ view model =
             , br
             , text "No validation done yet. That's next."
             ]
+        , p []
+            [ text "Rules: "
+            , a [ href "https://en.wikipedia.org/wiki/Kakuro" ]
+              [ text "en.wikipedia.org/wiki/Kakuro" ]
+            ]
         ]
     , div
         [ id FooterId ]
