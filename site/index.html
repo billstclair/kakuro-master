@@ -12237,11 +12237,11 @@ var _billstclair$kakuro_master$Main$logoLink = F4(
 var _billstclair$kakuro_master$Main$subscriptions = function (model) {
 	return _elm_lang$keyboard$Keyboard$presses(_billstclair$kakuro_master$SharedTypes$PressKey);
 };
-var _billstclair$kakuro_master$Main$newLocationLoop = F5(
-	function (min, max, delta, res, board) {
+var _billstclair$kakuro_master$Main$newLocationLoop = F6(
+	function (isFirst, min, max, delta, res, board) {
 		newLocationLoop:
 		while (true) {
-			if ((_elm_lang$core$Native_Utils.cmp(res, min) < 0) || (_elm_lang$core$Native_Utils.cmp(res, max) > -1)) {
+			if (_elm_lang$core$Basics$not(isFirst) && ((_elm_lang$core$Native_Utils.cmp(res, min) < 0) || (_elm_lang$core$Native_Utils.cmp(res, max) > -1))) {
 				return _elm_lang$core$Maybe$Nothing;
 			} else {
 				var _p0 = delta;
@@ -12258,16 +12258,18 @@ var _billstclair$kakuro_master$Main$newLocationLoop = F5(
 					0)) {
 					return _elm_lang$core$Maybe$Just(nres);
 				} else {
-					var _v0 = min,
-						_v1 = max,
-						_v2 = delta,
-						_v3 = nres,
-						_v4 = board;
-					min = _v0;
-					max = _v1;
-					delta = _v2;
-					res = _v3;
-					board = _v4;
+					var _v0 = false,
+						_v1 = min,
+						_v2 = max,
+						_v3 = delta,
+						_v4 = nres,
+						_v5 = board;
+					isFirst = _v0;
+					min = _v1;
+					max = _v2;
+					delta = _v3;
+					res = _v4;
+					board = _v5;
 					continue newLocationLoop;
 				}
 			}
@@ -12283,23 +12285,35 @@ var _billstclair$kakuro_master$Main$newLocation = F3(
 		var dc = _p3._1;
 		var min = _elm_lang$core$Native_Utils.eq(dr, 0) ? {ctor: '_Tuple2', _0: r, _1: 0} : {ctor: '_Tuple2', _0: 0, _1: c};
 		var max = _elm_lang$core$Native_Utils.eq(dr, 0) ? {ctor: '_Tuple2', _0: r, _1: board.cols} : {ctor: '_Tuple2', _0: board.rows, _1: c};
-		return A5(_billstclair$kakuro_master$Main$newLocationLoop, min, max, delta, selection, board);
+		return A6(_billstclair$kakuro_master$Main$newLocationLoop, true, min, max, delta, selection, board);
 	});
 var _billstclair$kakuro_master$Main$moveSelection = F2(
 	function (direction, model) {
 		var gameState = model.gameState;
+		var board = gameState.board;
+		var rows = board.rows;
+		var cols = board.cols;
 		var selection = function () {
 			var _p4 = gameState.selection;
 			if (_p4.ctor === 'Nothing') {
-				return {ctor: '_Tuple2', _0: 0, _1: 0};
+				var _p5 = direction;
+				switch (_p5.ctor) {
+					case 'Up':
+						return {ctor: '_Tuple2', _0: rows, _1: 0};
+					case 'Down':
+						return {ctor: '_Tuple2', _0: -1, _1: 0};
+					case 'Right':
+						return {ctor: '_Tuple2', _0: 0, _1: -1};
+					default:
+						return {ctor: '_Tuple2', _0: 0, _1: cols};
+				}
 			} else {
 				return _p4._0;
 			}
 		}();
-		var board = gameState.board;
 		var newSelection = function () {
-			var _p5 = direction;
-			switch (_p5.ctor) {
+			var _p6 = direction;
+			switch (_p6.ctor) {
 				case 'Up':
 					return A3(
 						_billstclair$kakuro_master$Main$newLocation,
@@ -12326,8 +12340,8 @@ var _billstclair$kakuro_master$Main$moveSelection = F2(
 						board);
 			}
 		}();
-		var _p6 = newSelection;
-		if (_p6.ctor === 'Nothing') {
+		var _p7 = newSelection;
+		if (_p7.ctor === 'Nothing') {
 			return model;
 		} else {
 			return _elm_lang$core$Native_Utils.update(
@@ -12347,11 +12361,11 @@ var _billstclair$kakuro_master$Main$charToDigit = F2(
 	});
 var _billstclair$kakuro_master$Main$maybeCharToInt = F2(
 	function ($default, mstr) {
-		var _p7 = mstr;
-		if (_p7.ctor === 'Nothing') {
+		var _p8 = mstr;
+		if (_p8.ctor === 'Nothing') {
 			return $default;
 		} else {
-			return A2(_billstclair$kakuro_master$Main$charToDigit, $default, _p7._0);
+			return A2(_billstclair$kakuro_master$Main$charToDigit, $default, _p8._0);
 		}
 	});
 var _billstclair$kakuro_master$Main$updateSelectedCell = F2(
@@ -12394,8 +12408,8 @@ var _billstclair$kakuro_master$Main$processDigitKeys = F2(
 		var gameState = model.gameState;
 		var selection = gameState.selection;
 		var guesses = gameState.guesses;
-		var _p8 = selection;
-		if (_p8.ctor === 'Nothing') {
+		var _p9 = selection;
+		if (_p9.ctor === 'Nothing') {
 			return model;
 		} else {
 			var $char = _elm_lang$core$Char$fromCode(keyCode);
@@ -12411,7 +12425,7 @@ var _billstclair$kakuro_master$Main$processDigitKeys = F2(
 					gameState: _elm_lang$core$Native_Utils.update(
 						gameState,
 						{
-							guesses: A4(_billstclair$kakuro_master$Board$set, _p8._0._0, _p8._0._1, digit, guesses)
+							guesses: A4(_billstclair$kakuro_master$Board$set, _p9._0._0, _p9._0._1, digit, guesses)
 						})
 				});
 		}
@@ -12529,9 +12543,9 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 };
 var _billstclair$kakuro_master$Main$initialKind = 10;
 var _billstclair$kakuro_master$Main$model = function () {
-	var _p9 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, _billstclair$kakuro_master$Main$initialKind, 0);
-	var idx = _p9._0;
-	var board = _p9._1;
+	var _p10 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, _billstclair$kakuro_master$Main$initialKind, 0);
+	var idx = _p10._0;
+	var board = _p10._1;
 	var state = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
 	return A6(_billstclair$kakuro_master$SharedTypes$Model, _billstclair$kakuro_master$Main$initialKind, idx, 0, state, _elm_lang$core$Maybe$Nothing, 0);
 }();
@@ -12587,7 +12601,7 @@ var _billstclair$kakuro_master$Main$processMovementKeys = F2(
 	function (keyCode, model) {
 		var $char = _elm_lang$core$Char$toLower(
 			_elm_lang$core$Char$fromCode(keyCode));
-		var _p10 = A2(
+		var _p11 = A2(
 			_elm_community$list_extra$List_Extra$find,
 			function (x) {
 				return _elm_lang$core$Native_Utils.eq(
@@ -12595,30 +12609,30 @@ var _billstclair$kakuro_master$Main$processMovementKeys = F2(
 					$char);
 			},
 			_billstclair$kakuro_master$Main$movementKeyDirections);
-		if (_p10.ctor === 'Nothing') {
+		if (_p11.ctor === 'Nothing') {
 			return _elm_lang$core$Maybe$Nothing;
 		} else {
 			return _elm_lang$core$Maybe$Just(
-				A2(_billstclair$kakuro_master$Main$moveSelection, _p10._0._1, model));
+				A2(_billstclair$kakuro_master$Main$moveSelection, _p11._0._1, model));
 		}
 	});
 var _billstclair$kakuro_master$Main$processKeyPress = F2(
 	function (keyCode, model) {
-		var _p11 = A2(_billstclair$kakuro_master$Main$processMovementKeys, keyCode, model);
-		if (_p11.ctor === 'Nothing') {
+		var _p12 = A2(_billstclair$kakuro_master$Main$processMovementKeys, keyCode, model);
+		if (_p12.ctor === 'Nothing') {
 			return A2(_billstclair$kakuro_master$Main$processDigitKeys, keyCode, model);
 		} else {
-			return _p11._0;
+			return _p12._0;
 		}
 	});
 var _billstclair$kakuro_master$Main$update = F2(
 	function (msg, model) {
-		var _p12 = msg;
-		switch (_p12.ctor) {
+		var _p13 = msg;
+		switch (_p13.ctor) {
 			case 'Generate':
-				var _p13 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, model.kind, model.index);
-				var idx = _p13._0;
-				var board = _p13._1;
+				var _p14 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, model.kind, model.index);
+				var idx = _p14._0;
+				var board = _p14._1;
 				var gameState = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
 				return {
 					ctor: '_Tuple2',
@@ -12643,20 +12657,20 @@ var _billstclair$kakuro_master$Main$update = F2(
 						{
 							seed: _elm_lang$core$Maybe$Just(
 								_elm_lang$core$Random$initialSeed(
-									_elm_lang$core$Basics$round(_p12._0)))
+									_elm_lang$core$Basics$round(_p13._0)))
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'ClickCell':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_billstclair$kakuro_master$Main$updateSelectedCell, _p12._0, model),
+					_0: A2(_billstclair$kakuro_master$Main$updateSelectedCell, _p13._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'PressKey':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_billstclair$kakuro_master$Main$processKeyPress, _p12._0, model),
+					_0: A2(_billstclair$kakuro_master$Main$processKeyPress, _p13._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
