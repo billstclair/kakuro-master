@@ -2,7 +2,9 @@ Kakuro in [Elm](http://elm-lang.org/).
 
 Currently, the UI shows only a 10x10 board, with 66 layouts, selectable via the "Next" button. This will change. I have data for 6x6 and 8x8 boards.
 
-It now shows the solution. Next I show the sums, and add the game play.
+The game is playable, but doesn't yet help you any, sorta like a newspaper.
+
+It's live at [kakuro-dojo.com](http://kakuro-dojo.com/).
 
 Code is in the ```src``` directory, scripts in the ```bin``` directory.
 
