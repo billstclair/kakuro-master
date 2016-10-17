@@ -12235,41 +12235,39 @@ var _billstclair$kakuro_master$Main$logoLink = F4(
 				]));
 	});
 var _billstclair$kakuro_master$Main$subscriptions = function (model) {
-	return _elm_lang$keyboard$Keyboard$presses(_billstclair$kakuro_master$SharedTypes$PressKey);
+	return _elm_lang$keyboard$Keyboard$downs(_billstclair$kakuro_master$SharedTypes$PressKey);
 };
-var _billstclair$kakuro_master$Main$newLocationLoop = F6(
-	function (isFirst, min, max, delta, res, board) {
+var _billstclair$kakuro_master$Main$newLocationLoop = F5(
+	function (min, max, delta, res, board) {
 		newLocationLoop:
 		while (true) {
-			if (_elm_lang$core$Basics$not(isFirst) && ((_elm_lang$core$Native_Utils.cmp(res, min) < 0) || (_elm_lang$core$Native_Utils.cmp(res, max) > -1))) {
+			var _p0 = delta;
+			var dr = _p0._0;
+			var dc = _p0._1;
+			var _p1 = res;
+			var row = _p1._0;
+			var col = _p1._1;
+			var nrow = row + dr;
+			var ncol = col + dc;
+			var nres = {ctor: '_Tuple2', _0: nrow, _1: ncol};
+			if ((_elm_lang$core$Native_Utils.cmp(nres, min) < 0) || (_elm_lang$core$Native_Utils.cmp(nres, max) > -1)) {
 				return _elm_lang$core$Maybe$Nothing;
 			} else {
-				var _p0 = delta;
-				var dr = _p0._0;
-				var dc = _p0._1;
-				var _p1 = res;
-				var row = _p1._0;
-				var col = _p1._1;
-				var nrow = row + dr;
-				var ncol = col + dc;
-				var nres = {ctor: '_Tuple2', _0: nrow, _1: ncol};
 				if (!_elm_lang$core$Native_Utils.eq(
 					A3(_billstclair$kakuro_master$Board$get, nrow, ncol, board),
 					0)) {
 					return _elm_lang$core$Maybe$Just(nres);
 				} else {
-					var _v0 = false,
-						_v1 = min,
-						_v2 = max,
-						_v3 = delta,
-						_v4 = nres,
-						_v5 = board;
-					isFirst = _v0;
-					min = _v1;
-					max = _v2;
-					delta = _v3;
-					res = _v4;
-					board = _v5;
+					var _v0 = min,
+						_v1 = max,
+						_v2 = delta,
+						_v3 = nres,
+						_v4 = board;
+					min = _v0;
+					max = _v1;
+					delta = _v2;
+					res = _v3;
+					board = _v4;
 					continue newLocationLoop;
 				}
 			}
@@ -12285,7 +12283,7 @@ var _billstclair$kakuro_master$Main$newLocation = F3(
 		var dc = _p3._1;
 		var min = _elm_lang$core$Native_Utils.eq(dr, 0) ? {ctor: '_Tuple2', _0: r, _1: 0} : {ctor: '_Tuple2', _0: 0, _1: c};
 		var max = _elm_lang$core$Native_Utils.eq(dr, 0) ? {ctor: '_Tuple2', _0: r, _1: board.cols} : {ctor: '_Tuple2', _0: board.rows, _1: c};
-		return A6(_billstclair$kakuro_master$Main$newLocationLoop, true, min, max, delta, selection, board);
+		return A5(_billstclair$kakuro_master$Main$newLocationLoop, min, max, delta, selection, board);
 	});
 var _billstclair$kakuro_master$Main$moveSelection = F2(
 	function (direction, model) {
@@ -12514,13 +12512,11 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 							[]),
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html$text('Click to select. WASD or IJKL to move.'),
+								_elm_lang$html$Html$text('Click to select. Arrows, WASD, or IJKL to move.'),
 								_billstclair$kakuro_master$Main$br,
 								_elm_lang$html$Html$text('1-9 to enter number. 0 or space to erase.'),
 								_billstclair$kakuro_master$Main$br,
-								_elm_lang$html$Html$text('No validation done yet. That\'s next.'),
-								_billstclair$kakuro_master$Main$br,
-								_elm_lang$html$Html$text('(Keyboard input doesn\'t work in Firefox)')
+								_elm_lang$html$Html$text('No validation done yet. That\'s next.')
 							]))
 					])),
 				A2(
@@ -12596,6 +12592,26 @@ var _billstclair$kakuro_master$Main$movementKeyDirections = _elm_lang$core$Nativ
 		{
 		ctor: '_Tuple2',
 		_0: _elm_lang$core$Native_Utils.chr('l'),
+		_1: _billstclair$kakuro_master$Main$Right
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('&'),
+		_1: _billstclair$kakuro_master$Main$Up
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('%'),
+		_1: _billstclair$kakuro_master$Main$Left
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('('),
+		_1: _billstclair$kakuro_master$Main$Down
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('\''),
 		_1: _billstclair$kakuro_master$Main$Right
 	}
 	]);
