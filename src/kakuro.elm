@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------
 --
 -- kakuro.elm
--- kakuro-master.com main screen
+-- kakuro-dojo.com main screen
 -- Copyright (c) 2016 Bill St. Clair <billstclair@gmail.com>
 -- Some rights reserved.
 -- Distributed under the MIT License
@@ -53,7 +53,7 @@ initialKind : Int
 initialKind = 10
 
 pageTitle : String
-pageTitle = KakuroNative.setTitle "Kakuro Master"
+pageTitle = KakuroNative.setTitle "Kakuro Dojo"
 
 seedCmd : Cmd Msg
 seedCmd =
