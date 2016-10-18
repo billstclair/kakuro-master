@@ -346,9 +346,9 @@ renderKeypadRow string =
 renderKeypad : Html Msg
 renderKeypad =
   table [ class Table]
-    [ renderKeypadRow "123^"
-    , renderKeypadRow "456v"
-    , renderKeypadRow "789<"
-    , renderKeypadRow "* #>"
+    [ renderKeypadRow "123*"
+    , renderKeypadRow "456#"
+    , renderKeypadRow "78^ "
+    , renderKeypadRow "9<v>"
     ]
 
