@@ -11438,6 +11438,7 @@ var _billstclair$kakuro_master$Styles_Board$LabelTd = {ctor: 'LabelTd'};
 var _billstclair$kakuro_master$Styles_Board$LabelTr = {ctor: 'LabelTr'};
 var _billstclair$kakuro_master$Styles_Board$LabelTable = {ctor: 'LabelTable'};
 var _billstclair$kakuro_master$Styles_Board$UnfilledCell = {ctor: 'UnfilledCell'};
+var _billstclair$kakuro_master$Styles_Board$EmptyCellBackground = {ctor: 'EmptyCellBackground'};
 var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
 var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
 var _billstclair$kakuro_master$Styles_Board$KeypadDiv = {ctor: 'KeypadDiv'};
@@ -11522,24 +11523,22 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 		_billstclair$kakuro_master$Styles_Board$rule,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Label)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'background-image', _1: 'url(\'images/diagonal-line-200x200.png\')'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
 				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$EmptyCell)
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
 				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$EmptyCellBackground)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
 				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
 			])),
 		A2(
@@ -11590,6 +11589,18 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 				{ctor: '_Tuple2', _0: 'border', _1: 'none'},
 				{ctor: '_Tuple2', _0: 'padding', _1: '0'},
 				{ctor: '_Tuple2', _0: 'margin', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Label)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'background-image', _1: 'url(\'images/diagonal-line-200x200.png\')'}
 			])),
 		A2(
 		_billstclair$kakuro_master$Styles_Board$rule,
@@ -12037,7 +12048,9 @@ var _billstclair$kakuro_master$RenderBoard$emptyCell = A2(
 	_elm_lang$html$Html$td,
 	_elm_lang$core$Native_List.fromArray(
 		[
-			_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$CellTd)
+			_billstclair$kakuro_master$Styles_Board$classes(
+			_elm_lang$core$Native_List.fromArray(
+				[_billstclair$kakuro_master$Styles_Board$CellTd, _billstclair$kakuro_master$Styles_Board$EmptyCellBackground]))
 		]),
 	_elm_lang$core$Native_List.fromArray(
 		[

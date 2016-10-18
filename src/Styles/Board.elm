@@ -21,6 +21,7 @@ type BClass = Table
             | KeypadDiv
             | Label
             | EmptyCell
+            | EmptyCellBackground
             | UnfilledCell
             | LabelTable
             | LabelTr
@@ -79,16 +80,14 @@ rules =
       [ ("font-size", "30pt")
       ]
   , rule
-      [ Class Label ]
-      [ ("width", "99%")
-      , ("height", "99%")
-      , ("background-image", "url('images/diagonal-line-200x200.png')")
-      ]
-  , rule
       [ Class EmptyCell ]
       [ ("width", "99%")
       , ("height", "99%")
       , ("background-color", "#808080")
+      ]
+  , rule
+      [ Class EmptyCellBackground ]
+      [ ("background-color", "#808080")
       ]
   , rule
       [ Class UnfilledCell ]
@@ -114,6 +113,12 @@ rules =
       , ("border", "none")
       , ("padding", "0")
       , ("margin", "0")
+      ]
+  , rule
+      [ Class Label ]
+      [ ("width", "99%")
+      , ("height", "99%")
+      , ("background-image", "url('images/diagonal-line-200x200.png')")
       ]
   , rule
       [ Class BottomLabelTd]

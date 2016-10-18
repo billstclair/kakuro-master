@@ -64,7 +64,7 @@ cell isSelected num row col =
 
 emptyCell : Html a
 emptyCell =
-  td [ class CellTd ]
+  td [ classes [ CellTd, EmptyCellBackground ] ]
     [ div [ class EmptyCell ]
         [ text nbsp ]
     ]
