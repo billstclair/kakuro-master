@@ -301,7 +301,7 @@ keycodeCell keycode label =
   td [ class KeypadTd
      , onClickWithInt PressKey keycode
      ]
-    [ div [  ]
+    [ div [ class KeypadDiv ]
         [ text  label ]
     ]
 

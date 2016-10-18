@@ -18,6 +18,7 @@ import Html.Attributes
 type BClass = Table
             | CellTd
             | KeypadTd
+            | KeypadDiv
             | Label
             | EmptyCell
             | UnfilledCell
@@ -72,6 +73,10 @@ rules =
       , ("height", "2.0em")
       , ("color", "#ffffff")
       , ("background-color", "#808080")
+      ]
+  , rule
+      [ Class KeypadDiv ]
+      [ ("font-size", "30pt")
       ]
   , rule
       [ Class Label ]

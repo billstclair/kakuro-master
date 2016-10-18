@@ -11440,6 +11440,7 @@ var _billstclair$kakuro_master$Styles_Board$LabelTable = {ctor: 'LabelTable'};
 var _billstclair$kakuro_master$Styles_Board$UnfilledCell = {ctor: 'UnfilledCell'};
 var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
 var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
+var _billstclair$kakuro_master$Styles_Board$KeypadDiv = {ctor: 'KeypadDiv'};
 var _billstclair$kakuro_master$Styles_Board$KeypadTd = {ctor: 'KeypadTd'};
 var _billstclair$kakuro_master$Styles_Board$CellTd = {ctor: 'CellTd'};
 var _billstclair$kakuro_master$Styles_Board$Table = {ctor: 'Table'};
@@ -11506,6 +11507,16 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 				{ctor: '_Tuple2', _0: 'height', _1: '2.0em'},
 				{ctor: '_Tuple2', _0: 'color', _1: '#ffffff'},
 				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadDiv)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-size', _1: '30pt'}
 			])),
 		A2(
 		_billstclair$kakuro_master$Styles_Board$rule,
@@ -11751,7 +11762,9 @@ var _billstclair$kakuro_master$RenderBoard$keycodeCell = F2(
 					A2(
 					_elm_lang$html$Html$div,
 					_elm_lang$core$Native_List.fromArray(
-						[]),
+						[
+							_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$KeypadDiv)
+						]),
 					_elm_lang$core$Native_List.fromArray(
 						[
 							_elm_lang$html$Html$text(label)
