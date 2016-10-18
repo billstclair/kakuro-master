@@ -80,6 +80,9 @@ rules =
       [ Class KeypadDiv ]
       [ ("font-size", "30pt")
       ]
+  ,rule
+      [ Type "button" ]
+      [ ("outline", "none") ]
   , rule
       [ Class KeypadButton ]
       [ ("font-size", "30pt")

@@ -219,6 +219,12 @@ computeLabels : IntBoard -> LabelsBoard
 computeLabels board =
   computeLabelsRow 0 board
 
+renderFilledCell : Bool -> Int -> Int -> Int -> GameState -> Html Msg
+renderFilledCell isSelected num row col state =
+  let classes = if isSelected then [ Selected ] else []
+  in
+      classedCell num row col classes
+
 renderCell : Int -> Int -> GameState -> Html Msg
 renderCell row col state =
   let labels = state.labels
@@ -239,7 +245,7 @@ renderCell row col state =
               else
                 unfilledCell isSelected bRow bCol
             else
-              cell isSelected val bRow bCol
+              renderFilledCell isSelected val bRow bCol state
       else
         labelCell right bottom               
 
@@ -283,6 +289,76 @@ makeGameState board =
     (Board.make board.rows board.cols board.default) --guesses
     (Board.make board.rows board.cols emptyHints)    --hints
     Nothing                                          --selection
+
+type alias BClassBoard =
+  Board (Maybe BClass)
+
+-- TBD
+computeFilledColClasses : Int -> Int -> IntBoard -> IntBoard -> BClassBoard -> BClassBoard
+computeFilledColClasses col cols board guesses res =
+  res
+
+-- TBD
+markBadSumRowSegment : Int -> Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
+markBadSumRowSegment row col cols sum acc res =
+  res
+
+-- TBD
+markFilledRowDuplicates : Int -> Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
+markFilledRowDuplicates guess row col cols acc res =
+  res
+
+-- If row is zero, call computedFilledColClasses to add the
+-- display classes to res for the given col.
+-- If col >= cols, and all elements of acc are non-zero, add Just Error
+-- to all of the corresponding elements of res.
+-- Otherwise, if the guess at (row,col) is already in acc, add Just Error to res.
+-- Finally, recurse with col+1.
+computeFilledRowClassesCols : Int -> Int -> Int -> IntBoard -> IntBoard -> Int -> List Int -> BClassBoard -> BClassBoard
+computeFilledRowClassesCols row col cols board guesses sum acc res =
+  let res2 = if row == 0 && col < cols then
+               computeFilledColClasses col cols board guesses res
+             else
+               res
+      val = Board.get row col board
+      guess = Board.get row col guesses
+      res3 = if sum > 0 && guess /= 0 then
+               markFilledRowDuplicates guess row col cols acc res2
+             else
+               res2
+      res4 = if val == 0 && sum > 0 then
+               markBadSumRowSegment row col cols sum acc res3
+             else
+               res3
+      sum2 = if val == 0 then 0 else (sum + val)
+      acc2 = if val == 0 then [] else (guess :: acc)
+  in
+      computeFilledRowClassesCols row (col+1) cols board guesses sum2 acc2 res4
+                             
+-- Add to res the display class for each of the guesses in the given row.
+-- Then recurse for the next row, until row >= rows.
+computeFilledRowClassesLoop : Int -> Int -> IntBoard -> IntBoard -> BClassBoard -> BClassBoard
+computeFilledRowClassesLoop row rows board guesses res =
+  if row >= rows then
+    res
+  else
+    let res2 = computeFilledRowClassesCols row 0 board.cols board guesses 0 [] res
+    in
+        computeFilledRowClassesLoop (row+1) rows board guesses res2
+
+-- Add to res the display class for each of the guesses.
+computeFilledRowClasses : IntBoard -> IntBoard -> BClassBoard -> BClassBoard
+computeFilledRowClasses board guesses res =
+  computeFilledRowClassesLoop 0 board.rows board guesses res
+
+-- Returns a Board containing a Maybe BClass for rendering each cell of
+-- the board. It will be Nothing for cells that have no guess.
+computeFilledCellClasses : GameState -> BClassBoard
+computeFilledCellClasses state =
+  let board = state.board
+  in
+      Board.make board.rows board.cols Nothing
+        |> computeFilledRowClasses board state.guesses
 
 render : GameState -> Html Msg
 render state =
@@ -353,4 +429,3 @@ renderKeypad =
     , renderKeypadRow "78^ "
     , renderKeypadRow "9<v>"
     ]
-
