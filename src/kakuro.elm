@@ -320,13 +320,15 @@ view model =
         -- , showValue model.seed               -- debugging
         ]
     , div [] [ RenderBoard.render model.gameState ]
+    , br
+    , div [] [ RenderBoard.renderKeypad ]
     , div []
         [ p []
             [ text "Click to select. Arrows, WASD, or IJKL to move."
             , br
             , text "1-9 to enter number. 0 or space to erase."
             , br
-            , text "No validation done yet. That's next."
+            , text "No validation yet. That's next."
             ]
         , p []
             [ text "Rules: "

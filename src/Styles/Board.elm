@@ -17,6 +17,7 @@ import Html.Attributes
 
 type BClass = Table
             | CellTd
+            | KeypadTd
             | Label
             | EmptyCell
             | UnfilledCell
@@ -57,12 +58,20 @@ rules =
       ]
   , rule
       [ Class Table ]
-      [ ("font-family", "monospace")
+      [ ("font-family", "\"Lucida Console\", Monaco, monospace")
       , ("border", "1px solid black")
       ]
   , rule
       [ Class CellTd ]
       [ ("text-align", "center")
+      ]
+  , rule
+      [ Class KeypadTd ]
+      [ ("text-align", "center")
+      , ("width", "2.0em")
+      , ("height", "2.0em")
+      , ("color", "#ffffff")
+      , ("background-color", "#808080")
       ]
   , rule
       [ Class Label ]

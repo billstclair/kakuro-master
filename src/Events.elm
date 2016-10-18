@@ -9,7 +9,7 @@
 --
 ----------------------------------------------------------------------
 
-module Events exposing (onClickWithId)
+module Events exposing (onClickWithId, onClickWithString, onClickWithInt)
 
 import Html exposing (Attribute)
 import Html.Attributes exposing (id)
@@ -23,3 +23,11 @@ targetId =
 onClickWithId : (String -> msg) -> Attribute msg
 onClickWithId msg =
   on "click" (Json.map msg targetId)
+
+onClickWithString : (String -> msg) -> String -> Attribute msg
+onClickWithString msg string =
+  on "click" (Json.map msg <| Json.succeed string)
+
+onClickWithInt : (Int -> msg) -> Int -> Attribute msg
+onClickWithInt msg int =
+  on "click" (Json.map msg <| Json.succeed int)

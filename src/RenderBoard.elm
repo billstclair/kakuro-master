@@ -11,24 +11,26 @@
 
 module RenderBoard exposing ( makeGameState
                             , render
+                            , renderKeypad
                             )
 
 import SharedTypes exposing (GameState
                             , IntBoard
                             , Labels, LabelsBoard
                             , Hints, HintsBoard
-                            , Msg (ClickCell)
+                            , Msg (ClickCell, PressKey)
                             )
 import Styles.Board exposing (class, classes, BClass(..))
 import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
-import Events exposing (onClickWithId)
+import Events exposing (onClickWithId, onClickWithInt)
 
 import Array exposing (Array)
 import Char
 import String
 import List exposing (map)
+import List.Extra as LE
 
 import Debug exposing (log)
 
@@ -289,3 +291,64 @@ render state =
     , table [ class Table ]
         (renderRows state)
     ]
+
+--
+-- The push-button keypad
+--
+
+keycodeCell : Int -> String -> Html Msg
+keycodeCell keycode label =
+  td [ class KeypadTd
+     , onClickWithInt PressKey keycode
+     ]
+    [ div [  ]
+        [ text  label ]
+    ]
+
+keypadAlist : List (Char, Int)
+keypadAlist =
+  [ ('^', Char.toCode 'i')
+  , ('v', Char.toCode 'k')
+  , ('<', Char.toCode 'j')
+  , ('>', Char.toCode 'l')
+  , ('*', Char.toCode '*')
+  , ('#', Char.toCode '#')
+  , (' ', Char.toCode '0')
+  ]
+
+keypadKeycode : Char -> Int
+keypadKeycode char =
+  if char >= '0' && char <= '9' then
+    Char.toCode char
+  else
+    let pair = LE.find (\x -> (fst x) == char) keypadAlist
+    in
+        case pair of
+          Nothing ->
+            0
+          Just (_, res) ->
+            res
+
+renderKeypadCell : Char -> Html Msg
+renderKeypadCell char =
+  keycodeCell (keypadKeycode char) (String.fromList [char])
+
+renderKeypadRow : String -> Html Msg
+renderKeypadRow string =
+  let chars = String.toList string
+  in
+      tr []
+        <| List.map renderKeypadCell chars
+-- 1 2 3 ^
+-- 4 5 6 v
+-- 7 8 9 <
+-- * 0 # >
+renderKeypad : Html Msg
+renderKeypad =
+  table [ class Table]
+    [ renderKeypadRow "123^"
+    , renderKeypadRow "456v"
+    , renderKeypadRow "789<"
+    , renderKeypadRow "* #>"
+    ]
+
