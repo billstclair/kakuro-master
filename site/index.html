@@ -9966,6 +9966,26 @@ var _elm_lang$html$Html_Events$Options = F2(
 	function (a, b) {
 		return {stopPropagation: a, preventDefault: b};
 	});
+var _billstclair$kakuro_master$Events$onClickWithInt = F2(
+	function (msg, $int) {
+		return A2(
+			_elm_lang$html$Html_Events$on,
+			'click',
+			A2(
+				_elm_lang$core$Json_Decode$map,
+				msg,
+				_elm_lang$core$Json_Decode$succeed($int)));
+	});
+var _billstclair$kakuro_master$Events$onClickWithString = F2(
+	function (msg, string) {
+		return A2(
+			_elm_lang$html$Html_Events$on,
+			'click',
+			A2(
+				_elm_lang$core$Json_Decode$map,
+				msg,
+				_elm_lang$core$Json_Decode$succeed(string)));
+	});
 var _billstclair$kakuro_master$Events$targetId = A2(
 	_elm_lang$core$Json_Decode$at,
 	_elm_lang$core$Native_List.fromArray(
@@ -11420,6 +11440,7 @@ var _billstclair$kakuro_master$Styles_Board$LabelTable = {ctor: 'LabelTable'};
 var _billstclair$kakuro_master$Styles_Board$UnfilledCell = {ctor: 'UnfilledCell'};
 var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
 var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
+var _billstclair$kakuro_master$Styles_Board$KeypadTd = {ctor: 'KeypadTd'};
 var _billstclair$kakuro_master$Styles_Board$CellTd = {ctor: 'CellTd'};
 var _billstclair$kakuro_master$Styles_Board$Table = {ctor: 'Table'};
 var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.fromArray(
@@ -11459,7 +11480,7 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				{ctor: '_Tuple2', _0: 'font-family', _1: 'monospace'},
+				{ctor: '_Tuple2', _0: 'font-family', _1: '\"Lucida Console\", Monaco, monospace'},
 				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'}
 			])),
 		A2(
@@ -11471,6 +11492,20 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 		_elm_lang$core$Native_List.fromArray(
 			[
 				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+				{ctor: '_Tuple2', _0: 'width', _1: '2.0em'},
+				{ctor: '_Tuple2', _0: 'height', _1: '2.0em'},
+				{ctor: '_Tuple2', _0: 'color', _1: '#ffffff'},
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
 			])),
 		A2(
 		_billstclair$kakuro_master$Styles_Board$rule,
@@ -11633,6 +11668,125 @@ var _billstclair$kakuro_master$Styles_Board$style = A2(
 	_billstclair$kakuro_master$Styles_Board$stylesheet);
 var _billstclair$kakuro_master$Styles_Board$class = _billstclair$kakuro_master$Styles_Board$stylesheet.$class;
 var _billstclair$kakuro_master$Styles_Board$classes = _billstclair$kakuro_master$Styles_Board$stylesheet.classes;
+var _billstclair$kakuro_master$RenderBoard$keypadAlist = _elm_lang$core$Native_List.fromArray(
+	[
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('^'),
+		_1: _elm_lang$core$Char$toCode(
+			_elm_lang$core$Native_Utils.chr('i'))
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('v'),
+		_1: _elm_lang$core$Char$toCode(
+			_elm_lang$core$Native_Utils.chr('k'))
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('<'),
+		_1: _elm_lang$core$Char$toCode(
+			_elm_lang$core$Native_Utils.chr('j'))
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('>'),
+		_1: _elm_lang$core$Char$toCode(
+			_elm_lang$core$Native_Utils.chr('l'))
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('*'),
+		_1: _elm_lang$core$Char$toCode(
+			_elm_lang$core$Native_Utils.chr('*'))
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr('#'),
+		_1: _elm_lang$core$Char$toCode(
+			_elm_lang$core$Native_Utils.chr('#'))
+	},
+		{
+		ctor: '_Tuple2',
+		_0: _elm_lang$core$Native_Utils.chr(' '),
+		_1: _elm_lang$core$Char$toCode(
+			_elm_lang$core$Native_Utils.chr('0'))
+	}
+	]);
+var _billstclair$kakuro_master$RenderBoard$keypadKeycode = function ($char) {
+	if ((_elm_lang$core$Native_Utils.cmp(
+		$char,
+		_elm_lang$core$Native_Utils.chr('0')) > -1) && (_elm_lang$core$Native_Utils.cmp(
+		$char,
+		_elm_lang$core$Native_Utils.chr('9')) < 1)) {
+		return _elm_lang$core$Char$toCode($char);
+	} else {
+		var pair = A2(
+			_elm_community$list_extra$List_Extra$find,
+			function (x) {
+				return _elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$Basics$fst(x),
+					$char);
+			},
+			_billstclair$kakuro_master$RenderBoard$keypadAlist);
+		var _p0 = pair;
+		if (_p0.ctor === 'Nothing') {
+			return 0;
+		} else {
+			return _p0._0._1;
+		}
+	}
+};
+var _billstclair$kakuro_master$RenderBoard$keycodeCell = F2(
+	function (keycode, label) {
+		return A2(
+			_elm_lang$html$Html$td,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$KeypadTd),
+					A2(_billstclair$kakuro_master$Events$onClickWithInt, _billstclair$kakuro_master$SharedTypes$PressKey, keycode)
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(
+					_elm_lang$html$Html$div,
+					_elm_lang$core$Native_List.fromArray(
+						[]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html$text(label)
+						]))
+				]));
+	});
+var _billstclair$kakuro_master$RenderBoard$renderKeypadCell = function ($char) {
+	return A2(
+		_billstclair$kakuro_master$RenderBoard$keycodeCell,
+		_billstclair$kakuro_master$RenderBoard$keypadKeycode($char),
+		_elm_lang$core$String$fromList(
+			_elm_lang$core$Native_List.fromArray(
+				[$char])));
+};
+var _billstclair$kakuro_master$RenderBoard$renderKeypadRow = function (string) {
+	var chars = _elm_lang$core$String$toList(string);
+	return A2(
+		_elm_lang$html$Html$tr,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		A2(_elm_lang$core$List$map, _billstclair$kakuro_master$RenderBoard$renderKeypadCell, chars));
+};
+var _billstclair$kakuro_master$RenderBoard$renderKeypad = A2(
+	_elm_lang$html$Html$table,
+	_elm_lang$core$Native_List.fromArray(
+		[
+			_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Table)
+		]),
+	_elm_lang$core$Native_List.fromArray(
+		[
+			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('123^'),
+			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('456v'),
+			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('789<'),
+			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('* #>')
+		]));
 var _billstclair$kakuro_master$RenderBoard$sumRowLoop = F4(
 	function (row, col, sum, board) {
 		sumRowLoop:
@@ -11641,14 +11795,14 @@ var _billstclair$kakuro_master$RenderBoard$sumRowLoop = F4(
 			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
 				return sum;
 			} else {
-				var _v0 = row,
-					_v1 = col + 1,
-					_v2 = sum + elt,
-					_v3 = board;
-				row = _v0;
-				col = _v1;
-				sum = _v2;
-				board = _v3;
+				var _v1 = row,
+					_v2 = col + 1,
+					_v3 = sum + elt,
+					_v4 = board;
+				row = _v1;
+				col = _v2;
+				sum = _v3;
+				board = _v4;
 				continue sumRowLoop;
 			}
 		}
@@ -11665,14 +11819,14 @@ var _billstclair$kakuro_master$RenderBoard$sumColLoop = F4(
 			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
 				return sum;
 			} else {
-				var _v4 = row + 1,
-					_v5 = col,
-					_v6 = sum + elt,
-					_v7 = board;
-				row = _v4;
-				col = _v5;
-				sum = _v6;
-				board = _v7;
+				var _v5 = row + 1,
+					_v6 = col,
+					_v7 = sum + elt,
+					_v8 = board;
+				row = _v5;
+				col = _v6;
+				sum = _v7;
+				board = _v8;
 				continue sumColLoop;
 			}
 		}
@@ -11705,14 +11859,14 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsColsLoop = F4(
 			if (_elm_lang$core$Native_Utils.cmp(col, res.cols) > -1) {
 				return res;
 			} else {
-				var _v8 = row,
-					_v9 = col + 1,
-					_v10 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
-					_v11 = board;
-				row = _v8;
-				col = _v9;
-				res = _v10;
-				board = _v11;
+				var _v9 = row,
+					_v10 = col + 1,
+					_v11 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
+					_v12 = board;
+				row = _v9;
+				col = _v10;
+				res = _v11;
+				board = _v12;
 				continue computeLabelsColsLoop;
 			}
 		}
@@ -11728,12 +11882,12 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsRowLoop = F3(
 			if (_elm_lang$core$Native_Utils.cmp(row, res.rows) > -1) {
 				return res;
 			} else {
-				var _v12 = row + 1,
-					_v13 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
-					_v14 = board;
-				row = _v12;
-				res = _v13;
-				board = _v14;
+				var _v13 = row + 1,
+					_v14 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
+					_v15 = board;
+				row = _v13;
+				res = _v14;
+				board = _v15;
 				continue computeLabelsRowLoop;
 			}
 		}
@@ -11986,19 +12140,19 @@ var _billstclair$kakuro_master$RenderBoard$renderCell = F3(
 		var bCol = col - 1;
 		var bRow = row - 1;
 		var isSelected = function () {
-			var _p0 = selection;
-			if (_p0.ctor === 'Nothing') {
+			var _p1 = selection;
+			if (_p1.ctor === 'Nothing') {
 				return false;
 			} else {
 				return _elm_lang$core$Native_Utils.eq(
-					_p0._0,
+					_p1._0,
 					{ctor: '_Tuple2', _0: bRow, _1: bCol});
 			}
 		}();
 		var labels = state.labels;
-		var _p1 = A3(_billstclair$kakuro_master$Board$get, row, col, labels);
-		var right = _p1._0;
-		var bottom = _p1._1;
+		var _p2 = A3(_billstclair$kakuro_master$Board$get, row, col, labels);
+		var right = _p2._0;
+		var bottom = _p2._1;
 		if (_elm_lang$core$Native_Utils.eq(right, 0) && _elm_lang$core$Native_Utils.eq(bottom, 0)) {
 			var val = A3(_billstclair$kakuro_master$Board$get, bRow, bCol, state.guesses);
 			return _elm_lang$core$Native_Utils.eq(val, 0) ? (_elm_lang$core$Native_Utils.eq(
@@ -12015,17 +12169,17 @@ var _billstclair$kakuro_master$RenderBoard$renderColsLoop = F4(
 			if (_elm_lang$core$Native_Utils.cmp(col, state.labels.cols) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v16 = row,
-					_v17 = col + 1,
-					_v18 = A2(
+				var _v17 = row,
+					_v18 = col + 1,
+					_v19 = A2(
 					_elm_lang$core$List_ops['::'],
 					A3(_billstclair$kakuro_master$RenderBoard$renderCell, row, col, state),
 					res),
-					_v19 = state;
-				row = _v16;
-				col = _v17;
-				res = _v18;
-				state = _v19;
+					_v20 = state;
+				row = _v17;
+				col = _v18;
+				res = _v19;
+				state = _v20;
 				continue renderColsLoop;
 			}
 		}
@@ -12055,15 +12209,15 @@ var _billstclair$kakuro_master$RenderBoard$renderRowsLoop = F3(
 			if (_elm_lang$core$Native_Utils.cmp(row, state.labels.rows) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v20 = row + 1,
-					_v21 = A2(
+				var _v21 = row + 1,
+					_v22 = A2(
 					_elm_lang$core$List_ops['::'],
 					A2(_billstclair$kakuro_master$RenderBoard$renderRow, row, state),
 					res),
-					_v22 = state;
-				row = _v20;
-				res = _v21;
-				state = _v22;
+					_v23 = state;
+				row = _v21;
+				res = _v22;
+				state = _v23;
 				continue renderRowsLoop;
 			}
 		}
@@ -12500,6 +12654,13 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 					[
 						_billstclair$kakuro_master$RenderBoard$render(model.gameState)
 					])),
+				_billstclair$kakuro_master$Main$br,
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[_billstclair$kakuro_master$RenderBoard$renderKeypad])),
 				A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
@@ -12516,7 +12677,7 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 								_billstclair$kakuro_master$Main$br,
 								_elm_lang$html$Html$text('1-9 to enter number. 0 or space to erase.'),
 								_billstclair$kakuro_master$Main$br,
-								_elm_lang$html$Html$text('No validation done yet. That\'s next.')
+								_elm_lang$html$Html$text('No validation yet. That\'s next.')
 							])),
 						A2(
 						_elm_lang$html$Html$p,
