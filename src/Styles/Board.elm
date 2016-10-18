@@ -17,10 +17,13 @@ import Html.Attributes
 
 type BClass = Table
             | CellTd
+            | CellButton
+            | RegularCellButton
             | KeypadTd
-            | Label
-            | EmptyCell
-            | UnfilledCell
+            | KeypadButton
+            | LabelButton
+            | EmptyCellBackground
+            | UnfilledCellButton
             | LabelTable
             | LabelTr
             | LabelTd
@@ -28,7 +31,9 @@ type BClass = Table
             | RightLabelTd
             | Hint
             | Error
+            | ErrorButton
             | SelectedError
+            | SelectedErrorButton
             | Selected
 
 imports : List String
@@ -66,6 +71,16 @@ rules =
       [ ("text-align", "center")
       ]
   , rule
+      [ Class CellButton ]
+      [ ("width", "99%")
+      , ("height", "99%")
+      , ("border", "none")
+      ]
+  , rule
+      [ Class RegularCellButton ]
+      [ ("background-color", "#ffffff")
+      ]
+  , rule
       [ Class KeypadTd ]
       [ ("text-align", "center")
       , ("width", "2.0em")
@@ -74,38 +89,62 @@ rules =
       , ("background-color", "#808080")
       ]
   , rule
-      [ Class Label ]
+      [ Type "button" ]
+      [ ("outline", "none")
+      , ("font-size", "24pt")
+      ]
+  , rule
+      [ Type "button::-moz-focus-inner" ]
+      [ ("padding", "0")
+      , ("border", "none")
+      , ("margin-top", "-2px")
+      , ("margin-bottom", "-2px")
+      ]
+  , rule
+      [ Class KeypadButton ]
+      [ ("background-color", "#808080")
+      , ("color", "#ffffff")
+      , ("width", "99%")
+      , ("height", "99%")
+      , ("margin", "0")
+      , ("padding", "0")
+      ]
+  , rule
+      [ Class LabelButton ]
       [ ("width", "99%")
       , ("height", "99%")
       , ("background-image", "url('images/diagonal-line-200x200.png')")
+      , ("border", "none")
+      , ("margin", "0")
+      , ("padding", "0")
       ]
   , rule
-      [ Class EmptyCell ]
-      [ ("width", "99%")
-      , ("height", "99%")
-      , ("background-color", "#808080")
+      [ Class EmptyCellBackground ]
+      [ ("background-color", "#808080")
+      , ("padding", "2px")
       ]
   , rule
-      [ Class UnfilledCell ]
-      [ ("width", "99%")
-      , ("height", "99%")
-      , ("background-color", "#ffffff")
+      [ Class UnfilledCellButton ]
+      [ ("background-color", "#ffffff")
       ]
   , rule
       [ Class LabelTable]
       [ ("width", "99%")
       , ("height", "99%")
       , ("border", "none")
+      , ("padding", "0")
+      , ("margin", "0")
       ]
   , rule
       [ Class LabelTr]
-      [("width", "50%")
+      [("width", "99%")
       , ("height", "99%")
+      , ("padding", "0")
+      , ("margin", "0")
       ]
   , rule
       [ Class LabelTd]
-      [ ("width", "50%")
-      , ("font-size", "10pt")
+      [ ("font-size", "10pt")
       , ("border", "none")
       , ("padding", "0")
       , ("margin", "0")
@@ -115,7 +154,6 @@ rules =
       [ ("font-weight", "bold")
       , ("vertical-align", "center")
       , ("text-align", "right")
-      , ("width"," 50%")
       , ("font-size", "10pt")
       , ("border", "none")
       ]
@@ -124,7 +162,6 @@ rules =
       [ ("font-weight", "bold")
       , ("vertical-align", "bottom")
       , ("text-align", "center")
-      , ("width", "50%")
       , ("font-size", "10pt")
       , ("border", "none")
       ]
@@ -137,14 +174,20 @@ rules =
       ]
   , rule
       [ Class Error]
+      []
+  , rule
+      [ Class ErrorButton]
       [ ("background-color", "red")
       ]
   , rule
       [ Class SelectedError]
+      [ ("border", "3px solid black")
+      , ("padding", "0")
+      ]
+  , rule
+      [ Class SelectedErrorButton]
       [ ("background-color", "#FF8080")
       , ("color", "white")
-      , ("border", "3px solid black")
-      , ("padding", "0")
       ]
   , rule
       [ Class Selected]

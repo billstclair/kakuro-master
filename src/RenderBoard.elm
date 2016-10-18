@@ -37,9 +37,9 @@ import Debug exposing (log)
 import Json.Decode as Json
 
 import Html exposing
-  (Html, Attribute, div, text, table, tr, td, th, a, img)
+  (Html, Attribute, div, text, table, tr, td, th, a, img, button)
 import Html.Attributes
-  exposing (style, value, href, src, title, alt, id)
+  exposing (value, href, src, title, alt, id, autofocus)
 import Html.Events exposing (on)
 
 br : Html a
@@ -50,22 +50,26 @@ cellId : Int -> Int -> Attribute m
 cellId row col =
   id ((toString row) ++ "," ++ (toString col))
 
-classedCell : Int -> Int -> Int -> List BClass -> Html Msg
-classedCell num row col classTypes =
+classedCell : Int -> Int -> Int -> List BClass -> List BClass -> Html Msg
+classedCell num row col classTypes buttonClasses =
   td [ classes <| CellTd :: classTypes
      , cellId row col
      , onClickWithId ClickCell
      ]
-    [ text <| toString num ]
+    [ button [ classes <| CellButton :: buttonClasses ]
+        [ text <| toString num ]
+    ]
 
 cell : Bool -> Int -> Int -> Int -> Html Msg
 cell isSelected num row col =
-  classedCell num row col (if isSelected then [ Selected ] else [])
+  classedCell num row col
+    (if isSelected then [ Selected ] else [])
+    [ RegularCellButton ]
 
 emptyCell : Html a
 emptyCell =
-  td [ class CellTd ]
-    [ div [ class EmptyCell ]
+  td [ classes [ CellTd, EmptyCellBackground ] ]
+    [ button [ classes [ CellButton, EmptyCellBackground ] ]
         [ text nbsp ]
     ]
 
@@ -79,7 +83,7 @@ unfilledCell isSelected row col =
       td [ cls
          , onClickWithId ClickCell
          ]
-      [ div [ class UnfilledCell
+      [ button [ classes [ UnfilledCellButton, CellButton ]
             , cellId row col
             ]
           [ text nbsp ]
@@ -87,15 +91,15 @@ unfilledCell isSelected row col =
 
 errorCell : Int -> Int -> Int -> Html Msg
 errorCell num row col =
-  classedCell num row col [ Error ]
+  classedCell num row col [ Error ] [ ErrorButton ]
 
 selectedCell : Int -> Int -> Int -> Html Msg
 selectedCell num row col =
-  classedCell num row col [ Selected ]
+  classedCell num row col [ Selected ] []
 
 selectedErrorCell : Int -> Int -> Int -> Html Msg
 selectedErrorCell num row col =
-  classedCell num row col [ SelectedError ]
+  classedCell num row col [ SelectedError ] [ SelectedErrorButton ]
 
 hintChars : List Int -> Int -> String
 hintChars hints hint =
@@ -125,7 +129,9 @@ hintCell hints row col =
 labelCell : Int -> Int -> Html a
 labelCell right bottom =
   td []
-    [ div [ class Label ]
+    -- Making this a button looks horrid in Firefox.
+    -- As a div it's selectable, but who's going to click on a label?
+    [ div [ class LabelButton ]
         [ table [ class LabelTable ]
             [ tr [ class LabelTr ]
                 [ td [ class LabelTd ] [ text nbsp ]
@@ -301,8 +307,10 @@ keycodeCell keycode label =
   td [ class KeypadTd
      , onClickWithInt PressKey keycode
      ]
-    [ div [  ]
-        [ text  label ]
+    [ button [ class KeypadButton
+             , autofocus (label == " ")
+             ]
+        [ text (if label == " " then nbsp else label) ]
     ]
 
 keypadAlist : List (Char, Int)
@@ -346,7 +354,8 @@ renderKeypadRow string =
 renderKeypad : Html Msg
 renderKeypad =
   table [ class Table]
-    [ renderKeypadRow "123*"
+    [ Styles.Board.style
+    , renderKeypadRow "123*"
     , renderKeypadRow "456#"
     , renderKeypadRow "78^ "
     , renderKeypadRow "9<v>"
