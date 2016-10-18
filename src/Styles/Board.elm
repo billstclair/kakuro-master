@@ -19,6 +19,7 @@ type BClass = Table
             | CellTd
             | KeypadTd
             | KeypadDiv
+            | KeypadButton
             | Label
             | EmptyCell
             | EmptyCellBackground
@@ -79,6 +80,16 @@ rules =
       [ Class KeypadDiv ]
       [ ("font-size", "30pt")
       ]
+  , rule
+      [ Class KeypadButton ]
+      [ ("font-size", "30pt")
+      , ("background-color", "#808080")
+      , ("color", "#ffffff")
+      , ("width", "99%")
+      , ("height", "99%")
+      , ("margin", "0")
+      , ("padding", "0")
+      ]    
   , rule
       [ Class EmptyCell ]
       [ ("width", "99%")

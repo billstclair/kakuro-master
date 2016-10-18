@@ -37,9 +37,9 @@ import Debug exposing (log)
 import Json.Decode as Json
 
 import Html exposing
-  (Html, Attribute, div, text, table, tr, td, th, a, img)
+  (Html, Attribute, div, text, table, tr, td, th, a, img, button)
 import Html.Attributes
-  exposing (style, value, href, src, title, alt, id)
+  exposing (style, value, href, src, title, alt, id, autofocus)
 import Html.Events exposing (on)
 
 br : Html a
@@ -301,7 +301,8 @@ keycodeCell keycode label =
   td [ class KeypadTd
      , onClickWithInt PressKey keycode
      ]
-    [ div [ class KeypadDiv ]
+    [ button [ class KeypadButton
+             , autofocus (label == " ")]
         [ text  label ]
     ]
 
