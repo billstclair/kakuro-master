@@ -26,7 +26,8 @@ import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
 import Events exposing (onClickWithId, onClickWithInt)
-import SimpleMatrix exposing (Matrix, Location, loc, row, col, incRowBy, incColBy)
+import SimpleMatrix exposing (Matrix, IntMatrix, Location
+                             , loc, row, col, incRowBy, incColBy)
 
 import Array exposing (Array)
 import Char
@@ -223,7 +224,10 @@ computeLabels board =
 
 renderFilledCell : Bool -> Int -> Int -> Int -> GameState -> Html Msg
 renderFilledCell isSelected num row col state =
-  let maybeClass = Board.get row col state.cellClasses
+  let maybeClass = if state.allDone then
+                     Just Done
+                   else
+                     Board.get row col state.cellClasses
       classes = case maybeClass of
                     Nothing -> []
                     Just a -> [ a ]
@@ -447,16 +451,44 @@ makeGameState board =
   in
       { board = board
       , labels = (computeLabels board)
+      , allDone = False
       , cellClasses = cellClasses
       , guesses = guesses
       , hints = hints
       , selection = Nothing
       }
 
+doneColLoop : Int-> Int -> Int -> IntBoard -> IntBoard -> Bool
+doneColLoop rowidx colidx cols board guesses =
+  if colidx >= cols then
+    True
+  else if (Board.get rowidx colidx board) /= (Board.get rowidx colidx guesses) then
+    False
+  else
+    doneColLoop rowidx (colidx + 1) cols board guesses
+
+doneRowLoop : Int -> Int -> IntBoard -> IntBoard -> Bool
+doneRowLoop rowidx rows board guesses =
+  if rowidx >= rows then
+    True
+  else
+    if doneColLoop rowidx 0 board.cols board guesses then
+      doneRowLoop (rowidx + 1) rows board guesses
+    else
+      False
+
+isAllDone : IntBoard -> IntBoard -> Bool
+isAllDone board guesses =
+  doneRowLoop 0 board.rows board guesses
+
 renderRows : GameState -> List (Html Msg)
 renderRows state =
   let cellClasses = computeFilledCellClasses state.board state.guesses
-      state2 = { state | cellClasses = cellClasses }
+      allDone = isAllDone state.board state.guesses
+      state2 = { state |
+                   cellClasses = cellClasses,
+                   allDone = allDone
+               }
   in
       renderRowsLoop 0 [] state2
 

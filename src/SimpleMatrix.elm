@@ -14,6 +14,9 @@ module SimpleMatrix exposing ( Location, Matrix, IntMatrix
                              , loc, row, col
                              , incRow, incCol, incRowBy, incColBy
                              , fill, initialize
+                             , rows, cols
+                             , get, set
+                             , elemIndex, find
                              , updateRange
                              , updateRangeUntil
                              , updateRowRange
@@ -116,6 +119,78 @@ initialize rows cols initializer =
       res = fill rows cols default
   in
       initializeRows 0 rows cols initializer res
+
+rows : Matrix a -> Int
+rows matrix =
+  Array.length matrix
+
+cols : Matrix a -> Int
+cols matrix =
+  let row = Array.get 0 matrix
+  in
+      case row of
+        Nothing -> 0
+        Just row ->
+          Array.length row
+
+get : Location -> Matrix a -> Maybe a
+get loc matrix =
+  let (rowidx, colidx) = loc
+  in
+      case Array.get rowidx matrix of
+          Nothing -> Nothing
+          Just r ->
+            case Array.get colidx r of
+                Nothing -> Nothing
+                something -> something
+
+set : Location -> a -> Matrix a -> Matrix a
+set loc val matrix =
+  let (rowidx, colidx) = loc
+  in
+      case Array.get rowidx matrix of
+          Nothing -> matrix
+          Just r ->
+            Array.set rowidx (Array.set colidx val r) matrix
+
+indexColLoop : Int -> Int -> Int -> (a -> Bool) -> Array a -> Maybe (Location, a)
+indexColLoop rowidx colidx cols pred row =
+  if colidx >= cols then
+    Nothing
+  else
+    case Array.get colidx row of
+        Nothing -> Nothing
+        Just e ->
+          if pred e then
+            Just ((rowidx, colidx), e)
+          else
+            indexColLoop rowidx (colidx + 1) cols pred row
+
+indexRowLoop : Int -> Int -> (a -> Bool) -> Matrix a -> Maybe (Location, a)
+indexRowLoop rowidx rows pred matrix =
+  if rowidx >= rows then
+    Nothing
+  else
+    case Array.get rowidx matrix of
+      Nothing -> Nothing
+      Just r ->
+        case indexColLoop rowidx 0 (cols matrix) pred r of
+            Nothing ->
+              indexRowLoop (rowidx + 1) rows pred matrix
+            something ->
+              something
+
+elemIndex : a -> (Matrix a) -> Maybe Location
+elemIndex elem matrix =
+  case indexRowLoop 0 (rows matrix) (\x -> x == elem) matrix of
+      Nothing -> Nothing
+      Just pair  -> Just (fst pair)
+
+find : (a -> Bool) -> (Matrix a) -> Maybe a
+find pred matrix =
+  case indexRowLoop 0 (rows matrix) pred matrix of
+      Nothing -> Nothing
+      Just pair -> Just (snd pair)
 
 updateRange : a -> (a -> a) -> Int -> (a -> b -> b) -> b -> b
 updateRange start incrementor count updater thing =

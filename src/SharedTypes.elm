@@ -74,6 +74,7 @@ type alias BClassBoard =
 type alias GameState =
   { board : IntBoard
   , labels : LabelsBoard
+  , allDone : Bool
   , cellClasses : BClassBoard
   , guesses : IntBoard
   , hints : HintsBoard

@@ -33,6 +33,7 @@ type BClass = Table
             | Error
             | SelectedError
             | Selected
+            | Done
 
 imports : List String
 imports = []
@@ -174,6 +175,10 @@ rules =
       [ Class Selected]
       [ ("border", "3px solid black")
       , ("padding", "0")
+      ]
+  , rule
+      [ Class Done]
+      [ ( "background-color", "#E0FFE0" )
       ]
   ]
 
