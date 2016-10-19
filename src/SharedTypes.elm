@@ -39,7 +39,8 @@ type alias Model =
       }
 
 type Msg
-  = Generate
+  = Generate Int
+  | ChangeKind Int
   | Tick Time
   | Seed Time
   | ClickCell String

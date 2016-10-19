@@ -32,9 +32,10 @@ import Debug exposing (log)
 
 import Html exposing
   (Html, Attribute, button, div, p, h2, text, table, tr, td, th
-  ,input, button, a, img, span)
+  ,input, button, a, img, span, fieldset, label)
 import Html.Attributes
-  exposing (style, align, value, size, href, src, title, alt, width, height)
+  exposing (style, align, value, size, href, src, title
+           , alt, width, height, type', name, checked)
 import Html.App as Html
 import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
@@ -234,19 +235,29 @@ processKeyPress keyCode model =
       Just model ->
         model
 
+getBoard : Int -> Int -> Model -> Model
+getBoard kind index model =
+  let index' = if index < 0 then
+                 (PuzzleDB.numberOfBoardsOfKind kind) - 1
+               else
+                 index
+      (idx, board) = PuzzleDB.nextBoardOfKind kind index'
+      gameState = RenderBoard.makeGameState board
+      in
+          {model |
+             kind = kind
+          , index = idx
+          , gencount = (model.gencount+1)
+          , gameState = gameState
+          }
+
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
-    Generate ->
-      let (idx, board) = PuzzleDB.nextBoardOfKind model.kind model.index
-          gameState = RenderBoard.makeGameState board
-      in
-          ({model |
-             index = idx
-           , gencount = (model.gencount+1)
-           , gameState = gameState
-           },
-           Cmd.none)
+    ChangeKind kind ->
+      (getBoard kind (model.index - 1) model, Cmd.none)
+    Generate increment ->
+      (getBoard model.kind (model.index + increment - 1) model, Cmd.none)
     Tick time ->
       ({model | time = model.time + 1}, Cmd.none)
     Seed time ->
@@ -300,6 +311,16 @@ mailLink email =
 space : Html Msg
 space = text " "
 
+radio : String -> Bool -> msg -> Html msg
+radio value isChecked msg =
+  span []
+    [ input [ type' "radio"
+            , name "board-size"
+            , checked isChecked
+            , onClick msg ] []
+    , text value
+    ]
+
 view : Model -> Html Msg
 view model =
   div [ align "center" --deprecated, so sue me
@@ -308,9 +329,19 @@ view model =
     , h2 [] [text pageTitle]
     , div
         [ id TopInputId ]
-        [ button [ onClick Generate
+        [ span []
+            [ radio "6" (model.kind == 6) (ChangeKind 6)
+            , radio "8" (model.kind == 8) (ChangeKind 8)
+            , radio "10" (model.kind == 10) (ChangeKind 10)
+            ]
+        , text " "
+        , button [ onClick (Generate -1)
                  , class ControlsClass ]
-           [ text "Next" ]
+           [ text "<" ]
+        , text " "
+        , button [ onClick (Generate 1)
+                 , class ControlsClass ]
+           [ text ">" ]
         , br
         , text "Board Number: "
         , text (toString model.index)
@@ -328,7 +359,7 @@ view model =
             , br
             , text "1-9 to enter number. 0 or space to erase."
             , br
-            , text "No validation yet. That's next."
+            , text "Under development. New features daily."
             ]
         , p []
             [ text "Rules: "
