@@ -10269,6 +10269,154 @@ var _billstclair$kakuro_master$SimpleMatrix$updateRange = F5(
 			}
 		}
 	});
+var _billstclair$kakuro_master$SimpleMatrix$indexColLoop = F5(
+	function (rowidx, colidx, cols, pred, row) {
+		indexColLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(colidx, cols) > -1) {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				var _p0 = A2(_elm_lang$core$Array$get, colidx, row);
+				if (_p0.ctor === 'Nothing') {
+					return _elm_lang$core$Maybe$Nothing;
+				} else {
+					var _p1 = _p0._0;
+					if (pred(_p1)) {
+						return _elm_lang$core$Maybe$Just(
+							{
+								ctor: '_Tuple2',
+								_0: {ctor: '_Tuple2', _0: rowidx, _1: colidx},
+								_1: _p1
+							});
+					} else {
+						var _v11 = rowidx,
+							_v12 = colidx + 1,
+							_v13 = cols,
+							_v14 = pred,
+							_v15 = row;
+						rowidx = _v11;
+						colidx = _v12;
+						cols = _v13;
+						pred = _v14;
+						row = _v15;
+						continue indexColLoop;
+					}
+				}
+			}
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$set = F3(
+	function (loc, val, matrix) {
+		var _p2 = loc;
+		var rowidx = _p2._0;
+		var colidx = _p2._1;
+		var _p3 = A2(_elm_lang$core$Array$get, rowidx, matrix);
+		if (_p3.ctor === 'Nothing') {
+			return matrix;
+		} else {
+			return A3(
+				_elm_lang$core$Array$set,
+				rowidx,
+				A3(_elm_lang$core$Array$set, colidx, val, _p3._0),
+				matrix);
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$get = F2(
+	function (loc, matrix) {
+		var _p4 = loc;
+		var rowidx = _p4._0;
+		var colidx = _p4._1;
+		var _p5 = A2(_elm_lang$core$Array$get, rowidx, matrix);
+		if (_p5.ctor === 'Nothing') {
+			return _elm_lang$core$Maybe$Nothing;
+		} else {
+			var _p6 = A2(_elm_lang$core$Array$get, colidx, _p5._0);
+			if (_p6.ctor === 'Nothing') {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				return _p6;
+			}
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$cols = function (matrix) {
+	var row = A2(_elm_lang$core$Array$get, 0, matrix);
+	var _p7 = row;
+	if (_p7.ctor === 'Nothing') {
+		return 0;
+	} else {
+		return _elm_lang$core$Array$length(_p7._0);
+	}
+};
+var _billstclair$kakuro_master$SimpleMatrix$indexRowLoop = F4(
+	function (rowidx, rows, pred, matrix) {
+		indexRowLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(rowidx, rows) > -1) {
+				return _elm_lang$core$Maybe$Nothing;
+			} else {
+				var _p8 = A2(_elm_lang$core$Array$get, rowidx, matrix);
+				if (_p8.ctor === 'Nothing') {
+					return _elm_lang$core$Maybe$Nothing;
+				} else {
+					var _p9 = A5(
+						_billstclair$kakuro_master$SimpleMatrix$indexColLoop,
+						rowidx,
+						0,
+						_billstclair$kakuro_master$SimpleMatrix$cols(matrix),
+						pred,
+						_p8._0);
+					if (_p9.ctor === 'Nothing') {
+						var _v22 = rowidx + 1,
+							_v23 = rows,
+							_v24 = pred,
+							_v25 = matrix;
+						rowidx = _v22;
+						rows = _v23;
+						pred = _v24;
+						matrix = _v25;
+						continue indexRowLoop;
+					} else {
+						return _p9;
+					}
+				}
+			}
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$rows = function (matrix) {
+	return _elm_lang$core$Array$length(matrix);
+};
+var _billstclair$kakuro_master$SimpleMatrix$elemIndex = F2(
+	function (elem, matrix) {
+		var _p10 = A4(
+			_billstclair$kakuro_master$SimpleMatrix$indexRowLoop,
+			0,
+			_billstclair$kakuro_master$SimpleMatrix$rows(matrix),
+			function (x) {
+				return _elm_lang$core$Native_Utils.eq(x, elem);
+			},
+			matrix);
+		if (_p10.ctor === 'Nothing') {
+			return _elm_lang$core$Maybe$Nothing;
+		} else {
+			return _elm_lang$core$Maybe$Just(
+				_elm_lang$core$Basics$fst(_p10._0));
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$find = F2(
+	function (pred, matrix) {
+		var _p11 = A4(
+			_billstclair$kakuro_master$SimpleMatrix$indexRowLoop,
+			0,
+			_billstclair$kakuro_master$SimpleMatrix$rows(matrix),
+			pred,
+			matrix);
+		if (_p11.ctor === 'Nothing') {
+			return _elm_lang$core$Maybe$Nothing;
+		} else {
+			return _elm_lang$core$Maybe$Just(
+				_elm_lang$core$Basics$snd(_p11._0));
+		}
+	});
 var _billstclair$kakuro_master$SimpleMatrix$initializeCols = F5(
 	function (rowidx, colidx, cols, initializer, row) {
 		initializeCols:
@@ -10278,16 +10426,16 @@ var _billstclair$kakuro_master$SimpleMatrix$initializeCols = F5(
 			} else {
 				var value = initializer(
 					{ctor: '_Tuple2', _0: rowidx, _1: colidx});
-				var _v10 = rowidx,
-					_v11 = colidx + 1,
-					_v12 = cols,
-					_v13 = initializer,
-					_v14 = A3(_elm_lang$core$Array$set, colidx, value, row);
-				rowidx = _v10;
-				colidx = _v11;
-				cols = _v12;
-				initializer = _v13;
-				row = _v14;
+				var _v28 = rowidx,
+					_v29 = colidx + 1,
+					_v30 = cols,
+					_v31 = initializer,
+					_v32 = A3(_elm_lang$core$Array$set, colidx, value, row);
+				rowidx = _v28;
+				colidx = _v29;
+				cols = _v30;
+				initializer = _v31;
+				row = _v32;
 				continue initializeCols;
 			}
 		}
@@ -10301,24 +10449,24 @@ var _billstclair$kakuro_master$SimpleMatrix$initializeRows = F5(
 			} else {
 				var row = A2(_elm_lang$core$Array$get, rowidx, res);
 				var res$ = function () {
-					var _p0 = row;
-					if (_p0.ctor === 'Nothing') {
+					var _p12 = row;
+					if (_p12.ctor === 'Nothing') {
 						return res;
 					} else {
-						var row$ = A5(_billstclair$kakuro_master$SimpleMatrix$initializeCols, rowidx, 0, cols, initializer, _p0._0);
+						var row$ = A5(_billstclair$kakuro_master$SimpleMatrix$initializeCols, rowidx, 0, cols, initializer, _p12._0);
 						return A3(_elm_lang$core$Array$set, rowidx, row$, res);
 					}
 				}();
-				var _v16 = rowidx + 1,
-					_v17 = rows,
-					_v18 = cols,
-					_v19 = initializer,
-					_v20 = res$;
-				rowidx = _v16;
-				rows = _v17;
-				cols = _v18;
-				initializer = _v19;
-				res = _v20;
+				var _v34 = rowidx + 1,
+					_v35 = rows,
+					_v36 = cols,
+					_v37 = initializer,
+					_v38 = res$;
+				rowidx = _v34;
+				rows = _v35;
+				cols = _v36;
+				initializer = _v37;
+				res = _v38;
 				continue initializeRows;
 			}
 		}
@@ -10385,8 +10533,8 @@ var _billstclair$kakuro_master$SimpleMatrix$valueUpdater = F3(
 	function (value, loc, matrix) {
 		var rowidx = _billstclair$kakuro_master$SimpleMatrix$row(loc);
 		var r = A2(_elm_lang$core$Array$get, rowidx, matrix);
-		var _p1 = r;
-		if (_p1.ctor === 'Nothing') {
+		var _p13 = r;
+		if (_p13.ctor === 'Nothing') {
 			return matrix;
 		} else {
 			return A3(
@@ -10396,7 +10544,7 @@ var _billstclair$kakuro_master$SimpleMatrix$valueUpdater = F3(
 					_elm_lang$core$Array$set,
 					_billstclair$kakuro_master$SimpleMatrix$col(loc),
 					value,
-					_p1._0),
+					_p13._0),
 				matrix);
 		}
 	});
@@ -10446,6 +10594,7 @@ var _billstclair$kakuro_master$Styles_Board$rule = F2(
 	});
 var _billstclair$kakuro_master$Styles_Board$imports = _elm_lang$core$Native_List.fromArray(
 	[]);
+var _billstclair$kakuro_master$Styles_Board$Done = {ctor: 'Done'};
 var _billstclair$kakuro_master$Styles_Board$Selected = {ctor: 'Selected'};
 var _billstclair$kakuro_master$Styles_Board$SelectedError = {ctor: 'SelectedError'};
 var _billstclair$kakuro_master$Styles_Board$Error = {ctor: 'Error'};
@@ -10723,6 +10872,16 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 			[
 				{ctor: '_Tuple2', _0: 'border', _1: '3px solid black'},
 				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Done)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#E0FFE0'}
 			]))
 	]);
 var _billstclair$kakuro_master$Styles_Board$stylesheet = A2(_massung$elm_css$Css$stylesheet, _billstclair$kakuro_master$Styles_Board$imports, _billstclair$kakuro_master$Styles_Board$rules);
@@ -11912,9 +12071,9 @@ var _billstclair$kakuro_master$SharedTypes$Model = F6(
 	function (a, b, c, d, e, f) {
 		return {kind: a, index: b, gencount: c, gameState: d, seed: e, time: f};
 	});
-var _billstclair$kakuro_master$SharedTypes$GameState = F6(
-	function (a, b, c, d, e, f) {
-		return {board: a, labels: b, cellClasses: c, guesses: d, hints: e, selection: f};
+var _billstclair$kakuro_master$SharedTypes$GameState = F7(
+	function (a, b, c, d, e, f, g) {
+		return {board: a, labels: b, allDone: c, cellClasses: d, guesses: e, hints: f, selection: g};
 	});
 var _billstclair$kakuro_master$SharedTypes$Nop = {ctor: 'Nop'};
 var _billstclair$kakuro_master$SharedTypes$PressKey = function (a) {
@@ -12059,6 +12218,60 @@ var _billstclair$kakuro_master$RenderBoard$renderKeypad = A2(
 			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('78^ '),
 			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('9<v>')
 		]));
+var _billstclair$kakuro_master$RenderBoard$doneColLoop = F5(
+	function (rowidx, colidx, cols, board, guesses) {
+		doneColLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(colidx, cols) > -1) {
+				return true;
+			} else {
+				if (!_elm_lang$core$Native_Utils.eq(
+					A3(_billstclair$kakuro_master$Board$get, rowidx, colidx, board),
+					A3(_billstclair$kakuro_master$Board$get, rowidx, colidx, guesses))) {
+					return false;
+				} else {
+					var _v1 = rowidx,
+						_v2 = colidx + 1,
+						_v3 = cols,
+						_v4 = board,
+						_v5 = guesses;
+					rowidx = _v1;
+					colidx = _v2;
+					cols = _v3;
+					board = _v4;
+					guesses = _v5;
+					continue doneColLoop;
+				}
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$doneRowLoop = F4(
+	function (rowidx, rows, board, guesses) {
+		doneRowLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(rowidx, rows) > -1) {
+				return true;
+			} else {
+				if (A5(_billstclair$kakuro_master$RenderBoard$doneColLoop, rowidx, 0, board.cols, board, guesses)) {
+					var _v6 = rowidx + 1,
+						_v7 = rows,
+						_v8 = board,
+						_v9 = guesses;
+					rowidx = _v6;
+					rows = _v7;
+					board = _v8;
+					guesses = _v9;
+					continue doneRowLoop;
+				} else {
+					return false;
+				}
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$isAllDone = F2(
+	function (board, guesses) {
+		return A4(_billstclair$kakuro_master$RenderBoard$doneRowLoop, 0, board.rows, board, guesses);
+	});
 var _billstclair$kakuro_master$RenderBoard$markFilledDuplicates = F6(
 	function (guess, row, col, incrementor, acc, res) {
 		if (_elm_lang$core$Native_Utils.eq(guess, 0)) {
@@ -12173,22 +12386,22 @@ var _billstclair$kakuro_master$RenderBoard$computeFilledColClassesRows = F8(
 			if (_elm_lang$core$Native_Utils.cmp(row, rows) > -1) {
 				return res3;
 			} else {
-				var _v2 = row + 1,
-					_v3 = col,
-					_v4 = rows,
-					_v5 = board,
-					_v6 = guesses,
-					_v7 = sum2,
-					_v8 = acc2,
-					_v9 = res3;
-				row = _v2;
-				col = _v3;
-				rows = _v4;
-				board = _v5;
-				guesses = _v6;
-				sum = _v7;
-				acc = _v8;
-				res = _v9;
+				var _v11 = row + 1,
+					_v12 = col,
+					_v13 = rows,
+					_v14 = board,
+					_v15 = guesses,
+					_v16 = sum2,
+					_v17 = acc2,
+					_v18 = res3;
+				row = _v11;
+				col = _v12;
+				rows = _v13;
+				board = _v14;
+				guesses = _v15;
+				sum = _v16;
+				acc = _v17;
+				res = _v18;
 				continue computeFilledColClassesRows;
 			}
 		}
@@ -12222,22 +12435,22 @@ var _billstclair$kakuro_master$RenderBoard$computeFilledRowClassesCols = F8(
 			if (_elm_lang$core$Native_Utils.cmp(col, cols) > -1) {
 				return res4;
 			} else {
-				var _v10 = row,
-					_v11 = col + 1,
-					_v12 = cols,
-					_v13 = board,
-					_v14 = guesses,
-					_v15 = sum2,
-					_v16 = acc2,
-					_v17 = res4;
-				row = _v10;
-				col = _v11;
-				cols = _v12;
-				board = _v13;
-				guesses = _v14;
-				sum = _v15;
-				acc = _v16;
-				res = _v17;
+				var _v19 = row,
+					_v20 = col + 1,
+					_v21 = cols,
+					_v22 = board,
+					_v23 = guesses,
+					_v24 = sum2,
+					_v25 = acc2,
+					_v26 = res4;
+				row = _v19;
+				col = _v20;
+				cols = _v21;
+				board = _v22;
+				guesses = _v23;
+				sum = _v24;
+				acc = _v25;
+				res = _v26;
 				continue computeFilledRowClassesCols;
 			}
 		}
@@ -12260,16 +12473,16 @@ var _billstclair$kakuro_master$RenderBoard$computeFilledRowClassesLoop = F5(
 					_elm_lang$core$Native_List.fromArray(
 						[]),
 					res);
-				var _v18 = row + 1,
-					_v19 = rows,
-					_v20 = board,
-					_v21 = guesses,
-					_v22 = res2;
-				row = _v18;
-				rows = _v19;
-				board = _v20;
-				guesses = _v21;
-				res = _v22;
+				var _v27 = row + 1,
+					_v28 = rows,
+					_v29 = board,
+					_v30 = guesses,
+					_v31 = res2;
+				row = _v27;
+				rows = _v28;
+				board = _v29;
+				guesses = _v30;
+				res = _v31;
 				continue computeFilledRowClassesLoop;
 			}
 		}
@@ -12294,14 +12507,14 @@ var _billstclair$kakuro_master$RenderBoard$sumRowLoop = F4(
 			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
 				return sum;
 			} else {
-				var _v23 = row,
-					_v24 = col + 1,
-					_v25 = sum + elt,
-					_v26 = board;
-				row = _v23;
-				col = _v24;
-				sum = _v25;
-				board = _v26;
+				var _v32 = row,
+					_v33 = col + 1,
+					_v34 = sum + elt,
+					_v35 = board;
+				row = _v32;
+				col = _v33;
+				sum = _v34;
+				board = _v35;
 				continue sumRowLoop;
 			}
 		}
@@ -12318,14 +12531,14 @@ var _billstclair$kakuro_master$RenderBoard$sumColLoop = F4(
 			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
 				return sum;
 			} else {
-				var _v27 = row + 1,
-					_v28 = col,
-					_v29 = sum + elt,
-					_v30 = board;
-				row = _v27;
-				col = _v28;
-				sum = _v29;
-				board = _v30;
+				var _v36 = row + 1,
+					_v37 = col,
+					_v38 = sum + elt,
+					_v39 = board;
+				row = _v36;
+				col = _v37;
+				sum = _v38;
+				board = _v39;
 				continue sumColLoop;
 			}
 		}
@@ -12358,14 +12571,14 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsColsLoop = F4(
 			if (_elm_lang$core$Native_Utils.cmp(col, res.cols) > -1) {
 				return res;
 			} else {
-				var _v31 = row,
-					_v32 = col + 1,
-					_v33 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
-					_v34 = board;
-				row = _v31;
-				col = _v32;
-				res = _v33;
-				board = _v34;
+				var _v40 = row,
+					_v41 = col + 1,
+					_v42 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
+					_v43 = board;
+				row = _v40;
+				col = _v41;
+				res = _v42;
+				board = _v43;
 				continue computeLabelsColsLoop;
 			}
 		}
@@ -12381,12 +12594,12 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsRowLoop = F3(
 			if (_elm_lang$core$Native_Utils.cmp(row, res.rows) > -1) {
 				return res;
 			} else {
-				var _v35 = row + 1,
-					_v36 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
-					_v37 = board;
-				row = _v35;
-				res = _v36;
-				board = _v37;
+				var _v44 = row + 1,
+					_v45 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
+					_v46 = board;
+				row = _v44;
+				res = _v45;
+				board = _v46;
 				continue computeLabelsRowLoop;
 			}
 		}
@@ -12411,6 +12624,7 @@ var _billstclair$kakuro_master$RenderBoard$makeGameState = function (board) {
 	return {
 		board: board,
 		labels: _billstclair$kakuro_master$RenderBoard$computeLabels(board),
+		allDone: false,
 		cellClasses: cellClasses,
 		guesses: guesses,
 		hints: hints,
@@ -12616,7 +12830,7 @@ var _billstclair$kakuro_master$RenderBoard$selectedErrorCell = F3(
 	});
 var _billstclair$kakuro_master$RenderBoard$renderFilledCell = F5(
 	function (isSelected, num, row, col, state) {
-		var maybeClass = A3(_billstclair$kakuro_master$Board$get, row, col, state.cellClasses);
+		var maybeClass = state.allDone ? _elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Done) : A3(_billstclair$kakuro_master$Board$get, row, col, state.cellClasses);
 		var classes = function () {
 			var _p3 = maybeClass;
 			if (_p3.ctor === 'Nothing') {
@@ -12701,17 +12915,17 @@ var _billstclair$kakuro_master$RenderBoard$renderColsLoop = F4(
 			if (_elm_lang$core$Native_Utils.cmp(col, state.labels.cols) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v41 = row,
-					_v42 = col + 1,
-					_v43 = A2(
+				var _v50 = row,
+					_v51 = col + 1,
+					_v52 = A2(
 					_elm_lang$core$List_ops['::'],
 					A3(_billstclair$kakuro_master$RenderBoard$renderCell, row, col, state),
 					res),
-					_v44 = state;
-				row = _v41;
-				col = _v42;
-				res = _v43;
-				state = _v44;
+					_v53 = state;
+				row = _v50;
+				col = _v51;
+				res = _v52;
+				state = _v53;
 				continue renderColsLoop;
 			}
 		}
@@ -12741,24 +12955,25 @@ var _billstclair$kakuro_master$RenderBoard$renderRowsLoop = F3(
 			if (_elm_lang$core$Native_Utils.cmp(row, state.labels.rows) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v45 = row + 1,
-					_v46 = A2(
+				var _v54 = row + 1,
+					_v55 = A2(
 					_elm_lang$core$List_ops['::'],
 					A2(_billstclair$kakuro_master$RenderBoard$renderRow, row, state),
 					res),
-					_v47 = state;
-				row = _v45;
-				res = _v46;
-				state = _v47;
+					_v56 = state;
+				row = _v54;
+				res = _v55;
+				state = _v56;
 				continue renderRowsLoop;
 			}
 		}
 	});
 var _billstclair$kakuro_master$RenderBoard$renderRows = function (state) {
+	var allDone = A2(_billstclair$kakuro_master$RenderBoard$isAllDone, state.board, state.guesses);
 	var cellClasses = A2(_billstclair$kakuro_master$RenderBoard$computeFilledCellClasses, state.board, state.guesses);
 	var state2 = _elm_lang$core$Native_Utils.update(
 		state,
-		{cellClasses: cellClasses});
+		{cellClasses: cellClasses, allDone: allDone});
 	return A3(
 		_billstclair$kakuro_master$RenderBoard$renderRowsLoop,
 		0,
