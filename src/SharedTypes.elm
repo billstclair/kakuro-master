@@ -14,10 +14,14 @@ module SharedTypes exposing ( Model
                             , Selection
                             , GameState
                             , IntBoard
+                            , BClassMatrix
+                            , BClassBoard
                             , Labels, LabelsBoard
                             , Hints, HintsBoard 
                             )
 
+import SimpleMatrix exposing (Matrix)
+import Styles.Board exposing (BClass) 
 import Board exposing(Board)
 import PuzzleDB
 
@@ -60,9 +64,16 @@ type alias HintsBoard =
 type alias Selection =
   (Int, Int)
 
+type alias BClassMatrix =
+  Matrix (Maybe BClass)
+
+type alias BClassBoard =
+  Board (Maybe BClass)
+
 type alias GameState =
   { board : IntBoard
-  , labels: LabelsBoard
+  , labels : LabelsBoard
+  , cellClasses : BClassBoard
   , guesses : IntBoard
   , hints : HintsBoard
   , selection : Maybe Selection

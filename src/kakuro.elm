@@ -50,7 +50,7 @@ main =
 -- MODEL
 
 initialKind : Int
-initialKind = 10
+initialKind = 6
 
 pageTitle : String
 pageTitle = KakuroNative.setTitle "Kakuro Dojo"
