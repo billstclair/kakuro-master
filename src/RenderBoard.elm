@@ -290,14 +290,14 @@ renderRowsLoop row res state =
 -- Mark (row,col) and List.len acc back from there as Errors
 markBadSumColSegment : Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
 markBadSumColSegment row col sum acc res =
-  markBadSumSegment row col sum acc SimpleMatrix.updateColRangeWithValue res
+  markBadSumSegment row col sum acc incRowBy SimpleMatrix.updateRowRangeWithValue res
 
 -- If guess is in acc, then mark both (row,col) and (row,col - (position guess acc))
 -- as Errors
 markFilledColDuplicates : Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
 markFilledColDuplicates guess rowidx colidx acc res =
   markFilledDuplicates
-    guess rowidx colidx (\i -> incRowBy <| negate i) acc res
+    guess rowidx colidx (\i -> incRowBy (negate i)) acc res
 
 -- If row is zero, call computedFilledColClasses to add the
 -- display classes to res for the given col.
@@ -334,8 +334,11 @@ computeFilledColClasses col board guesses res =
 type alias BClassMatrixRangeUpdater =
   Location -> Int -> Maybe BClass -> BClassMatrix -> BClassMatrix
 
-markBadSumSegment : Int -> Int -> Int -> List Int -> BClassMatrixRangeUpdater -> BClassBoard -> BClassBoard
-markBadSumSegment row col sum acc updater res =
+type alias LocationIncrementor =
+  Int -> Location -> Location
+
+markBadSumSegment : Int -> Int -> Int -> List Int -> LocationIncrementor -> BClassMatrixRangeUpdater -> BClassBoard -> BClassBoard
+markBadSumSegment row col sum acc incrementor updater res =
   if List.member 0 acc then
     res
   else
@@ -344,15 +347,19 @@ markBadSumSegment row col sum acc updater res =
         if accsum == sum then
           res
         else
-          { res | array =
-              updater (row, col) ((List.length acc) + 1) (Just Error) res.array
-          }
+          let len = List.length acc
+              start = incrementor (negate len) (row, col)
+          in
+              { res | array =
+                  updater start len (Just Error) res.array
+              }
 
 -- If acc contains no zeroes, and doesn't sum to res,
 -- Mark (row,col) and List.len acc back from there as Errors
 markBadSumRowSegment : Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
 markBadSumRowSegment row col sum acc res =
-  markBadSumSegment row col sum acc SimpleMatrix.updateRowRangeWithValue res
+  markBadSumSegment
+    row col sum acc incColBy SimpleMatrix.updateColRangeWithValue res
 
 markFilledDuplicates : Int -> Int -> Int -> (Int -> Location -> Location) -> List Int -> BClassBoard -> BClassBoard
 markFilledDuplicates guess row col incrementor acc res =
@@ -364,7 +371,7 @@ markFilledDuplicates guess row col incrementor acc res =
         case idx of
             Nothing -> res
             Just i ->
-              let (row', col') = incrementor i (row, col)
+              let (row', col') = incrementor (i+1) (row, col)
               in
                   Board.set row col (Just Error) res
                     |> Board.set row' col' (Just Error)
@@ -374,7 +381,7 @@ markFilledDuplicates guess row col incrementor acc res =
 markFilledRowDuplicates : Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
 markFilledRowDuplicates guess rowidx colidx acc res =
   markFilledDuplicates
-    guess rowidx colidx (\i -> incColBy <| negate i) acc res
+    guess rowidx colidx (\i -> incColBy (negate i)) acc res
 
 -- If row is zero, call computedFilledColClasses to add the
 -- display classes to res for the given col.
