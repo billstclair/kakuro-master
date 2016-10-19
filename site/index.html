@@ -10227,6 +10227,514 @@ function sha256 (root) {
 
 var _billstclair$kakuro_master$KakuroNative$sha256 = _billstclair$kakuro_master$Native_Kakuro.sha256;
 var _billstclair$kakuro_master$KakuroNative$setTitle = _billstclair$kakuro_master$Native_Kakuro.setTitle;
+var _billstclair$kakuro_master$SimpleMatrix$updateRangeUntil = F5(
+	function (start, incrementor, predicate, updater, thing) {
+		updateRangeUntil:
+		while (true) {
+			if (predicate(start)) {
+				return thing;
+			} else {
+				var _v0 = incrementor(start),
+					_v1 = incrementor,
+					_v2 = predicate,
+					_v3 = updater,
+					_v4 = A2(updater, start, thing);
+				start = _v0;
+				incrementor = _v1;
+				predicate = _v2;
+				updater = _v3;
+				thing = _v4;
+				continue updateRangeUntil;
+			}
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$updateRange = F5(
+	function (start, incrementor, count, updater, thing) {
+		updateRange:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(count, 0) < 1) {
+				return thing;
+			} else {
+				var _v5 = incrementor(start),
+					_v6 = incrementor,
+					_v7 = count - 1,
+					_v8 = updater,
+					_v9 = A2(updater, start, thing);
+				start = _v5;
+				incrementor = _v6;
+				count = _v7;
+				updater = _v8;
+				thing = _v9;
+				continue updateRange;
+			}
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$initializeCols = F5(
+	function (rowidx, colidx, cols, initializer, row) {
+		initializeCols:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(colidx, cols) > -1) {
+				return row;
+			} else {
+				var value = initializer(
+					{ctor: '_Tuple2', _0: rowidx, _1: colidx});
+				var _v10 = rowidx,
+					_v11 = colidx + 1,
+					_v12 = cols,
+					_v13 = initializer,
+					_v14 = A3(_elm_lang$core$Array$set, colidx, value, row);
+				rowidx = _v10;
+				colidx = _v11;
+				cols = _v12;
+				initializer = _v13;
+				row = _v14;
+				continue initializeCols;
+			}
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$initializeRows = F5(
+	function (rowidx, rows, cols, initializer, res) {
+		initializeRows:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(rowidx, rows) > -1) {
+				return res;
+			} else {
+				var row = A2(_elm_lang$core$Array$get, rowidx, res);
+				var res$ = function () {
+					var _p0 = row;
+					if (_p0.ctor === 'Nothing') {
+						return res;
+					} else {
+						var row$ = A5(_billstclair$kakuro_master$SimpleMatrix$initializeCols, rowidx, 0, cols, initializer, _p0._0);
+						return A3(_elm_lang$core$Array$set, rowidx, row$, res);
+					}
+				}();
+				var _v16 = rowidx + 1,
+					_v17 = rows,
+					_v18 = cols,
+					_v19 = initializer,
+					_v20 = res$;
+				rowidx = _v16;
+				rows = _v17;
+				cols = _v18;
+				initializer = _v19;
+				res = _v20;
+				continue initializeRows;
+			}
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$fill = F3(
+	function (rows, cols, value) {
+		return A2(
+			_elm_lang$core$Array$repeat,
+			rows,
+			A2(_elm_lang$core$Array$repeat, cols, value));
+	});
+var _billstclair$kakuro_master$SimpleMatrix$initialize = F3(
+	function (rows, cols, initializer) {
+		var $default = initializer(
+			{ctor: '_Tuple2', _0: 0, _1: 0});
+		var res = A3(_billstclair$kakuro_master$SimpleMatrix$fill, rows, cols, $default);
+		return A5(_billstclair$kakuro_master$SimpleMatrix$initializeRows, 0, rows, cols, initializer, res);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$col = function (loc) {
+	return _elm_lang$core$Basics$snd(loc);
+};
+var _billstclair$kakuro_master$SimpleMatrix$row = function (loc) {
+	return _elm_lang$core$Basics$fst(loc);
+};
+var _billstclair$kakuro_master$SimpleMatrix$incRowBy = F2(
+	function (increment, loc) {
+		return {
+			ctor: '_Tuple2',
+			_0: _billstclair$kakuro_master$SimpleMatrix$row(loc) + increment,
+			_1: _billstclair$kakuro_master$SimpleMatrix$col(loc)
+		};
+	});
+var _billstclair$kakuro_master$SimpleMatrix$incRow = function (loc) {
+	return A2(_billstclair$kakuro_master$SimpleMatrix$incRowBy, 1, loc);
+};
+var _billstclair$kakuro_master$SimpleMatrix$updateRowRange = F4(
+	function (loc, count, updater, matrix) {
+		return A5(_billstclair$kakuro_master$SimpleMatrix$updateRange, loc, _billstclair$kakuro_master$SimpleMatrix$incRow, count, updater, matrix);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$updateRowRangeUntil = F4(
+	function (loc, predicate, updater, matrix) {
+		return A5(_billstclair$kakuro_master$SimpleMatrix$updateRangeUntil, loc, _billstclair$kakuro_master$SimpleMatrix$incRow, predicate, updater, matrix);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$incColBy = F2(
+	function (increment, loc) {
+		return {
+			ctor: '_Tuple2',
+			_0: _billstclair$kakuro_master$SimpleMatrix$row(loc),
+			_1: _billstclair$kakuro_master$SimpleMatrix$col(loc) + increment
+		};
+	});
+var _billstclair$kakuro_master$SimpleMatrix$incCol = function (loc) {
+	return A2(_billstclair$kakuro_master$SimpleMatrix$incColBy, 1, loc);
+};
+var _billstclair$kakuro_master$SimpleMatrix$updateColRange = F4(
+	function (loc, count, updater, matrix) {
+		return A5(_billstclair$kakuro_master$SimpleMatrix$updateRange, loc, _billstclair$kakuro_master$SimpleMatrix$incCol, count, updater, matrix);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$updateColRangeUntil = F4(
+	function (loc, predicate, updater, matrix) {
+		return A5(_billstclair$kakuro_master$SimpleMatrix$updateRangeUntil, loc, _billstclair$kakuro_master$SimpleMatrix$incCol, predicate, updater, matrix);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$valueUpdater = F3(
+	function (value, loc, matrix) {
+		var rowidx = _billstclair$kakuro_master$SimpleMatrix$row(loc);
+		var r = A2(_elm_lang$core$Array$get, rowidx, matrix);
+		var _p1 = r;
+		if (_p1.ctor === 'Nothing') {
+			return matrix;
+		} else {
+			return A3(
+				_elm_lang$core$Array$set,
+				rowidx,
+				A3(
+					_elm_lang$core$Array$set,
+					_billstclair$kakuro_master$SimpleMatrix$col(loc),
+					value,
+					_p1._0),
+				matrix);
+		}
+	});
+var _billstclair$kakuro_master$SimpleMatrix$updateRowRangeWithValue = F4(
+	function (loc, count, value, matrix) {
+		return A4(
+			_billstclair$kakuro_master$SimpleMatrix$updateRowRange,
+			loc,
+			count,
+			_billstclair$kakuro_master$SimpleMatrix$valueUpdater(value),
+			matrix);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$updateColRangeWithValue = F4(
+	function (loc, count, value, matrix) {
+		return A4(
+			_billstclair$kakuro_master$SimpleMatrix$updateColRange,
+			loc,
+			count,
+			_billstclair$kakuro_master$SimpleMatrix$valueUpdater(value),
+			matrix);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$updateRowRangeWithValueUntil = F4(
+	function (loc, predicate, value, matrix) {
+		return A4(
+			_billstclair$kakuro_master$SimpleMatrix$updateRowRangeUntil,
+			loc,
+			predicate,
+			_billstclair$kakuro_master$SimpleMatrix$valueUpdater(value),
+			matrix);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$updateColRangeWithValueUntil = F4(
+	function (loc, predicate, value, matrix) {
+		return A4(
+			_billstclair$kakuro_master$SimpleMatrix$updateColRangeUntil,
+			loc,
+			predicate,
+			_billstclair$kakuro_master$SimpleMatrix$valueUpdater(value),
+			matrix);
+	});
+var _billstclair$kakuro_master$SimpleMatrix$loc = F2(
+	function (row, col) {
+		return {ctor: '_Tuple2', _0: row, _1: col};
+	});
+var _billstclair$kakuro_master$Styles_Board$rule = F2(
+	function (selectors, descriptor) {
+		return {selectors: selectors, descriptor: descriptor};
+	});
+var _billstclair$kakuro_master$Styles_Board$imports = _elm_lang$core$Native_List.fromArray(
+	[]);
+var _billstclair$kakuro_master$Styles_Board$Selected = {ctor: 'Selected'};
+var _billstclair$kakuro_master$Styles_Board$SelectedError = {ctor: 'SelectedError'};
+var _billstclair$kakuro_master$Styles_Board$Error = {ctor: 'Error'};
+var _billstclair$kakuro_master$Styles_Board$Hint = {ctor: 'Hint'};
+var _billstclair$kakuro_master$Styles_Board$RightLabelTd = {ctor: 'RightLabelTd'};
+var _billstclair$kakuro_master$Styles_Board$BottomLabelTd = {ctor: 'BottomLabelTd'};
+var _billstclair$kakuro_master$Styles_Board$LabelTd = {ctor: 'LabelTd'};
+var _billstclair$kakuro_master$Styles_Board$LabelTr = {ctor: 'LabelTr'};
+var _billstclair$kakuro_master$Styles_Board$LabelTable = {ctor: 'LabelTable'};
+var _billstclair$kakuro_master$Styles_Board$UnfilledCell = {ctor: 'UnfilledCell'};
+var _billstclair$kakuro_master$Styles_Board$EmptyCellBackground = {ctor: 'EmptyCellBackground'};
+var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
+var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
+var _billstclair$kakuro_master$Styles_Board$KeypadButton = {ctor: 'KeypadButton'};
+var _billstclair$kakuro_master$Styles_Board$KeypadDiv = {ctor: 'KeypadDiv'};
+var _billstclair$kakuro_master$Styles_Board$KeypadTd = {ctor: 'KeypadTd'};
+var _billstclair$kakuro_master$Styles_Board$CellTd = {ctor: 'CellTd'};
+var _billstclair$kakuro_master$Styles_Board$Table = {ctor: 'Table'};
+var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.fromArray(
+	[
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Type('tr')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'},
+				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
+				{ctor: '_Tuple2', _0: 'board', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Type('td')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '1.5em'},
+				{ctor: '_Tuple2', _0: 'height', _1: '1.5em'},
+				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '2px'},
+				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '24pt'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Table)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-family', _1: '\"Lucida Console\", Monaco, monospace'},
+				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$CellTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+				{ctor: '_Tuple2', _0: 'width', _1: '2.0em'},
+				{ctor: '_Tuple2', _0: 'height', _1: '2.0em'},
+				{ctor: '_Tuple2', _0: 'color', _1: '#ffffff'},
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadDiv)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-size', _1: '30pt'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Type('button')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'outline', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadButton)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-size', _1: '30pt'},
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'},
+				{ctor: '_Tuple2', _0: 'color', _1: '#ffffff'},
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$EmptyCell)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$EmptyCellBackground)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$UnfilledCell)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#ffffff'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTable)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTr)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
+				{ctor: '_Tuple2', _0: 'border', _1: 'none'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'},
+				{ctor: '_Tuple2', _0: 'margin', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Label)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
+				{ctor: '_Tuple2', _0: 'background-image', _1: 'url(\'images/diagonal-line-200x200.png\')'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$BottomLabelTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'},
+				{ctor: '_Tuple2', _0: 'vertical-align', _1: 'center'},
+				{ctor: '_Tuple2', _0: 'text-align', _1: 'right'},
+				{ctor: '_Tuple2', _0: 'width', _1: ' 50%'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
+				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$RightLabelTd)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'},
+				{ctor: '_Tuple2', _0: 'vertical-align', _1: 'bottom'},
+				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
+				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
+				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Hint)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'width', _1: '100%'},
+				{ctor: '_Tuple2', _0: 'height', _1: '100%'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '12pt'},
+				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Error)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'background-color', _1: 'red'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$SelectedError)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'background-color', _1: '#FF8080'},
+				{ctor: '_Tuple2', _0: 'color', _1: 'white'},
+				{ctor: '_Tuple2', _0: 'border', _1: '3px solid black'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Selected)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'border', _1: '3px solid black'},
+				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
+			]))
+	]);
+var _billstclair$kakuro_master$Styles_Board$stylesheet = A2(_massung$elm_css$Css$stylesheet, _billstclair$kakuro_master$Styles_Board$imports, _billstclair$kakuro_master$Styles_Board$rules);
+var _billstclair$kakuro_master$Styles_Board$style = A2(
+	_massung$elm_css$Css$style,
+	_elm_lang$core$Native_List.fromArray(
+		[
+			_elm_lang$html$Html_Attributes$scoped(true)
+		]),
+	_billstclair$kakuro_master$Styles_Board$stylesheet);
+var _billstclair$kakuro_master$Styles_Board$class = _billstclair$kakuro_master$Styles_Board$stylesheet.$class;
+var _billstclair$kakuro_master$Styles_Board$classes = _billstclair$kakuro_master$Styles_Board$stylesheet.classes;
 var _elm_lang$core$Task$onError = _elm_lang$core$Native_Scheduler.onError;
 var _elm_lang$core$Task$andThen = _elm_lang$core$Native_Scheduler.andThen;
 var _elm_lang$core$Task$spawnCmd = F2(
@@ -11404,9 +11912,9 @@ var _billstclair$kakuro_master$SharedTypes$Model = F6(
 	function (a, b, c, d, e, f) {
 		return {kind: a, index: b, gencount: c, gameState: d, seed: e, time: f};
 	});
-var _billstclair$kakuro_master$SharedTypes$GameState = F5(
-	function (a, b, c, d, e) {
-		return {board: a, labels: b, guesses: c, hints: d, selection: e};
+var _billstclair$kakuro_master$SharedTypes$GameState = F6(
+	function (a, b, c, d, e, f) {
+		return {board: a, labels: b, cellClasses: c, guesses: d, hints: e, selection: f};
 	});
 var _billstclair$kakuro_master$SharedTypes$Nop = {ctor: 'Nop'};
 var _billstclair$kakuro_master$SharedTypes$PressKey = function (a) {
@@ -11421,292 +11929,12 @@ var _billstclair$kakuro_master$SharedTypes$Seed = function (a) {
 var _billstclair$kakuro_master$SharedTypes$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
 };
-var _billstclair$kakuro_master$SharedTypes$Generate = {ctor: 'Generate'};
-var _billstclair$kakuro_master$Styles_Board$rule = F2(
-	function (selectors, descriptor) {
-		return {selectors: selectors, descriptor: descriptor};
-	});
-var _billstclair$kakuro_master$Styles_Board$imports = _elm_lang$core$Native_List.fromArray(
-	[]);
-var _billstclair$kakuro_master$Styles_Board$Selected = {ctor: 'Selected'};
-var _billstclair$kakuro_master$Styles_Board$SelectedError = {ctor: 'SelectedError'};
-var _billstclair$kakuro_master$Styles_Board$Error = {ctor: 'Error'};
-var _billstclair$kakuro_master$Styles_Board$Hint = {ctor: 'Hint'};
-var _billstclair$kakuro_master$Styles_Board$RightLabelTd = {ctor: 'RightLabelTd'};
-var _billstclair$kakuro_master$Styles_Board$BottomLabelTd = {ctor: 'BottomLabelTd'};
-var _billstclair$kakuro_master$Styles_Board$LabelTd = {ctor: 'LabelTd'};
-var _billstclair$kakuro_master$Styles_Board$LabelTr = {ctor: 'LabelTr'};
-var _billstclair$kakuro_master$Styles_Board$LabelTable = {ctor: 'LabelTable'};
-var _billstclair$kakuro_master$Styles_Board$UnfilledCell = {ctor: 'UnfilledCell'};
-var _billstclair$kakuro_master$Styles_Board$EmptyCellBackground = {ctor: 'EmptyCellBackground'};
-var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
-var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
-var _billstclair$kakuro_master$Styles_Board$KeypadButton = {ctor: 'KeypadButton'};
-var _billstclair$kakuro_master$Styles_Board$KeypadDiv = {ctor: 'KeypadDiv'};
-var _billstclair$kakuro_master$Styles_Board$KeypadTd = {ctor: 'KeypadTd'};
-var _billstclair$kakuro_master$Styles_Board$CellTd = {ctor: 'CellTd'};
-var _billstclair$kakuro_master$Styles_Board$Table = {ctor: 'Table'};
-var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.fromArray(
-	[
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Type('tr')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'padding', _1: '0'},
-				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
-				{ctor: '_Tuple2', _0: 'board', _1: 'none'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Type('td')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '1.5em'},
-				{ctor: '_Tuple2', _0: 'height', _1: '1.5em'},
-				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'},
-				{ctor: '_Tuple2', _0: 'padding', _1: '2px'},
-				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
-				{ctor: '_Tuple2', _0: 'font-size', _1: '24pt'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Table)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'font-family', _1: '\"Lucida Console\", Monaco, monospace'},
-				{ctor: '_Tuple2', _0: 'border', _1: '1px solid black'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$CellTd)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadTd)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
-				{ctor: '_Tuple2', _0: 'width', _1: '2.0em'},
-				{ctor: '_Tuple2', _0: 'height', _1: '2.0em'},
-				{ctor: '_Tuple2', _0: 'color', _1: '#ffffff'},
-				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadDiv)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'font-size', _1: '30pt'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadButton)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'font-size', _1: '30pt'},
-				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'},
-				{ctor: '_Tuple2', _0: 'color', _1: '#ffffff'},
-				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
-				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$EmptyCell)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$EmptyCellBackground)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'background-color', _1: '#808080'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$UnfilledCell)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'background-color', _1: '#ffffff'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTable)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTr)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '99%'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$LabelTd)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
-				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
-				{ctor: '_Tuple2', _0: 'border', _1: 'none'},
-				{ctor: '_Tuple2', _0: 'padding', _1: '0'},
-				{ctor: '_Tuple2', _0: 'margin', _1: '0'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Label)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
-				{ctor: '_Tuple2', _0: 'background-image', _1: 'url(\'images/diagonal-line-200x200.png\')'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$BottomLabelTd)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'},
-				{ctor: '_Tuple2', _0: 'vertical-align', _1: 'center'},
-				{ctor: '_Tuple2', _0: 'text-align', _1: 'right'},
-				{ctor: '_Tuple2', _0: 'width', _1: ' 50%'},
-				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
-				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$RightLabelTd)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'},
-				{ctor: '_Tuple2', _0: 'vertical-align', _1: 'bottom'},
-				{ctor: '_Tuple2', _0: 'text-align', _1: 'center'},
-				{ctor: '_Tuple2', _0: 'width', _1: '50%'},
-				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
-				{ctor: '_Tuple2', _0: 'border', _1: 'none'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Hint)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'width', _1: '100%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '100%'},
-				{ctor: '_Tuple2', _0: 'font-size', _1: '12pt'},
-				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Error)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'background-color', _1: 'red'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$SelectedError)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'background-color', _1: '#FF8080'},
-				{ctor: '_Tuple2', _0: 'color', _1: 'white'},
-				{ctor: '_Tuple2', _0: 'border', _1: '3px solid black'},
-				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
-			])),
-		A2(
-		_billstclair$kakuro_master$Styles_Board$rule,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Selected)
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				{ctor: '_Tuple2', _0: 'border', _1: '3px solid black'},
-				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
-			]))
-	]);
-var _billstclair$kakuro_master$Styles_Board$stylesheet = A2(_massung$elm_css$Css$stylesheet, _billstclair$kakuro_master$Styles_Board$imports, _billstclair$kakuro_master$Styles_Board$rules);
-var _billstclair$kakuro_master$Styles_Board$style = A2(
-	_massung$elm_css$Css$style,
-	_elm_lang$core$Native_List.fromArray(
-		[
-			_elm_lang$html$Html_Attributes$scoped(true)
-		]),
-	_billstclair$kakuro_master$Styles_Board$stylesheet);
-var _billstclair$kakuro_master$Styles_Board$class = _billstclair$kakuro_master$Styles_Board$stylesheet.$class;
-var _billstclair$kakuro_master$Styles_Board$classes = _billstclair$kakuro_master$Styles_Board$stylesheet.classes;
+var _billstclair$kakuro_master$SharedTypes$ChangeKind = function (a) {
+	return {ctor: 'ChangeKind', _0: a};
+};
+var _billstclair$kakuro_master$SharedTypes$Generate = function (a) {
+	return {ctor: 'Generate', _0: a};
+};
 var _billstclair$kakuro_master$RenderBoard$keypadAlist = _elm_lang$core$Native_List.fromArray(
 	[
 		{
@@ -11831,6 +12059,224 @@ var _billstclair$kakuro_master$RenderBoard$renderKeypad = A2(
 			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('78^ '),
 			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('9<v>')
 		]));
+var _billstclair$kakuro_master$RenderBoard$markFilledDuplicates = F6(
+	function (guess, row, col, incrementor, acc, res) {
+		if (_elm_lang$core$Native_Utils.eq(guess, 0)) {
+			return res;
+		} else {
+			var idx = A2(_elm_community$list_extra$List_Extra$elemIndex, guess, acc);
+			var _p1 = idx;
+			if (_p1.ctor === 'Nothing') {
+				return res;
+			} else {
+				var _p2 = A2(
+					incrementor,
+					_p1._0,
+					{ctor: '_Tuple2', _0: row, _1: col});
+				var row$ = _p2._0;
+				var col$ = _p2._1;
+				return A4(
+					_billstclair$kakuro_master$Board$set,
+					row$,
+					col$,
+					_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
+					A4(
+						_billstclair$kakuro_master$Board$set,
+						row,
+						col,
+						_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
+						res));
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$markFilledRowDuplicates = F5(
+	function (guess, rowidx, colidx, acc, res) {
+		return A6(
+			_billstclair$kakuro_master$RenderBoard$markFilledDuplicates,
+			guess,
+			rowidx,
+			colidx,
+			function (i) {
+				return _billstclair$kakuro_master$SimpleMatrix$incColBy(
+					_elm_lang$core$Basics$negate(i));
+			},
+			acc,
+			res);
+	});
+var _billstclair$kakuro_master$RenderBoard$markBadSumSegment = F6(
+	function (row, col, sum, acc, updater, res) {
+		if (A2(_elm_lang$core$List$member, 0, acc)) {
+			return res;
+		} else {
+			var accsum = A3(
+				_elm_lang$core$List$foldr,
+				F2(
+					function (x, y) {
+						return x + y;
+					}),
+				0,
+				acc);
+			return _elm_lang$core$Native_Utils.eq(accsum, sum) ? res : _elm_lang$core$Native_Utils.update(
+				res,
+				{
+					array: A4(
+						updater,
+						{ctor: '_Tuple2', _0: row, _1: col},
+						_elm_lang$core$List$length(acc) + 1,
+						_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
+						res.array)
+				});
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$markBadSumRowSegment = F5(
+	function (row, col, sum, acc, res) {
+		return A6(_billstclair$kakuro_master$RenderBoard$markBadSumSegment, row, col, sum, acc, _billstclair$kakuro_master$SimpleMatrix$updateRowRangeWithValue, res);
+	});
+var _billstclair$kakuro_master$RenderBoard$markFilledColDuplicates = F5(
+	function (guess, rowidx, colidx, acc, res) {
+		return A6(
+			_billstclair$kakuro_master$RenderBoard$markFilledDuplicates,
+			guess,
+			rowidx,
+			colidx,
+			function (i) {
+				return _billstclair$kakuro_master$SimpleMatrix$incRowBy(
+					_elm_lang$core$Basics$negate(i));
+			},
+			acc,
+			res);
+	});
+var _billstclair$kakuro_master$RenderBoard$markBadSumColSegment = F5(
+	function (row, col, sum, acc, res) {
+		return A6(_billstclair$kakuro_master$RenderBoard$markBadSumSegment, row, col, sum, acc, _billstclair$kakuro_master$SimpleMatrix$updateColRangeWithValue, res);
+	});
+var _billstclair$kakuro_master$RenderBoard$computeFilledColClassesRows = F8(
+	function (row, col, rows, board, guesses, sum, acc, res) {
+		computeFilledColClassesRows:
+		while (true) {
+			var guess = A3(_billstclair$kakuro_master$Board$get, row, col, guesses);
+			var res2 = ((_elm_lang$core$Native_Utils.cmp(sum, 0) > 0) && (!_elm_lang$core$Native_Utils.eq(guess, 0))) ? A5(_billstclair$kakuro_master$RenderBoard$markFilledColDuplicates, guess, row, col, acc, res) : res;
+			var val = A3(_billstclair$kakuro_master$Board$get, row, col, board);
+			var res3 = (_elm_lang$core$Native_Utils.eq(val, 0) && (_elm_lang$core$Native_Utils.cmp(sum, 0) > 0)) ? A5(_billstclair$kakuro_master$RenderBoard$markBadSumColSegment, row, col, sum, acc, res2) : res3;
+			var sum2 = _elm_lang$core$Native_Utils.eq(val, 0) ? 0 : (sum + val);
+			var acc2 = _elm_lang$core$Native_Utils.eq(val, 0) ? _elm_lang$core$Native_List.fromArray(
+				[]) : A2(_elm_lang$core$List_ops['::'], guess, acc);
+			if (_elm_lang$core$Native_Utils.cmp(row, rows) > -1) {
+				return res3;
+			} else {
+				var _v2 = row + 1,
+					_v3 = col,
+					_v4 = rows,
+					_v5 = board,
+					_v6 = guesses,
+					_v7 = sum2,
+					_v8 = acc2,
+					_v9 = res3;
+				row = _v2;
+				col = _v3;
+				rows = _v4;
+				board = _v5;
+				guesses = _v6;
+				sum = _v7;
+				acc = _v8;
+				res = _v9;
+				continue computeFilledColClassesRows;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$computeFilledColClasses = F4(
+	function (col, board, guesses, res) {
+		return A8(
+			_billstclair$kakuro_master$RenderBoard$computeFilledColClassesRows,
+			0,
+			col,
+			board.rows,
+			board,
+			guesses,
+			0,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			res);
+	});
+var _billstclair$kakuro_master$RenderBoard$computeFilledRowClassesCols = F8(
+	function (row, col, cols, board, guesses, sum, acc, res) {
+		computeFilledRowClassesCols:
+		while (true) {
+			var guess = A3(_billstclair$kakuro_master$Board$get, row, col, guesses);
+			var val = A3(_billstclair$kakuro_master$Board$get, row, col, board);
+			var sum2 = _elm_lang$core$Native_Utils.eq(val, 0) ? 0 : (sum + val);
+			var acc2 = _elm_lang$core$Native_Utils.eq(val, 0) ? _elm_lang$core$Native_List.fromArray(
+				[]) : A2(_elm_lang$core$List_ops['::'], guess, acc);
+			var res2 = (_elm_lang$core$Native_Utils.eq(row, 0) && (_elm_lang$core$Native_Utils.cmp(col, cols) < 0)) ? A4(_billstclair$kakuro_master$RenderBoard$computeFilledColClasses, col, board, guesses, res) : res;
+			var res3 = ((_elm_lang$core$Native_Utils.cmp(sum, 0) > 0) && (!_elm_lang$core$Native_Utils.eq(guess, 0))) ? A5(_billstclair$kakuro_master$RenderBoard$markFilledRowDuplicates, guess, row, col, acc, res2) : res2;
+			var res4 = (_elm_lang$core$Native_Utils.eq(val, 0) && (_elm_lang$core$Native_Utils.cmp(sum, 0) > 0)) ? A5(_billstclair$kakuro_master$RenderBoard$markBadSumRowSegment, row, col, sum, acc, res3) : res3;
+			if (_elm_lang$core$Native_Utils.cmp(col, cols) > -1) {
+				return res4;
+			} else {
+				var _v10 = row,
+					_v11 = col + 1,
+					_v12 = cols,
+					_v13 = board,
+					_v14 = guesses,
+					_v15 = sum2,
+					_v16 = acc2,
+					_v17 = res4;
+				row = _v10;
+				col = _v11;
+				cols = _v12;
+				board = _v13;
+				guesses = _v14;
+				sum = _v15;
+				acc = _v16;
+				res = _v17;
+				continue computeFilledRowClassesCols;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$computeFilledRowClassesLoop = F5(
+	function (row, rows, board, guesses, res) {
+		computeFilledRowClassesLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(row, rows) > -1) {
+				return res;
+			} else {
+				var res2 = A8(
+					_billstclair$kakuro_master$RenderBoard$computeFilledRowClassesCols,
+					row,
+					0,
+					board.cols,
+					board,
+					guesses,
+					0,
+					_elm_lang$core$Native_List.fromArray(
+						[]),
+					res);
+				var _v18 = row + 1,
+					_v19 = rows,
+					_v20 = board,
+					_v21 = guesses,
+					_v22 = res2;
+				row = _v18;
+				rows = _v19;
+				board = _v20;
+				guesses = _v21;
+				res = _v22;
+				continue computeFilledRowClassesLoop;
+			}
+		}
+	});
+var _billstclair$kakuro_master$RenderBoard$computeFilledRowClasses = F3(
+	function (board, guesses, res) {
+		return A5(_billstclair$kakuro_master$RenderBoard$computeFilledRowClassesLoop, 0, board.rows, board, guesses, res);
+	});
+var _billstclair$kakuro_master$RenderBoard$computeFilledCellClasses = F2(
+	function (board, guesses) {
+		return A3(
+			_billstclair$kakuro_master$RenderBoard$computeFilledRowClasses,
+			board,
+			guesses,
+			A3(_billstclair$kakuro_master$Board$make, board.rows, board.cols, _elm_lang$core$Maybe$Nothing));
+	});
 var _billstclair$kakuro_master$RenderBoard$sumRowLoop = F4(
 	function (row, col, sum, board) {
 		sumRowLoop:
@@ -11839,14 +12285,14 @@ var _billstclair$kakuro_master$RenderBoard$sumRowLoop = F4(
 			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
 				return sum;
 			} else {
-				var _v1 = row,
-					_v2 = col + 1,
-					_v3 = sum + elt,
-					_v4 = board;
-				row = _v1;
-				col = _v2;
-				sum = _v3;
-				board = _v4;
+				var _v23 = row,
+					_v24 = col + 1,
+					_v25 = sum + elt,
+					_v26 = board;
+				row = _v23;
+				col = _v24;
+				sum = _v25;
+				board = _v26;
 				continue sumRowLoop;
 			}
 		}
@@ -11863,14 +12309,14 @@ var _billstclair$kakuro_master$RenderBoard$sumColLoop = F4(
 			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
 				return sum;
 			} else {
-				var _v5 = row + 1,
-					_v6 = col,
-					_v7 = sum + elt,
-					_v8 = board;
-				row = _v5;
-				col = _v6;
-				sum = _v7;
-				board = _v8;
+				var _v27 = row + 1,
+					_v28 = col,
+					_v29 = sum + elt,
+					_v30 = board;
+				row = _v27;
+				col = _v28;
+				sum = _v29;
+				board = _v30;
 				continue sumColLoop;
 			}
 		}
@@ -11903,14 +12349,14 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsColsLoop = F4(
 			if (_elm_lang$core$Native_Utils.cmp(col, res.cols) > -1) {
 				return res;
 			} else {
-				var _v9 = row,
-					_v10 = col + 1,
-					_v11 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
-					_v12 = board;
-				row = _v9;
-				col = _v10;
-				res = _v11;
-				board = _v12;
+				var _v31 = row,
+					_v32 = col + 1,
+					_v33 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
+					_v34 = board;
+				row = _v31;
+				col = _v32;
+				res = _v33;
+				board = _v34;
 				continue computeLabelsColsLoop;
 			}
 		}
@@ -11926,12 +12372,12 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsRowLoop = F3(
 			if (_elm_lang$core$Native_Utils.cmp(row, res.rows) > -1) {
 				return res;
 			} else {
-				var _v13 = row + 1,
-					_v14 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
-					_v15 = board;
-				row = _v13;
-				res = _v14;
-				board = _v15;
+				var _v35 = row + 1,
+					_v36 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
+					_v37 = board;
+				row = _v35;
+				res = _v36;
+				board = _v37;
 				continue computeLabelsRowLoop;
 			}
 		}
@@ -11948,13 +12394,19 @@ var _billstclair$kakuro_master$RenderBoard$computeLabels = function (board) {
 	return A2(_billstclair$kakuro_master$RenderBoard$computeLabelsRow, 0, board);
 };
 var _billstclair$kakuro_master$RenderBoard$makeGameState = function (board) {
-	return A5(
-		_billstclair$kakuro_master$SharedTypes$GameState,
-		board,
-		_billstclair$kakuro_master$RenderBoard$computeLabels(board),
-		A3(_billstclair$kakuro_master$Board$make, board.rows, board.cols, board.$default),
-		A3(_billstclair$kakuro_master$Board$make, board.rows, board.cols, _billstclair$kakuro_master$RenderBoard$emptyHints),
-		_elm_lang$core$Maybe$Nothing);
+	var cols = board.cols;
+	var rows = board.rows;
+	var guesses = A3(_billstclair$kakuro_master$Board$make, rows, cols, board.$default);
+	var cellClasses = A3(_billstclair$kakuro_master$Board$make, rows, cols, _elm_lang$core$Maybe$Nothing);
+	var hints = A3(_billstclair$kakuro_master$Board$make, rows, cols, _billstclair$kakuro_master$RenderBoard$emptyHints);
+	return {
+		board: board,
+		labels: _billstclair$kakuro_master$RenderBoard$computeLabels(board),
+		cellClasses: cellClasses,
+		guesses: guesses,
+		hints: hints,
+		selection: _elm_lang$core$Maybe$Nothing
+	};
 };
 var _billstclair$kakuro_master$RenderBoard$labelCell = F2(
 	function (right, bottom) {
@@ -12153,6 +12605,32 @@ var _billstclair$kakuro_master$RenderBoard$selectedErrorCell = F3(
 			_elm_lang$core$Native_List.fromArray(
 				[_billstclair$kakuro_master$Styles_Board$SelectedError]));
 	});
+var _billstclair$kakuro_master$RenderBoard$renderFilledCell = F5(
+	function (isSelected, num, row, col, state) {
+		var maybeClass = A3(_billstclair$kakuro_master$Board$get, row - 1, col - 1, state.cellClasses);
+		var classes = function () {
+			var _p3 = maybeClass;
+			if (_p3.ctor === 'Nothing') {
+				return _elm_lang$core$Native_List.fromArray(
+					[]);
+			} else {
+				return _elm_lang$core$Native_List.fromArray(
+					[_p3._0]);
+			}
+		}();
+		var selectedClasses = function () {
+			var _p4 = maybeClass;
+			if ((_p4.ctor === 'Just') && (_p4._0.ctor === 'Error')) {
+				return _elm_lang$core$Native_List.fromArray(
+					[_billstclair$kakuro_master$Styles_Board$SelectedError]);
+			} else {
+				return A2(_elm_lang$core$List_ops['::'], _billstclair$kakuro_master$Styles_Board$Selected, classes);
+			}
+		}();
+		var classes2 = isSelected ? selectedClasses : _elm_lang$core$Native_List.fromArray(
+			[]);
+		return A4(_billstclair$kakuro_master$RenderBoard$classedCell, num, row, col, classes2);
+	});
 var _billstclair$kakuro_master$RenderBoard$unfilledCell = F3(
 	function (isSelected, row, col) {
 		var cls = isSelected ? _billstclair$kakuro_master$Styles_Board$classes(
@@ -12186,24 +12664,24 @@ var _billstclair$kakuro_master$RenderBoard$renderCell = F3(
 		var bCol = col - 1;
 		var bRow = row - 1;
 		var isSelected = function () {
-			var _p1 = selection;
-			if (_p1.ctor === 'Nothing') {
+			var _p5 = selection;
+			if (_p5.ctor === 'Nothing') {
 				return false;
 			} else {
 				return _elm_lang$core$Native_Utils.eq(
-					_p1._0,
+					_p5._0,
 					{ctor: '_Tuple2', _0: bRow, _1: bCol});
 			}
 		}();
 		var labels = state.labels;
-		var _p2 = A3(_billstclair$kakuro_master$Board$get, row, col, labels);
-		var right = _p2._0;
-		var bottom = _p2._1;
+		var _p6 = A3(_billstclair$kakuro_master$Board$get, row, col, labels);
+		var right = _p6._0;
+		var bottom = _p6._1;
 		if (_elm_lang$core$Native_Utils.eq(right, 0) && _elm_lang$core$Native_Utils.eq(bottom, 0)) {
 			var val = A3(_billstclair$kakuro_master$Board$get, bRow, bCol, state.guesses);
 			return _elm_lang$core$Native_Utils.eq(val, 0) ? (_elm_lang$core$Native_Utils.eq(
 				A3(_billstclair$kakuro_master$Board$get, bRow, bCol, state.board),
-				0) ? _billstclair$kakuro_master$RenderBoard$emptyCell : A3(_billstclair$kakuro_master$RenderBoard$unfilledCell, isSelected, bRow, bCol)) : A4(_billstclair$kakuro_master$RenderBoard$cell, isSelected, val, bRow, bCol);
+				0) ? _billstclair$kakuro_master$RenderBoard$emptyCell : A3(_billstclair$kakuro_master$RenderBoard$unfilledCell, isSelected, bRow, bCol)) : A5(_billstclair$kakuro_master$RenderBoard$renderFilledCell, isSelected, val, bRow, bCol, state);
 		} else {
 			return A2(_billstclair$kakuro_master$RenderBoard$labelCell, right, bottom);
 		}
@@ -12215,17 +12693,17 @@ var _billstclair$kakuro_master$RenderBoard$renderColsLoop = F4(
 			if (_elm_lang$core$Native_Utils.cmp(col, state.labels.cols) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v17 = row,
-					_v18 = col + 1,
-					_v19 = A2(
+				var _v41 = row,
+					_v42 = col + 1,
+					_v43 = A2(
 					_elm_lang$core$List_ops['::'],
 					A3(_billstclair$kakuro_master$RenderBoard$renderCell, row, col, state),
 					res),
-					_v20 = state;
-				row = _v17;
-				col = _v18;
-				res = _v19;
-				state = _v20;
+					_v44 = state;
+				row = _v41;
+				col = _v42;
+				res = _v43;
+				state = _v44;
 				continue renderColsLoop;
 			}
 		}
@@ -12255,26 +12733,27 @@ var _billstclair$kakuro_master$RenderBoard$renderRowsLoop = F3(
 			if (_elm_lang$core$Native_Utils.cmp(row, state.labels.rows) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v21 = row + 1,
-					_v22 = A2(
+				var _v45 = row + 1,
+					_v46 = A2(
 					_elm_lang$core$List_ops['::'],
 					A2(_billstclair$kakuro_master$RenderBoard$renderRow, row, state),
 					res),
-					_v23 = state;
-				row = _v21;
-				res = _v22;
-				state = _v23;
+					_v47 = state;
+				row = _v45;
+				res = _v46;
+				state = _v47;
 				continue renderRowsLoop;
 			}
 		}
 	});
 var _billstclair$kakuro_master$RenderBoard$renderRows = function (state) {
+	var state2 = state;
 	return A3(
 		_billstclair$kakuro_master$RenderBoard$renderRowsLoop,
 		0,
 		_elm_lang$core$Native_List.fromArray(
 			[]),
-		state);
+		state2);
 };
 var _billstclair$kakuro_master$RenderBoard$render = function (state) {
 	return A2(
@@ -12362,6 +12841,28 @@ var _elm_lang$html$Html_App$beginnerProgram = function (_p1) {
 		});
 };
 var _elm_lang$html$Html_App$map = _elm_lang$virtual_dom$VirtualDom$map;
+var _billstclair$kakuro_master$Main$radio = F3(
+	function (value, isChecked, msg) {
+		return A2(
+			_elm_lang$html$Html$span,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(
+					_elm_lang$html$Html$input,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html_Attributes$type$('radio'),
+							_elm_lang$html$Html_Attributes$name('board-size'),
+							_elm_lang$html$Html_Attributes$checked(isChecked),
+							_elm_lang$html$Html_Events$onClick(msg)
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[])),
+					_elm_lang$html$Html$text(value)
+				]));
+	});
 var _billstclair$kakuro_master$Main$space = _elm_lang$html$Html$text(' ');
 var _billstclair$kakuro_master$Main$mailLink = function (email) {
 	return A2(
@@ -12437,16 +12938,27 @@ var _billstclair$kakuro_master$Main$logoLink = F4(
 var _billstclair$kakuro_master$Main$subscriptions = function (model) {
 	return _elm_lang$keyboard$Keyboard$downs(_billstclair$kakuro_master$SharedTypes$PressKey);
 };
+var _billstclair$kakuro_master$Main$getBoard = F3(
+	function (kind, index, model) {
+		var index$ = (_elm_lang$core$Native_Utils.cmp(index, 0) < 0) ? (_billstclair$kakuro_master$PuzzleDB$numberOfBoardsOfKind(kind) - 1) : index;
+		var _p0 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, kind, index$);
+		var idx = _p0._0;
+		var board = _p0._1;
+		var gameState = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{kind: kind, index: idx, gencount: model.gencount + 1, gameState: gameState});
+	});
 var _billstclair$kakuro_master$Main$newLocationLoop = F5(
 	function (min, max, delta, res, board) {
 		newLocationLoop:
 		while (true) {
-			var _p0 = delta;
-			var dr = _p0._0;
-			var dc = _p0._1;
-			var _p1 = res;
-			var row = _p1._0;
-			var col = _p1._1;
+			var _p1 = delta;
+			var dr = _p1._0;
+			var dc = _p1._1;
+			var _p2 = res;
+			var row = _p2._0;
+			var col = _p2._1;
 			var nrow = row + dr;
 			var ncol = col + dc;
 			var nres = {ctor: '_Tuple2', _0: nrow, _1: ncol};
@@ -12475,12 +12987,12 @@ var _billstclair$kakuro_master$Main$newLocationLoop = F5(
 	});
 var _billstclair$kakuro_master$Main$newLocation = F3(
 	function (delta, selection, board) {
-		var _p2 = selection;
-		var r = _p2._0;
-		var c = _p2._1;
-		var _p3 = delta;
-		var dr = _p3._0;
-		var dc = _p3._1;
+		var _p3 = selection;
+		var r = _p3._0;
+		var c = _p3._1;
+		var _p4 = delta;
+		var dr = _p4._0;
+		var dc = _p4._1;
 		var min = _elm_lang$core$Native_Utils.eq(dr, 0) ? {ctor: '_Tuple2', _0: r, _1: 0} : {ctor: '_Tuple2', _0: 0, _1: c};
 		var max = _elm_lang$core$Native_Utils.eq(dr, 0) ? {ctor: '_Tuple2', _0: r, _1: board.cols} : {ctor: '_Tuple2', _0: board.rows, _1: c};
 		return A5(_billstclair$kakuro_master$Main$newLocationLoop, min, max, delta, selection, board);
@@ -12492,10 +13004,10 @@ var _billstclair$kakuro_master$Main$moveSelection = F2(
 		var rows = board.rows;
 		var cols = board.cols;
 		var selection = function () {
-			var _p4 = gameState.selection;
-			if (_p4.ctor === 'Nothing') {
-				var _p5 = direction;
-				switch (_p5.ctor) {
+			var _p5 = gameState.selection;
+			if (_p5.ctor === 'Nothing') {
+				var _p6 = direction;
+				switch (_p6.ctor) {
 					case 'Up':
 						return {ctor: '_Tuple2', _0: rows, _1: 0};
 					case 'Down':
@@ -12506,12 +13018,12 @@ var _billstclair$kakuro_master$Main$moveSelection = F2(
 						return {ctor: '_Tuple2', _0: 0, _1: cols};
 				}
 			} else {
-				return _p4._0;
+				return _p5._0;
 			}
 		}();
 		var newSelection = function () {
-			var _p6 = direction;
-			switch (_p6.ctor) {
+			var _p7 = direction;
+			switch (_p7.ctor) {
 				case 'Up':
 					return A3(
 						_billstclair$kakuro_master$Main$newLocation,
@@ -12538,8 +13050,8 @@ var _billstclair$kakuro_master$Main$moveSelection = F2(
 						board);
 			}
 		}();
-		var _p7 = newSelection;
-		if (_p7.ctor === 'Nothing') {
+		var _p8 = newSelection;
+		if (_p8.ctor === 'Nothing') {
 			return model;
 		} else {
 			return _elm_lang$core$Native_Utils.update(
@@ -12559,11 +13071,11 @@ var _billstclair$kakuro_master$Main$charToDigit = F2(
 	});
 var _billstclair$kakuro_master$Main$maybeCharToInt = F2(
 	function ($default, mstr) {
-		var _p8 = mstr;
-		if (_p8.ctor === 'Nothing') {
+		var _p9 = mstr;
+		if (_p9.ctor === 'Nothing') {
 			return $default;
 		} else {
-			return A2(_billstclair$kakuro_master$Main$charToDigit, $default, _p8._0);
+			return A2(_billstclair$kakuro_master$Main$charToDigit, $default, _p9._0);
 		}
 	});
 var _billstclair$kakuro_master$Main$updateSelectedCell = F2(
@@ -12606,8 +13118,8 @@ var _billstclair$kakuro_master$Main$processDigitKeys = F2(
 		var gameState = model.gameState;
 		var selection = gameState.selection;
 		var guesses = gameState.guesses;
-		var _p9 = selection;
-		if (_p9.ctor === 'Nothing') {
+		var _p10 = selection;
+		if (_p10.ctor === 'Nothing') {
 			return model;
 		} else {
 			var $char = _elm_lang$core$Char$fromCode(keyCode);
@@ -12623,7 +13135,7 @@ var _billstclair$kakuro_master$Main$processDigitKeys = F2(
 					gameState: _elm_lang$core$Native_Utils.update(
 						gameState,
 						{
-							guesses: A4(_billstclair$kakuro_master$Board$set, _p9._0._0, _p9._0._1, digit, guesses)
+							guesses: A4(_billstclair$kakuro_master$Board$set, _p10._0._0, _p10._0._1, digit, guesses)
 						})
 				});
 		}
@@ -12676,15 +13188,52 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 				_elm_lang$core$Native_List.fromArray(
 					[
 						A2(
+						_elm_lang$html$Html$span,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								A3(
+								_billstclair$kakuro_master$Main$radio,
+								'6',
+								_elm_lang$core$Native_Utils.eq(model.kind, 6),
+								_billstclair$kakuro_master$SharedTypes$ChangeKind(6)),
+								A3(
+								_billstclair$kakuro_master$Main$radio,
+								'8',
+								_elm_lang$core$Native_Utils.eq(model.kind, 8),
+								_billstclair$kakuro_master$SharedTypes$ChangeKind(8)),
+								A3(
+								_billstclair$kakuro_master$Main$radio,
+								'10',
+								_elm_lang$core$Native_Utils.eq(model.kind, 10),
+								_billstclair$kakuro_master$SharedTypes$ChangeKind(10))
+							])),
+						_elm_lang$html$Html$text(' '),
+						A2(
 						_elm_lang$html$Html$button,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Events$onClick(_billstclair$kakuro_master$SharedTypes$Generate),
+								_elm_lang$html$Html_Events$onClick(
+								_billstclair$kakuro_master$SharedTypes$Generate(-1)),
 								_billstclair$kakuro_master$Styles_Page$class(_billstclair$kakuro_master$Styles_Page$ControlsClass)
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html$text('Next')
+								_elm_lang$html$Html$text('<')
+							])),
+						_elm_lang$html$Html$text(' '),
+						A2(
+						_elm_lang$html$Html$button,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Events$onClick(
+								_billstclair$kakuro_master$SharedTypes$Generate(1)),
+								_billstclair$kakuro_master$Styles_Page$class(_billstclair$kakuro_master$Styles_Page$ControlsClass)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('>')
 							])),
 						_billstclair$kakuro_master$Main$br,
 						_elm_lang$html$Html$text('Board Number: '),
@@ -12723,7 +13272,7 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 								_billstclair$kakuro_master$Main$br,
 								_elm_lang$html$Html$text('1-9 to enter number. 0 or space to erase.'),
 								_billstclair$kakuro_master$Main$br,
-								_elm_lang$html$Html$text('No validation yet. That\'s next.')
+								_elm_lang$html$Html$text('Under development. New features daily.')
 							])),
 						A2(
 						_elm_lang$html$Html$p,
@@ -12764,11 +13313,11 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 					]))
 			]));
 };
-var _billstclair$kakuro_master$Main$initialKind = 10;
+var _billstclair$kakuro_master$Main$initialKind = 6;
 var _billstclair$kakuro_master$Main$model = function () {
-	var _p10 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, _billstclair$kakuro_master$Main$initialKind, 0);
-	var idx = _p10._0;
-	var board = _p10._1;
+	var _p11 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, _billstclair$kakuro_master$Main$initialKind, 0);
+	var idx = _p11._0;
+	var board = _p11._1;
 	var state = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
 	return A6(_billstclair$kakuro_master$SharedTypes$Model, _billstclair$kakuro_master$Main$initialKind, idx, 0, state, _elm_lang$core$Maybe$Nothing, 0);
 }();
@@ -12844,7 +13393,7 @@ var _billstclair$kakuro_master$Main$processMovementKeys = F2(
 	function (keyCode, model) {
 		var $char = _elm_lang$core$Char$toLower(
 			_elm_lang$core$Char$fromCode(keyCode));
-		var _p11 = A2(
+		var _p12 = A2(
 			_elm_community$list_extra$List_Extra$find,
 			function (x) {
 				return _elm_lang$core$Native_Utils.eq(
@@ -12852,36 +13401,36 @@ var _billstclair$kakuro_master$Main$processMovementKeys = F2(
 					$char);
 			},
 			_billstclair$kakuro_master$Main$movementKeyDirections);
-		if (_p11.ctor === 'Nothing') {
+		if (_p12.ctor === 'Nothing') {
 			return _elm_lang$core$Maybe$Nothing;
 		} else {
 			return _elm_lang$core$Maybe$Just(
-				A2(_billstclair$kakuro_master$Main$moveSelection, _p11._0._1, model));
+				A2(_billstclair$kakuro_master$Main$moveSelection, _p12._0._1, model));
 		}
 	});
 var _billstclair$kakuro_master$Main$processKeyPress = F2(
 	function (keyCode, model) {
-		var _p12 = A2(_billstclair$kakuro_master$Main$processMovementKeys, keyCode, model);
-		if (_p12.ctor === 'Nothing') {
+		var _p13 = A2(_billstclair$kakuro_master$Main$processMovementKeys, keyCode, model);
+		if (_p13.ctor === 'Nothing') {
 			return A2(_billstclair$kakuro_master$Main$processDigitKeys, keyCode, model);
 		} else {
-			return _p12._0;
+			return _p13._0;
 		}
 	});
 var _billstclair$kakuro_master$Main$update = F2(
 	function (msg, model) {
-		var _p13 = msg;
-		switch (_p13.ctor) {
-			case 'Generate':
-				var _p14 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, model.kind, model.index);
-				var idx = _p14._0;
-				var board = _p14._1;
-				var gameState = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
+		var _p14 = msg;
+		switch (_p14.ctor) {
+			case 'ChangeKind':
 				return {
 					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{index: idx, gencount: model.gencount + 1, gameState: gameState}),
+					_0: A3(_billstclair$kakuro_master$Main$getBoard, _p14._0, model.index - 1, model),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Generate':
+				return {
+					ctor: '_Tuple2',
+					_0: A3(_billstclair$kakuro_master$Main$getBoard, model.kind, (model.index + _p14._0) - 1, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Tick':
@@ -12900,20 +13449,20 @@ var _billstclair$kakuro_master$Main$update = F2(
 						{
 							seed: _elm_lang$core$Maybe$Just(
 								_elm_lang$core$Random$initialSeed(
-									_elm_lang$core$Basics$round(_p13._0)))
+									_elm_lang$core$Basics$round(_p14._0)))
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'ClickCell':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_billstclair$kakuro_master$Main$updateSelectedCell, _p13._0, model),
+					_0: A2(_billstclair$kakuro_master$Main$updateSelectedCell, _p14._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'PressKey':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_billstclair$kakuro_master$Main$processKeyPress, _p13._0, model),
+					_0: A2(_billstclair$kakuro_master$Main$processKeyPress, _p14._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
