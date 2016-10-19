@@ -223,14 +223,14 @@ computeLabels board =
 
 renderFilledCell : Bool -> Int -> Int -> Int -> GameState -> Html Msg
 renderFilledCell isSelected num row col state =
-  let maybeClass = Board.get (row-1) (col-1) state.cellClasses
+  let maybeClass = Board.get row col state.cellClasses
       classes = case maybeClass of
                     Nothing -> []
                     Just a -> [ a ]
       selectedClasses = case maybeClass of
                             Just Error -> [ SelectedError ]
                             _ -> Selected :: classes
-      classes2 = if isSelected then selectedClasses else []
+      classes2 = if isSelected then selectedClasses else classes
   in
       classedCell num row col classes2
 
@@ -316,7 +316,7 @@ computeFilledColClassesRows row col rows board guesses sum acc res =
       res3 = if val == 0 && sum > 0 then
                markBadSumColSegment row col sum acc res2
              else
-               res3
+               res2
       sum2 = if val == 0 then 0 else (sum + val)
       acc2 = if val == 0 then [] else (guess :: acc)
   in
@@ -448,8 +448,8 @@ makeGameState board =
 
 renderRows : GameState -> List (Html Msg)
 renderRows state =
-  let -- cellClasses = computeFilledCellClasses state.board state.guesses
-      state2 = state -- { state | cellClasses = log "cellClasses" cellClasses }
+  let cellClasses = computeFilledCellClasses state.board state.guesses
+      state2 = { state | cellClasses = cellClasses }
   in
       renderRowsLoop 0 [] state2
 

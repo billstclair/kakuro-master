@@ -237,10 +237,10 @@ processKeyPress keyCode model =
 
 getBoard : Int -> Int -> Model -> Model
 getBoard kind index model =
-  let index' = if index < 0 then
+  let index' = if (index-1) < 0 then
                  (PuzzleDB.numberOfBoardsOfKind kind) - 1
                else
-                 index
+                 index-1
       (idx, board) = PuzzleDB.nextBoardOfKind kind index'
       gameState = RenderBoard.makeGameState board
       in
@@ -255,9 +255,9 @@ update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
     ChangeKind kind ->
-      (getBoard kind (model.index - 1) model, Cmd.none)
+      (getBoard kind model.index model, Cmd.none)
     Generate increment ->
-      (getBoard model.kind (model.index + increment - 1) model, Cmd.none)
+      (getBoard model.kind (model.index + increment) model, Cmd.none)
     Tick time ->
       ({model | time = model.time + 1}, Cmd.none)
     Seed time ->
