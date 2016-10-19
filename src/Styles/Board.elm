@@ -163,6 +163,7 @@ rules =
   , rule
       [ Class Error]
       [ ("background-color", "red")
+      , ("color", "white")
       ]
   , rule
       [ Class SelectedError]
