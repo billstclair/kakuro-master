@@ -25,6 +25,7 @@ import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
 import Events exposing (onClickWithId, onClickWithInt)
+import SimpleMatrix exposing (Matrix, Location, loc, row, col)
 
 import Array exposing (Array)
 import Char
@@ -293,20 +294,94 @@ makeGameState board =
 type alias BClassBoard =
   Board (Maybe BClass)
 
--- TBD
-computeFilledColClasses : Int -> Int -> IntBoard -> IntBoard -> BClassBoard -> BClassBoard
-computeFilledColClasses col cols board guesses res =
-  res
+type alias BClassMatrix =
+  Matrix (Maybe BClass)
 
--- TBD
-markBadSumRowSegment : Int -> Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
-markBadSumRowSegment row col cols sum acc res =
-  res
+-- If acc contains no zeroes, and doesn't sum to res,
+-- Mark (row,col) and List.len acc back from there as Errors
+markBadSumColSegment : Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
+markBadSumColSegment row col sum acc res =
+  markBadSumSegment row col sum acc SimpleMatrix.updateColRangeWithValue res
 
--- TBD
-markFilledRowDuplicates : Int -> Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
-markFilledRowDuplicates guess row col cols acc res =
-  res
+-- If guess is in acc, then mark both (row,col) and (row,col - (position guess acc))
+-- as Errors
+markFilledColDuplicates : Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
+markFilledColDuplicates guess rowidx colidx acc res =
+  markFilledDuplicates
+    guess rowidx colidx (\i loc -> ((row loc) - i, col loc)) acc res
+
+-- If row is zero, call computedFilledColClasses to add the
+-- display classes to res for the given col.
+-- If col >= cols, and all elements of acc are non-zero, add Just Error
+-- to all of the corresponding elements of res.
+-- Otherwise, if the guess at (row,col) is already in acc, add Just Error to res.
+-- Finally, recurse with col+1.
+computeFilledColClassesRows : Int -> Int -> Int -> IntBoard -> IntBoard -> Int -> List Int -> BClassBoard -> BClassBoard
+computeFilledColClassesRows row col rows board guesses sum acc res =
+  let val = Board.get row col board
+      guess = Board.get row col guesses
+      res2 = if sum > 0 && guess /= 0 then
+               markFilledColDuplicates guess row col acc res
+             else
+               res
+      res3 = if val == 0 && sum > 0 then
+               markBadSumColSegment row col sum acc res2
+             else
+               res3
+      sum2 = if val == 0 then 0 else (sum + val)
+      acc2 = if val == 0 then [] else (guess :: acc)
+  in
+      computeFilledColClassesRows (row+1) col rows board guesses sum2 acc2 res
+
+-- Add to res the display class for each of the guesses.
+computeFilledColClasses : Int -> IntBoard -> IntBoard -> BClassBoard -> BClassBoard
+computeFilledColClasses col board guesses res =
+  computeFilledColClassesRows 0 col board.rows board guesses 0 [] res
+
+type alias BClassMatrixRangeUpdater =
+  Location -> Int -> Maybe BClass -> BClassMatrix -> BClassMatrix
+
+markBadSumSegment : Int -> Int -> Int -> List Int -> BClassMatrixRangeUpdater -> BClassBoard -> BClassBoard
+markBadSumSegment row col sum acc updater res =
+  if List.member 0 acc then
+    res
+  else
+    let accsum = List.foldr (+) 0 acc
+    in
+        if accsum == sum then
+          res
+        else
+          { res | array =
+              updater (row, col) ((List.length acc) + 1) (Just Error) res.array
+          }
+
+-- If acc contains no zeroes, and doesn't sum to res,
+-- Mark (row,col) and List.len acc back from there as Errors
+markBadSumRowSegment : Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
+markBadSumRowSegment row col sum acc res =
+  markBadSumSegment row col sum acc SimpleMatrix.updateRowRangeWithValue res
+
+markFilledDuplicates : Int -> Int -> Int -> (Int -> Location -> Location) -> List Int -> BClassBoard -> BClassBoard
+markFilledDuplicates guess row col incrementor acc res =
+  if guess == 0 then --Shouldn't happen. Famous last words.
+    res
+  else
+    let idx = LE.elemIndex guess acc
+    in
+        case idx of
+            Nothing -> res
+            Just i ->
+              let (row', col') = incrementor i (row, col)
+              in
+                  Board.set row col (Just Error) res
+                    |> Board.set row' col' (Just Error)
+
+-- If guess is in acc, then mark both (row,col) and (row,col - (position guess acc))
+-- as Errors
+markFilledRowDuplicates : Int -> Int -> Int -> List Int -> BClassBoard -> BClassBoard
+markFilledRowDuplicates guess rowidx colidx acc res =
+  markFilledDuplicates
+    guess rowidx colidx (\i loc -> (row loc, (col loc) - i)) acc res
 
 -- If row is zero, call computedFilledColClasses to add the
 -- display classes to res for the given col.
@@ -317,17 +392,17 @@ markFilledRowDuplicates guess row col cols acc res =
 computeFilledRowClassesCols : Int -> Int -> Int -> IntBoard -> IntBoard -> Int -> List Int -> BClassBoard -> BClassBoard
 computeFilledRowClassesCols row col cols board guesses sum acc res =
   let res2 = if row == 0 && col < cols then
-               computeFilledColClasses col cols board guesses res
+               computeFilledColClasses col board guesses res
              else
                res
       val = Board.get row col board
       guess = Board.get row col guesses
       res3 = if sum > 0 && guess /= 0 then
-               markFilledRowDuplicates guess row col cols acc res2
+               markFilledRowDuplicates guess row col acc res2
              else
                res2
       res4 = if val == 0 && sum > 0 then
-               markBadSumRowSegment row col cols sum acc res3
+               markBadSumRowSegment row col sum acc res3
              else
                res3
       sum2 = if val == 0 then 0 else (sum + val)
