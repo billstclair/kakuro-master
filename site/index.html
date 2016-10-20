@@ -10607,6 +10607,7 @@ var _billstclair$kakuro_master$Styles_Board$LabelTable = {ctor: 'LabelTable'};
 var _billstclair$kakuro_master$Styles_Board$UnfilledCell = {ctor: 'UnfilledCell'};
 var _billstclair$kakuro_master$Styles_Board$EmptyCellBackground = {ctor: 'EmptyCellBackground'};
 var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
+var _billstclair$kakuro_master$Styles_Board$Helper = {ctor: 'Helper'};
 var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
 var _billstclair$kakuro_master$Styles_Board$KeypadButton = {ctor: 'KeypadButton'};
 var _billstclair$kakuro_master$Styles_Board$KeypadDiv = {ctor: 'KeypadDiv'};
@@ -10783,6 +10784,16 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 				{ctor: '_Tuple2', _0: 'border', _1: 'none'},
 				{ctor: '_Tuple2', _0: 'padding', _1: '0'},
 				{ctor: '_Tuple2', _0: 'margin', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$Helper)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'}
 			])),
 		A2(
 		_billstclair$kakuro_master$Styles_Board$rule,
@@ -12095,6 +12106,343 @@ var _billstclair$kakuro_master$SharedTypes$ChangeKind = function (a) {
 var _billstclair$kakuro_master$SharedTypes$Generate = function (a) {
 	return {ctor: 'Generate', _0: a};
 };
+var _billstclair$kakuro_master$PlayHelpers$possLoop = F7(
+	function (start, count, sumSoFar, sum, $this, used, res) {
+		possLoop:
+		while (true) {
+			if ((_elm_lang$core$Native_Utils.cmp(count, 0) < 1) || (_elm_lang$core$Native_Utils.cmp(sumSoFar, sum) > 0)) {
+				return _elm_lang$core$Native_Utils.eq(sumSoFar, sum) ? A2(
+					_elm_lang$core$List_ops['::'],
+					_elm_lang$core$List$reverse($this),
+					res) : res;
+			} else {
+				if (_elm_lang$core$Native_Utils.cmp(start, 9) > 0) {
+					return res;
+				} else {
+					var res2 = A2(_elm_lang$core$List$member, start, used) ? res : A7(
+						_billstclair$kakuro_master$PlayHelpers$possLoop,
+						start + 1,
+						count - 1,
+						sumSoFar + start,
+						sum,
+						A2(_elm_lang$core$List_ops['::'], start, $this),
+						A2(_elm_lang$core$List_ops['::'], start, used),
+						res);
+					var _v0 = start + 1,
+						_v1 = count,
+						_v2 = sumSoFar,
+						_v3 = sum,
+						_v4 = $this,
+						_v5 = used,
+						_v6 = res2;
+					start = _v0;
+					count = _v1;
+					sumSoFar = _v2;
+					sum = _v3;
+					$this = _v4;
+					used = _v5;
+					res = _v6;
+					continue possLoop;
+				}
+			}
+		}
+	});
+var _billstclair$kakuro_master$PlayHelpers$possibilities = F3(
+	function (sum, count, used) {
+		return _elm_lang$core$List$reverse(
+			A7(
+				_billstclair$kakuro_master$PlayHelpers$possLoop,
+				1,
+				count,
+				0,
+				sum,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				used,
+				_elm_lang$core$Native_List.fromArray(
+					[])));
+	});
+var _billstclair$kakuro_master$PlayHelpers$markFilledDuplicates = F6(
+	function (guess, row, col, incrementor, acc, res) {
+		if (_elm_lang$core$Native_Utils.eq(guess, 0)) {
+			return res;
+		} else {
+			var idx = A2(_elm_community$list_extra$List_Extra$elemIndex, guess, acc);
+			var _p0 = idx;
+			if (_p0.ctor === 'Nothing') {
+				return res;
+			} else {
+				var _p1 = A2(
+					incrementor,
+					_p0._0 + 1,
+					{ctor: '_Tuple2', _0: row, _1: col});
+				var row$ = _p1._0;
+				var col$ = _p1._1;
+				return A4(
+					_billstclair$kakuro_master$Board$set,
+					row$,
+					col$,
+					_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
+					A4(
+						_billstclair$kakuro_master$Board$set,
+						row,
+						col,
+						_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
+						res));
+			}
+		}
+	});
+var _billstclair$kakuro_master$PlayHelpers$markFilledRowDuplicates = F5(
+	function (guess, rowidx, colidx, acc, res) {
+		return A6(
+			_billstclair$kakuro_master$PlayHelpers$markFilledDuplicates,
+			guess,
+			rowidx,
+			colidx,
+			function (i) {
+				return _billstclair$kakuro_master$SimpleMatrix$incColBy(
+					_elm_lang$core$Basics$negate(i));
+			},
+			acc,
+			res);
+	});
+var _billstclair$kakuro_master$PlayHelpers$markBadSumSegment = F7(
+	function (row, col, sum, acc, incrementor, updater, res) {
+		if (A2(_elm_lang$core$List$member, 0, acc)) {
+			return res;
+		} else {
+			var accsum = A3(
+				_elm_lang$core$List$foldr,
+				F2(
+					function (x, y) {
+						return x + y;
+					}),
+				0,
+				acc);
+			if (_elm_lang$core$Native_Utils.eq(accsum, sum)) {
+				return res;
+			} else {
+				var len = _elm_lang$core$List$length(acc);
+				var start = A2(
+					incrementor,
+					_elm_lang$core$Basics$negate(len),
+					{ctor: '_Tuple2', _0: row, _1: col});
+				return _elm_lang$core$Native_Utils.update(
+					res,
+					{
+						array: A4(
+							updater,
+							start,
+							len,
+							_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
+							res.array)
+					});
+			}
+		}
+	});
+var _billstclair$kakuro_master$PlayHelpers$markBadSumRowSegment = F5(
+	function (row, col, sum, acc, res) {
+		return A7(_billstclair$kakuro_master$PlayHelpers$markBadSumSegment, row, col, sum, acc, _billstclair$kakuro_master$SimpleMatrix$incColBy, _billstclair$kakuro_master$SimpleMatrix$updateColRangeWithValue, res);
+	});
+var _billstclair$kakuro_master$PlayHelpers$markFilledColDuplicates = F5(
+	function (guess, rowidx, colidx, acc, res) {
+		return A6(
+			_billstclair$kakuro_master$PlayHelpers$markFilledDuplicates,
+			guess,
+			rowidx,
+			colidx,
+			function (i) {
+				return _billstclair$kakuro_master$SimpleMatrix$incRowBy(
+					_elm_lang$core$Basics$negate(i));
+			},
+			acc,
+			res);
+	});
+var _billstclair$kakuro_master$PlayHelpers$markBadSumColSegment = F5(
+	function (row, col, sum, acc, res) {
+		return A7(_billstclair$kakuro_master$PlayHelpers$markBadSumSegment, row, col, sum, acc, _billstclair$kakuro_master$SimpleMatrix$incRowBy, _billstclair$kakuro_master$SimpleMatrix$updateRowRangeWithValue, res);
+	});
+var _billstclair$kakuro_master$PlayHelpers$computeFilledColClassesRows = F8(
+	function (row, col, rows, board, guesses, sum, acc, res) {
+		computeFilledColClassesRows:
+		while (true) {
+			var guess = A3(_billstclair$kakuro_master$Board$get, row, col, guesses);
+			var res2 = ((_elm_lang$core$Native_Utils.cmp(sum, 0) > 0) && (!_elm_lang$core$Native_Utils.eq(guess, 0))) ? A5(_billstclair$kakuro_master$PlayHelpers$markFilledColDuplicates, guess, row, col, acc, res) : res;
+			var val = A3(_billstclair$kakuro_master$Board$get, row, col, board);
+			var res3 = (_elm_lang$core$Native_Utils.eq(val, 0) && (_elm_lang$core$Native_Utils.cmp(sum, 0) > 0)) ? A5(_billstclair$kakuro_master$PlayHelpers$markBadSumColSegment, row, col, sum, acc, res2) : res2;
+			var sum2 = _elm_lang$core$Native_Utils.eq(val, 0) ? 0 : (sum + val);
+			var acc2 = _elm_lang$core$Native_Utils.eq(val, 0) ? _elm_lang$core$Native_List.fromArray(
+				[]) : A2(_elm_lang$core$List_ops['::'], guess, acc);
+			if (_elm_lang$core$Native_Utils.cmp(row, rows) > -1) {
+				return res3;
+			} else {
+				var _v8 = row + 1,
+					_v9 = col,
+					_v10 = rows,
+					_v11 = board,
+					_v12 = guesses,
+					_v13 = sum2,
+					_v14 = acc2,
+					_v15 = res3;
+				row = _v8;
+				col = _v9;
+				rows = _v10;
+				board = _v11;
+				guesses = _v12;
+				sum = _v13;
+				acc = _v14;
+				res = _v15;
+				continue computeFilledColClassesRows;
+			}
+		}
+	});
+var _billstclair$kakuro_master$PlayHelpers$computeFilledColClasses = F4(
+	function (col, board, guesses, res) {
+		return A8(
+			_billstclair$kakuro_master$PlayHelpers$computeFilledColClassesRows,
+			0,
+			col,
+			board.rows,
+			board,
+			guesses,
+			0,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			res);
+	});
+var _billstclair$kakuro_master$PlayHelpers$computeFilledRowClassesCols = F8(
+	function (row, col, cols, board, guesses, sum, acc, res) {
+		computeFilledRowClassesCols:
+		while (true) {
+			var guess = A3(_billstclair$kakuro_master$Board$get, row, col, guesses);
+			var val = A3(_billstclair$kakuro_master$Board$get, row, col, board);
+			var sum2 = _elm_lang$core$Native_Utils.eq(val, 0) ? 0 : (sum + val);
+			var acc2 = _elm_lang$core$Native_Utils.eq(val, 0) ? _elm_lang$core$Native_List.fromArray(
+				[]) : A2(_elm_lang$core$List_ops['::'], guess, acc);
+			var res2 = (_elm_lang$core$Native_Utils.eq(row, 0) && (_elm_lang$core$Native_Utils.cmp(col, cols) < 0)) ? A4(_billstclair$kakuro_master$PlayHelpers$computeFilledColClasses, col, board, guesses, res) : res;
+			var res3 = ((_elm_lang$core$Native_Utils.cmp(sum, 0) > 0) && (!_elm_lang$core$Native_Utils.eq(guess, 0))) ? A5(_billstclair$kakuro_master$PlayHelpers$markFilledRowDuplicates, guess, row, col, acc, res2) : res2;
+			var res4 = (_elm_lang$core$Native_Utils.eq(val, 0) && (_elm_lang$core$Native_Utils.cmp(sum, 0) > 0)) ? A5(_billstclair$kakuro_master$PlayHelpers$markBadSumRowSegment, row, col, sum, acc, res3) : res3;
+			if (_elm_lang$core$Native_Utils.cmp(col, cols) > -1) {
+				return res4;
+			} else {
+				var _v16 = row,
+					_v17 = col + 1,
+					_v18 = cols,
+					_v19 = board,
+					_v20 = guesses,
+					_v21 = sum2,
+					_v22 = acc2,
+					_v23 = res4;
+				row = _v16;
+				col = _v17;
+				cols = _v18;
+				board = _v19;
+				guesses = _v20;
+				sum = _v21;
+				acc = _v22;
+				res = _v23;
+				continue computeFilledRowClassesCols;
+			}
+		}
+	});
+var _billstclair$kakuro_master$PlayHelpers$computeFilledRowClassesLoop = F5(
+	function (row, rows, board, guesses, res) {
+		computeFilledRowClassesLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(row, rows) > -1) {
+				return res;
+			} else {
+				var res2 = A8(
+					_billstclair$kakuro_master$PlayHelpers$computeFilledRowClassesCols,
+					row,
+					0,
+					board.cols,
+					board,
+					guesses,
+					0,
+					_elm_lang$core$Native_List.fromArray(
+						[]),
+					res);
+				var _v24 = row + 1,
+					_v25 = rows,
+					_v26 = board,
+					_v27 = guesses,
+					_v28 = res2;
+				row = _v24;
+				rows = _v25;
+				board = _v26;
+				guesses = _v27;
+				res = _v28;
+				continue computeFilledRowClassesLoop;
+			}
+		}
+	});
+var _billstclair$kakuro_master$PlayHelpers$computeFilledRowClasses = F3(
+	function (board, guesses, res) {
+		return A5(_billstclair$kakuro_master$PlayHelpers$computeFilledRowClassesLoop, 0, board.rows, board, guesses, res);
+	});
+var _billstclair$kakuro_master$PlayHelpers$computeFilledCellClasses = F2(
+	function (board, guesses) {
+		return A3(
+			_billstclair$kakuro_master$PlayHelpers$computeFilledRowClasses,
+			board,
+			guesses,
+			A3(_billstclair$kakuro_master$Board$make, board.rows, board.cols, _elm_lang$core$Maybe$Nothing));
+	});
+var _billstclair$kakuro_master$PlayHelpers$doneColLoop = F5(
+	function (rowidx, colidx, cols, board, guesses) {
+		doneColLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(colidx, cols) > -1) {
+				return true;
+			} else {
+				if (!_elm_lang$core$Native_Utils.eq(
+					A3(_billstclair$kakuro_master$Board$get, rowidx, colidx, board),
+					A3(_billstclair$kakuro_master$Board$get, rowidx, colidx, guesses))) {
+					return false;
+				} else {
+					var _v29 = rowidx,
+						_v30 = colidx + 1,
+						_v31 = cols,
+						_v32 = board,
+						_v33 = guesses;
+					rowidx = _v29;
+					colidx = _v30;
+					cols = _v31;
+					board = _v32;
+					guesses = _v33;
+					continue doneColLoop;
+				}
+			}
+		}
+	});
+var _billstclair$kakuro_master$PlayHelpers$doneRowLoop = F4(
+	function (rowidx, rows, board, guesses) {
+		doneRowLoop:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(rowidx, rows) > -1) {
+				return true;
+			} else {
+				if (A5(_billstclair$kakuro_master$PlayHelpers$doneColLoop, rowidx, 0, board.cols, board, guesses)) {
+					var _v34 = rowidx + 1,
+						_v35 = rows,
+						_v36 = board,
+						_v37 = guesses;
+					rowidx = _v34;
+					rows = _v35;
+					board = _v36;
+					guesses = _v37;
+					continue doneRowLoop;
+				} else {
+					return false;
+				}
+			}
+		}
+	});
+var _billstclair$kakuro_master$PlayHelpers$isAllDone = F2(
+	function (board, guesses) {
+		return A4(_billstclair$kakuro_master$PlayHelpers$doneRowLoop, 0, board.rows, board, guesses);
+	});
 var _billstclair$kakuro_master$RenderBoard$keypadAlist = _elm_lang$core$Native_List.fromArray(
 	[
 		{
@@ -12219,287 +12567,131 @@ var _billstclair$kakuro_master$RenderBoard$renderKeypad = A2(
 			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('78^ '),
 			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('9<v>')
 		]));
-var _billstclair$kakuro_master$RenderBoard$doneColLoop = F5(
-	function (rowidx, colidx, cols, board, guesses) {
-		doneColLoop:
+var _billstclair$kakuro_master$RenderBoard$helperLoop = F6(
+	function (start, cnt, inc, board, guesses, res) {
+		helperLoop:
 		while (true) {
-			if (_elm_lang$core$Native_Utils.cmp(colidx, cols) > -1) {
-				return true;
-			} else {
-				if (!_elm_lang$core$Native_Utils.eq(
-					A3(_billstclair$kakuro_master$Board$get, rowidx, colidx, board),
-					A3(_billstclair$kakuro_master$Board$get, rowidx, colidx, guesses))) {
-					return false;
-				} else {
-					var _v1 = rowidx,
-						_v2 = colidx + 1,
-						_v3 = cols,
-						_v4 = board,
-						_v5 = guesses;
-					rowidx = _v1;
-					colidx = _v2;
-					cols = _v3;
-					board = _v4;
-					guesses = _v5;
-					continue doneColLoop;
-				}
-			}
-		}
-	});
-var _billstclair$kakuro_master$RenderBoard$doneRowLoop = F4(
-	function (rowidx, rows, board, guesses) {
-		doneRowLoop:
-		while (true) {
-			if (_elm_lang$core$Native_Utils.cmp(rowidx, rows) > -1) {
-				return true;
-			} else {
-				if (A5(_billstclair$kakuro_master$RenderBoard$doneColLoop, rowidx, 0, board.cols, board, guesses)) {
-					var _v6 = rowidx + 1,
-						_v7 = rows,
-						_v8 = board,
-						_v9 = guesses;
-					rowidx = _v6;
-					rows = _v7;
-					board = _v8;
-					guesses = _v9;
-					continue doneRowLoop;
-				} else {
-					return false;
-				}
-			}
-		}
-	});
-var _billstclair$kakuro_master$RenderBoard$isAllDone = F2(
-	function (board, guesses) {
-		return A4(_billstclair$kakuro_master$RenderBoard$doneRowLoop, 0, board.rows, board, guesses);
-	});
-var _billstclair$kakuro_master$RenderBoard$markFilledDuplicates = F6(
-	function (guess, row, col, incrementor, acc, res) {
-		if (_elm_lang$core$Native_Utils.eq(guess, 0)) {
-			return res;
-		} else {
-			var idx = A2(_elm_community$list_extra$List_Extra$elemIndex, guess, acc);
-			var _p1 = idx;
-			if (_p1.ctor === 'Nothing') {
+			if (_elm_lang$core$Native_Utils.cmp(cnt, 0) < 1) {
 				return res;
 			} else {
-				var _p2 = A2(
-					incrementor,
-					_p1._0 + 1,
-					{ctor: '_Tuple2', _0: row, _1: col});
-				var row$ = _p2._0;
-				var col$ = _p2._1;
-				return A4(
-					_billstclair$kakuro_master$Board$set,
-					row$,
-					col$,
-					_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
-					A4(
-						_billstclair$kakuro_master$Board$set,
-						row,
-						col,
-						_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
-						res));
+				var _p1 = start;
+				var row = _p1._0;
+				var col = _p1._1;
+				var value = A3(_billstclair$kakuro_master$Board$get, row, col, board);
+				var guess = A3(_billstclair$kakuro_master$Board$get, row, col, guesses);
+				if (_elm_lang$core$Native_Utils.eq(value, 0)) {
+					return res;
+				} else {
+					var _p2 = res;
+					var zeroes = _p2._0;
+					var sum = _p2._1;
+					var nums = _p2._2;
+					var zeroes$ = _elm_lang$core$Native_Utils.eq(guess, 0) ? (zeroes + 1) : zeroes;
+					var sum$ = sum + value;
+					var nums$ = _elm_lang$core$Native_Utils.eq(guess, 0) ? nums : A2(_elm_lang$core$List_ops['::'], guess, nums);
+					var _p3 = inc;
+					var ri = _p3._0;
+					var ci = _p3._1;
+					var _v1 = {ctor: '_Tuple2', _0: row + ri, _1: col + ci},
+						_v2 = cnt - 1,
+						_v3 = inc,
+						_v4 = board,
+						_v5 = guesses,
+						_v6 = {ctor: '_Tuple3', _0: zeroes$, _1: sum$, _2: nums$};
+					start = _v1;
+					cnt = _v2;
+					inc = _v3;
+					board = _v4;
+					guesses = _v5;
+					res = _v6;
+					continue helperLoop;
+				}
 			}
 		}
 	});
-var _billstclair$kakuro_master$RenderBoard$markFilledRowDuplicates = F5(
-	function (guess, rowidx, colidx, acc, res) {
-		return A6(
-			_billstclair$kakuro_master$RenderBoard$markFilledDuplicates,
-			guess,
-			rowidx,
-			colidx,
-			function (i) {
-				return _billstclair$kakuro_master$SimpleMatrix$incColBy(
-					_elm_lang$core$Basics$negate(i));
-			},
-			acc,
-			res);
-	});
-var _billstclair$kakuro_master$RenderBoard$markBadSumSegment = F7(
-	function (row, col, sum, acc, incrementor, updater, res) {
-		if (A2(_elm_lang$core$List$member, 0, acc)) {
-			return res;
+var _billstclair$kakuro_master$RenderBoard$helperText = F4(
+	function (inc, neginc, acc, state) {
+		var guesses = state.guesses;
+		var board = state.board;
+		var _p4 = state.selection;
+		if (_p4.ctor === 'Nothing') {
+			return '';
 		} else {
-			var accsum = A3(
+			var _p9 = _p4._0;
+			var rc = acc(_p9);
+			var _p5 = A6(
+				_billstclair$kakuro_master$RenderBoard$helperLoop,
+				_p9,
+				10 - rc,
+				inc,
+				board,
+				guesses,
+				{
+					ctor: '_Tuple3',
+					_0: 0,
+					_1: 0,
+					_2: _elm_lang$core$Native_List.fromArray(
+						[])
+				});
+			var zeroes = _p5._0;
+			var sum = _p5._1;
+			var nums = _p5._2;
+			var _p6 = neginc;
+			var ri = _p6._0;
+			var ci = _p6._1;
+			var _p7 = _p9;
+			var row = _p7._0;
+			var col = _p7._1;
+			var _p8 = A6(
+				_billstclair$kakuro_master$RenderBoard$helperLoop,
+				{ctor: '_Tuple2', _0: row + ri, _1: col + ci},
+				rc,
+				neginc,
+				board,
+				guesses,
+				{ctor: '_Tuple3', _0: zeroes, _1: sum, _2: nums});
+			var zeroes$ = _p8._0;
+			var sum$ = _p8._1;
+			var nums$ = _p8._2;
+			var leftsum = sum$ - A3(
 				_elm_lang$core$List$foldr,
 				F2(
 					function (x, y) {
 						return x + y;
 					}),
 				0,
-				acc);
-			if (_elm_lang$core$Native_Utils.eq(accsum, sum)) {
-				return res;
-			} else {
-				var len = _elm_lang$core$List$length(acc);
-				var start = A2(
-					incrementor,
-					_elm_lang$core$Basics$negate(len),
-					{ctor: '_Tuple2', _0: row, _1: col});
-				return _elm_lang$core$Native_Utils.update(
-					res,
-					{
-						array: A4(
-							updater,
-							start,
-							len,
-							_elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Error),
-							res.array)
-					});
-			}
+				nums$);
+			var run = A3(_billstclair$kakuro_master$PlayHelpers$possibilities, leftsum, zeroes$, nums$);
+			return A2(
+				_elm_lang$core$String$join,
+				' ',
+				A2(
+					_elm_lang$core$List$map,
+					_elm_lang$core$String$concat,
+					A2(
+						_elm_lang$core$List$map,
+						function (x) {
+							return A2(_elm_lang$core$List$map, _elm_lang$core$Basics$toString, x);
+						},
+						run)));
 		}
 	});
-var _billstclair$kakuro_master$RenderBoard$markBadSumRowSegment = F5(
-	function (row, col, sum, acc, res) {
-		return A7(_billstclair$kakuro_master$RenderBoard$markBadSumSegment, row, col, sum, acc, _billstclair$kakuro_master$SimpleMatrix$incColBy, _billstclair$kakuro_master$SimpleMatrix$updateColRangeWithValue, res);
-	});
-var _billstclair$kakuro_master$RenderBoard$markFilledColDuplicates = F5(
-	function (guess, rowidx, colidx, acc, res) {
-		return A6(
-			_billstclair$kakuro_master$RenderBoard$markFilledDuplicates,
-			guess,
-			rowidx,
-			colidx,
-			function (i) {
-				return _billstclair$kakuro_master$SimpleMatrix$incRowBy(
-					_elm_lang$core$Basics$negate(i));
-			},
-			acc,
-			res);
-	});
-var _billstclair$kakuro_master$RenderBoard$markBadSumColSegment = F5(
-	function (row, col, sum, acc, res) {
-		return A7(_billstclair$kakuro_master$RenderBoard$markBadSumSegment, row, col, sum, acc, _billstclair$kakuro_master$SimpleMatrix$incRowBy, _billstclair$kakuro_master$SimpleMatrix$updateRowRangeWithValue, res);
-	});
-var _billstclair$kakuro_master$RenderBoard$computeFilledColClassesRows = F8(
-	function (row, col, rows, board, guesses, sum, acc, res) {
-		computeFilledColClassesRows:
-		while (true) {
-			var guess = A3(_billstclair$kakuro_master$Board$get, row, col, guesses);
-			var res2 = ((_elm_lang$core$Native_Utils.cmp(sum, 0) > 0) && (!_elm_lang$core$Native_Utils.eq(guess, 0))) ? A5(_billstclair$kakuro_master$RenderBoard$markFilledColDuplicates, guess, row, col, acc, res) : res;
-			var val = A3(_billstclair$kakuro_master$Board$get, row, col, board);
-			var res3 = (_elm_lang$core$Native_Utils.eq(val, 0) && (_elm_lang$core$Native_Utils.cmp(sum, 0) > 0)) ? A5(_billstclair$kakuro_master$RenderBoard$markBadSumColSegment, row, col, sum, acc, res2) : res2;
-			var sum2 = _elm_lang$core$Native_Utils.eq(val, 0) ? 0 : (sum + val);
-			var acc2 = _elm_lang$core$Native_Utils.eq(val, 0) ? _elm_lang$core$Native_List.fromArray(
-				[]) : A2(_elm_lang$core$List_ops['::'], guess, acc);
-			if (_elm_lang$core$Native_Utils.cmp(row, rows) > -1) {
-				return res3;
-			} else {
-				var _v11 = row + 1,
-					_v12 = col,
-					_v13 = rows,
-					_v14 = board,
-					_v15 = guesses,
-					_v16 = sum2,
-					_v17 = acc2,
-					_v18 = res3;
-				row = _v11;
-				col = _v12;
-				rows = _v13;
-				board = _v14;
-				guesses = _v15;
-				sum = _v16;
-				acc = _v17;
-				res = _v18;
-				continue computeFilledColClassesRows;
-			}
-		}
-	});
-var _billstclair$kakuro_master$RenderBoard$computeFilledColClasses = F4(
-	function (col, board, guesses, res) {
-		return A8(
-			_billstclair$kakuro_master$RenderBoard$computeFilledColClassesRows,
-			0,
-			col,
-			board.rows,
-			board,
-			guesses,
-			0,
-			_elm_lang$core$Native_List.fromArray(
-				[]),
-			res);
-	});
-var _billstclair$kakuro_master$RenderBoard$computeFilledRowClassesCols = F8(
-	function (row, col, cols, board, guesses, sum, acc, res) {
-		computeFilledRowClassesCols:
-		while (true) {
-			var guess = A3(_billstclair$kakuro_master$Board$get, row, col, guesses);
-			var val = A3(_billstclair$kakuro_master$Board$get, row, col, board);
-			var sum2 = _elm_lang$core$Native_Utils.eq(val, 0) ? 0 : (sum + val);
-			var acc2 = _elm_lang$core$Native_Utils.eq(val, 0) ? _elm_lang$core$Native_List.fromArray(
-				[]) : A2(_elm_lang$core$List_ops['::'], guess, acc);
-			var res2 = (_elm_lang$core$Native_Utils.eq(row, 0) && (_elm_lang$core$Native_Utils.cmp(col, cols) < 0)) ? A4(_billstclair$kakuro_master$RenderBoard$computeFilledColClasses, col, board, guesses, res) : res;
-			var res3 = ((_elm_lang$core$Native_Utils.cmp(sum, 0) > 0) && (!_elm_lang$core$Native_Utils.eq(guess, 0))) ? A5(_billstclair$kakuro_master$RenderBoard$markFilledRowDuplicates, guess, row, col, acc, res2) : res2;
-			var res4 = (_elm_lang$core$Native_Utils.eq(val, 0) && (_elm_lang$core$Native_Utils.cmp(sum, 0) > 0)) ? A5(_billstclair$kakuro_master$RenderBoard$markBadSumRowSegment, row, col, sum, acc, res3) : res3;
-			if (_elm_lang$core$Native_Utils.cmp(col, cols) > -1) {
-				return res4;
-			} else {
-				var _v19 = row,
-					_v20 = col + 1,
-					_v21 = cols,
-					_v22 = board,
-					_v23 = guesses,
-					_v24 = sum2,
-					_v25 = acc2,
-					_v26 = res4;
-				row = _v19;
-				col = _v20;
-				cols = _v21;
-				board = _v22;
-				guesses = _v23;
-				sum = _v24;
-				acc = _v25;
-				res = _v26;
-				continue computeFilledRowClassesCols;
-			}
-		}
-	});
-var _billstclair$kakuro_master$RenderBoard$computeFilledRowClassesLoop = F5(
-	function (row, rows, board, guesses, res) {
-		computeFilledRowClassesLoop:
-		while (true) {
-			if (_elm_lang$core$Native_Utils.cmp(row, rows) > -1) {
-				return res;
-			} else {
-				var res2 = A8(
-					_billstclair$kakuro_master$RenderBoard$computeFilledRowClassesCols,
-					row,
-					0,
-					board.cols,
-					board,
-					guesses,
-					0,
-					_elm_lang$core$Native_List.fromArray(
-						[]),
-					res);
-				var _v27 = row + 1,
-					_v28 = rows,
-					_v29 = board,
-					_v30 = guesses,
-					_v31 = res2;
-				row = _v27;
-				rows = _v28;
-				board = _v29;
-				guesses = _v30;
-				res = _v31;
-				continue computeFilledRowClassesLoop;
-			}
-		}
-	});
-var _billstclair$kakuro_master$RenderBoard$computeFilledRowClasses = F3(
-	function (board, guesses, res) {
-		return A5(_billstclair$kakuro_master$RenderBoard$computeFilledRowClassesLoop, 0, board.rows, board, guesses, res);
-	});
-var _billstclair$kakuro_master$RenderBoard$computeFilledCellClasses = F2(
-	function (board, guesses) {
-		return A3(
-			_billstclair$kakuro_master$RenderBoard$computeFilledRowClasses,
-			board,
-			guesses,
-			A3(_billstclair$kakuro_master$Board$make, board.rows, board.cols, _elm_lang$core$Maybe$Nothing));
-	});
+var _billstclair$kakuro_master$RenderBoard$rowHelperText = function (state) {
+	return A4(
+		_billstclair$kakuro_master$RenderBoard$helperText,
+		{ctor: '_Tuple2', _0: 0, _1: 1},
+		{ctor: '_Tuple2', _0: 0, _1: -1},
+		_elm_lang$core$Basics$snd,
+		state);
+};
+var _billstclair$kakuro_master$RenderBoard$colHelperText = function (state) {
+	return A4(
+		_billstclair$kakuro_master$RenderBoard$helperText,
+		{ctor: '_Tuple2', _0: 1, _1: 0},
+		{ctor: '_Tuple2', _0: -1, _1: 0},
+		_elm_lang$core$Basics$fst,
+		state);
+};
 var _billstclair$kakuro_master$RenderBoard$sumRowLoop = F4(
 	function (row, col, sum, board) {
 		sumRowLoop:
@@ -12508,14 +12700,14 @@ var _billstclair$kakuro_master$RenderBoard$sumRowLoop = F4(
 			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
 				return sum;
 			} else {
-				var _v32 = row,
-					_v33 = col + 1,
-					_v34 = sum + elt,
-					_v35 = board;
-				row = _v32;
-				col = _v33;
-				sum = _v34;
-				board = _v35;
+				var _v8 = row,
+					_v9 = col + 1,
+					_v10 = sum + elt,
+					_v11 = board;
+				row = _v8;
+				col = _v9;
+				sum = _v10;
+				board = _v11;
 				continue sumRowLoop;
 			}
 		}
@@ -12532,14 +12724,14 @@ var _billstclair$kakuro_master$RenderBoard$sumColLoop = F4(
 			if (_elm_lang$core$Native_Utils.eq(elt, 0)) {
 				return sum;
 			} else {
-				var _v36 = row + 1,
-					_v37 = col,
-					_v38 = sum + elt,
-					_v39 = board;
-				row = _v36;
-				col = _v37;
-				sum = _v38;
-				board = _v39;
+				var _v12 = row + 1,
+					_v13 = col,
+					_v14 = sum + elt,
+					_v15 = board;
+				row = _v12;
+				col = _v13;
+				sum = _v14;
+				board = _v15;
 				continue sumColLoop;
 			}
 		}
@@ -12572,14 +12764,14 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsColsLoop = F4(
 			if (_elm_lang$core$Native_Utils.cmp(col, res.cols) > -1) {
 				return res;
 			} else {
-				var _v40 = row,
-					_v41 = col + 1,
-					_v42 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
-					_v43 = board;
-				row = _v40;
-				col = _v41;
-				res = _v42;
-				board = _v43;
+				var _v16 = row,
+					_v17 = col + 1,
+					_v18 = A4(_billstclair$kakuro_master$RenderBoard$computeLabel, row, col, res, board),
+					_v19 = board;
+				row = _v16;
+				col = _v17;
+				res = _v18;
+				board = _v19;
 				continue computeLabelsColsLoop;
 			}
 		}
@@ -12595,12 +12787,12 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsRowLoop = F3(
 			if (_elm_lang$core$Native_Utils.cmp(row, res.rows) > -1) {
 				return res;
 			} else {
-				var _v44 = row + 1,
-					_v45 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
-					_v46 = board;
-				row = _v44;
-				res = _v45;
-				board = _v46;
+				var _v20 = row + 1,
+					_v21 = A3(_billstclair$kakuro_master$RenderBoard$computeLabelsCols, row, res, board),
+					_v22 = board;
+				row = _v20;
+				res = _v21;
+				board = _v22;
 				continue computeLabelsRowLoop;
 			}
 		}
@@ -12833,18 +13025,18 @@ var _billstclair$kakuro_master$RenderBoard$renderFilledCell = F5(
 	function (isSelected, num, row, col, state) {
 		var maybeClass = state.allDone ? _elm_lang$core$Maybe$Just(_billstclair$kakuro_master$Styles_Board$Done) : A3(_billstclair$kakuro_master$Board$get, row, col, state.cellClasses);
 		var classes = function () {
-			var _p3 = maybeClass;
-			if (_p3.ctor === 'Nothing') {
+			var _p10 = maybeClass;
+			if (_p10.ctor === 'Nothing') {
 				return _elm_lang$core$Native_List.fromArray(
 					[]);
 			} else {
 				return _elm_lang$core$Native_List.fromArray(
-					[_p3._0]);
+					[_p10._0]);
 			}
 		}();
 		var selectedClasses = function () {
-			var _p4 = maybeClass;
-			if ((_p4.ctor === 'Just') && (_p4._0.ctor === 'Error')) {
+			var _p11 = maybeClass;
+			if ((_p11.ctor === 'Just') && (_p11._0.ctor === 'Error')) {
 				return _elm_lang$core$Native_List.fromArray(
 					[_billstclair$kakuro_master$Styles_Board$SelectedError]);
 			} else {
@@ -12887,19 +13079,19 @@ var _billstclair$kakuro_master$RenderBoard$renderCell = F3(
 		var bCol = col - 1;
 		var bRow = row - 1;
 		var isSelected = function () {
-			var _p5 = selection;
-			if (_p5.ctor === 'Nothing') {
+			var _p12 = selection;
+			if (_p12.ctor === 'Nothing') {
 				return false;
 			} else {
 				return _elm_lang$core$Native_Utils.eq(
-					_p5._0,
+					_p12._0,
 					{ctor: '_Tuple2', _0: bRow, _1: bCol});
 			}
 		}();
 		var labels = state.labels;
-		var _p6 = A3(_billstclair$kakuro_master$Board$get, row, col, labels);
-		var right = _p6._0;
-		var bottom = _p6._1;
+		var _p13 = A3(_billstclair$kakuro_master$Board$get, row, col, labels);
+		var right = _p13._0;
+		var bottom = _p13._1;
 		if (_elm_lang$core$Native_Utils.eq(right, 0) && _elm_lang$core$Native_Utils.eq(bottom, 0)) {
 			var val = A3(_billstclair$kakuro_master$Board$get, bRow, bCol, state.guesses);
 			return _elm_lang$core$Native_Utils.eq(val, 0) ? (_elm_lang$core$Native_Utils.eq(
@@ -12916,17 +13108,17 @@ var _billstclair$kakuro_master$RenderBoard$renderColsLoop = F4(
 			if (_elm_lang$core$Native_Utils.cmp(col, state.labels.cols) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v50 = row,
-					_v51 = col + 1,
-					_v52 = A2(
+				var _v26 = row,
+					_v27 = col + 1,
+					_v28 = A2(
 					_elm_lang$core$List_ops['::'],
 					A3(_billstclair$kakuro_master$RenderBoard$renderCell, row, col, state),
 					res),
-					_v53 = state;
-				row = _v50;
-				col = _v51;
-				res = _v52;
-				state = _v53;
+					_v29 = state;
+				row = _v26;
+				col = _v27;
+				res = _v28;
+				state = _v29;
 				continue renderColsLoop;
 			}
 		}
@@ -12956,22 +13148,22 @@ var _billstclair$kakuro_master$RenderBoard$renderRowsLoop = F3(
 			if (_elm_lang$core$Native_Utils.cmp(row, state.labels.rows) > -1) {
 				return _elm_lang$core$List$reverse(res);
 			} else {
-				var _v54 = row + 1,
-					_v55 = A2(
+				var _v30 = row + 1,
+					_v31 = A2(
 					_elm_lang$core$List_ops['::'],
 					A2(_billstclair$kakuro_master$RenderBoard$renderRow, row, state),
 					res),
-					_v56 = state;
-				row = _v54;
-				res = _v55;
-				state = _v56;
+					_v32 = state;
+				row = _v30;
+				res = _v31;
+				state = _v32;
 				continue renderRowsLoop;
 			}
 		}
 	});
 var _billstclair$kakuro_master$RenderBoard$renderRows = function (state) {
-	var allDone = A2(_billstclair$kakuro_master$RenderBoard$isAllDone, state.board, state.guesses);
-	var cellClasses = A2(_billstclair$kakuro_master$RenderBoard$computeFilledCellClasses, state.board, state.guesses);
+	var allDone = A2(_billstclair$kakuro_master$PlayHelpers$isAllDone, state.board, state.guesses);
+	var cellClasses = A2(_billstclair$kakuro_master$PlayHelpers$computeFilledCellClasses, state.board, state.guesses);
 	var state2 = _elm_lang$core$Native_Utils.update(
 		state,
 		{cellClasses: cellClasses, allDone: allDone});
@@ -12981,23 +13173,6 @@ var _billstclair$kakuro_master$RenderBoard$renderRows = function (state) {
 		_elm_lang$core$Native_List.fromArray(
 			[]),
 		state2);
-};
-var _billstclair$kakuro_master$RenderBoard$render = function (state) {
-	return A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_billstclair$kakuro_master$Styles_Board$style,
-				A2(
-				_elm_lang$html$Html$table,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Table)
-					]),
-				_billstclair$kakuro_master$RenderBoard$renderRows(state))
-			]));
 };
 var _billstclair$kakuro_master$RenderBoard$br = A2(
 	_elm_lang$html$Html$br,
@@ -13031,6 +13206,43 @@ var _billstclair$kakuro_master$RenderBoard$hintCell = F3(
 						]))
 				]));
 	});
+var _billstclair$kakuro_master$RenderBoard$render = function (state) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_billstclair$kakuro_master$Styles_Board$style,
+				A2(
+				_elm_lang$html$Html$table,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Table)
+					]),
+				_billstclair$kakuro_master$RenderBoard$renderRows(state)),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Helper)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'row: ',
+							_billstclair$kakuro_master$RenderBoard$rowHelperText(state))),
+						_billstclair$kakuro_master$RenderBoard$br,
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'col: ',
+							_billstclair$kakuro_master$RenderBoard$colHelperText(state)))
+					]))
+			]));
+};
 var _elm_lang$html$Html_App$programWithFlags = _elm_lang$virtual_dom$VirtualDom$programWithFlags;
 var _elm_lang$html$Html_App$program = function (app) {
 	return _elm_lang$html$Html_App$programWithFlags(
@@ -13476,7 +13688,6 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 					[
 						_billstclair$kakuro_master$RenderBoard$render(model.gameState)
 					])),
-				_billstclair$kakuro_master$Main$br,
 				A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
