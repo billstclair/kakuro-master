@@ -280,6 +280,13 @@ toggleFlag reader writer model =
   in
       { model | gameState = gameState' }
 
+toggleHintInput : Model -> Model
+toggleHintInput model =
+  toggleFlag .isHintInput (\v r -> { r | isHintInput = v }) model
+
+toggleShowPossibilities : Model -> Model
+toggleShowPossibilities model =
+  toggleFlag .showPossibilities (\v r -> { r | showPossibilities = v }) model
 
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
@@ -297,11 +304,9 @@ update msg model =
     PressKey code ->
       (processKeyPress code model, Cmd.none)
     ToggleHintInput ->
-      (toggleFlag .isHintInput (\v r -> { r | isHintInput = v }) model
-      , Cmd.none)
+      (toggleHintInput model, Cmd.none)
     ToggleShowPossibilities ->
-      (toggleFlag .showPossibilities (\v r -> { r | showPossibilities = v }) model
-      , Cmd.none)
+      (toggleShowPossibilities model, Cmd.none)
     Nop ->
       (model, Cmd.none)
           
