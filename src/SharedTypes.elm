@@ -12,7 +12,8 @@
 module SharedTypes exposing ( Model
                             , Msg, Msg (..)
                             , Selection
-                            , GameState, Flags
+                            , GameState
+                            , Flags
                             , IntBoard
                             , BClassMatrix
                             , BClassBoard
@@ -34,7 +35,7 @@ type alias Model =
       , index : Int
       , gencount : Int
       , gameState : GameState
-      , seed : Maybe Random.Seed
+--      , seed : Maybe Random.Seed
       , time : Time
       }
 
@@ -42,7 +43,7 @@ type Msg
   = Generate Int
   | ChangeKind Int
   | Tick Time
-  | Seed Time
+--  | Seed Time
   | ClickCell String
   | PressKey Keyboard.KeyCode
   | ToggleHintInput
@@ -82,7 +83,6 @@ type alias GameState =
   { board : IntBoard
   , labels : LabelsBoard
   , allDone : Bool
-  , cellClasses : BClassBoard
   , guesses : IntBoard
   , hints : HintsBoard
   , flags : Flags

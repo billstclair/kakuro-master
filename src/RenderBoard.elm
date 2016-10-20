@@ -14,9 +14,12 @@ module RenderBoard exposing ( makeGameState
                             , renderKeypad
                             )
 
-import SharedTypes exposing (GameState, Flags
+import SharedTypes exposing (GameState
+                            , Flags
                             , IntBoard
+                            , BClassBoard
                             , Labels, LabelsBoard
+                            , Selection
                             , Hints, HintsBoard
                             , Msg ( ClickCell, PressKey
                                   , ToggleShowPossibilities
@@ -43,6 +46,32 @@ import Html exposing
 import Html.Attributes
   exposing (style, value, href, src, title, alt, id, autofocus)
 import Html.Events exposing (on, onClick)
+
+-- I wanted to make GameState be an extensible record type,
+-- but I couldn't figure it out, so I have to copy stuff. Yuck.
+type alias RenderState =
+  { board : IntBoard
+  , labels : LabelsBoard
+  , allDone : Bool
+  , guesses : IntBoard
+  , hints : HintsBoard
+  , flags : Flags
+  , selection : Maybe Selection
+  -- Added to GameState            
+  , cellClasses : BClassBoard }
+
+makeRenderState : GameState -> BClassBoard -> Bool -> RenderState
+makeRenderState state cellClasses allDone =
+  { board = state.board
+  , labels = state.labels
+  , guesses = state.guesses
+  , hints = state.hints
+  , flags = state.flags
+  , selection = state.selection
+  -- Added to state
+  , cellClasses = cellClasses
+  , allDone = allDone
+  }
 
 br : Html a
 br =
@@ -233,7 +262,7 @@ computeLabels : IntBoard -> LabelsBoard
 computeLabels board =
   computeLabelsRow 0 board
 
-renderFilledCell : Bool -> Int -> Int -> Int -> GameState -> Html Msg
+renderFilledCell : Bool -> Int -> Int -> Int -> RenderState -> Html Msg
 renderFilledCell isSelected num row col state =
   let maybeClass = if state.allDone then
                      Just Done
@@ -249,7 +278,7 @@ renderFilledCell isSelected num row col state =
   in
       classedCell num row col classes2
 
-renderCell : Int -> Int -> GameState -> Html Msg
+renderCell : Int -> Int -> RenderState -> Html Msg
 renderCell row col state =
   let labels = state.labels
       (right, bottom) = get row col labels
@@ -276,7 +305,7 @@ renderCell row col state =
       else
         labelCell right bottom               
 
-renderColsLoop : Int -> Int -> List (Html Msg) -> GameState -> List (Html Msg)
+renderColsLoop : Int -> Int -> List (Html Msg) -> RenderState -> List (Html Msg)
 renderColsLoop row col res state =
   if col >= state.labels.cols then
     List.reverse res
@@ -287,15 +316,15 @@ renderColsLoop row col res state =
       (renderCell row col state :: res)
       state
           
-renderCols : Int -> GameState -> List (Html Msg)
+renderCols : Int -> RenderState -> List (Html Msg)
 renderCols row state =
   renderColsLoop row 0 [] state
 
-renderRow : Int -> GameState -> Html Msg
+renderRow : Int -> RenderState -> Html Msg
 renderRow row state =
    tr [] <| renderCols row state
 
-renderRowsLoop : Int -> List (Html Msg) -> GameState -> List (Html Msg)
+renderRowsLoop : Int -> List (Html Msg) -> RenderState -> List (Html Msg)
 renderRowsLoop row res state =
   if row >= state.labels.rows then
     List.reverse res
@@ -309,13 +338,11 @@ makeGameState board =
   let rows = board.rows
       cols = board.cols
       guesses = Board.make rows cols board.default
-      cellClasses = Board.make rows cols Nothing --computed by renderRows
       hints = Board.make rows cols emptyHints
   in
       { board = board
       , labels = (computeLabels board)
       , allDone = False
-      , cellClasses = cellClasses
       , guesses = guesses
       , hints = hints
       , flags = defaultFlags
@@ -326,10 +353,7 @@ renderRows : GameState -> List (Html Msg)
 renderRows state =
   let cellClasses = computeFilledCellClasses state.board state.guesses
       allDone = isAllDone state.board state.guesses
-      state2 = { state |
-                   cellClasses = cellClasses,
-                   allDone = allDone
-               }
+      state2 = makeRenderState state cellClasses allDone
   in
       renderRowsLoop 0 [] state2
 

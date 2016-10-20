@@ -1,16 +1,14 @@
 Kakuro in [Elm](http://elm-lang.org/).
 
-Currently, the UI shows only a 10x10 board, with 66 layouts, selectable via the "Next" button. This will change. I have data for 6x6 and 8x8 boards.
-
-The game is playable, but doesn't yet help you any, sorta like a newspaper.
-
 It's live at [kakuro-dojo.com](http://kakuro-dojo.com/).
 
 Code is in the ```src``` directory, scripts in the ```bin``` directory.
 
-If you run ```elm-reactor``` in this directory, you can navigate to [```src/kakuro.elm```](src/kakuro.elm) for development.
+Due to its port, which it uses to save game state, you cannot develop with ```elm-reactor```.
 
-```bin/build-site``` compiles the application to ```site/index.html```.
+```bin/build-site``` compiles the application to ```site/kakuro.js```.
+
+Then you can aim your browser at file:///.../kakuro-master/site/index.html.
 
 ```bin/update-site``` builds the application and syncs the ```site``` directory with the live site.
 

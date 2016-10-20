@@ -9,9 +9,11 @@
 --
 ----------------------------------------------------------------------
 
+port module Kakuro exposing (..)
+
 import SharedTypes exposing ( Model, Msg, Msg (..)
                             , IntBoard, HintsBoard, Selection
-                            , GameState, Flags)
+                            , Flags)
 import Styles.Page exposing (id, class, PId(..), PClass(..))
 import KakuroNative exposing (sha256)
 import Board exposing(Board)
@@ -41,13 +43,16 @@ import Html.App as Html
 import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
 
+main : Program (Maybe Model)
 main =
-  Html.program
+  Html.programWithFlags
     { init = init
     , view = view
     , update = update
     , subscriptions = subscriptions
     }
+
+port setStorage : Model -> Cmd msg
 
 -- MODEL
 
@@ -57,12 +62,15 @@ initialKind = 6
 pageTitle : String
 pageTitle = KakuroNative.setTitle "Kakuro Dojo"
 
+{-
 seedCmd : Cmd Msg
 seedCmd =
   Task.perform (\x -> Nop) (\x -> Seed x) Time.now
+-}
 
-init : (Model, Cmd Msg)
-init = (model, seedCmd)
+init : Maybe Model -> ( Model, Cmd Msg )
+init savedModel =
+  Maybe.withDefault model savedModel ! [ Cmd.none ]  --[ seedCmd ]
 
 defaultBoard : IntBoard
 defaultBoard =
@@ -80,7 +88,7 @@ model =
         idx           --index
         0             --gencount
         state         --gameState
-        Nothing       --seed
+--        Nothing       --seed
         0             --time
 
 -- UPDATE
@@ -297,8 +305,10 @@ update msg model =
       (getBoard model.kind (model.index + increment) model, Cmd.none)
     Tick time ->
       ({model | time = model.time + 1}, Cmd.none)
+{-
     Seed time ->
       ({model | seed = Just <| Random.initialSeed (round time)}, Cmd.none)
+-}
     ClickCell id ->
       (updateSelectedCell id model, Cmd.none)
     PressKey code ->

@@ -2,4 +2,4 @@
 
 # Compile the application into site/index.html
 
-elm-make src/kakuro.elm --output site/index.html
+elm-make src/kakuro.elm --output site/kakuro.js
