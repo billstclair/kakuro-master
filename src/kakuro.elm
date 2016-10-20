@@ -11,7 +11,8 @@
 
 port module Kakuro exposing (..)
 
-import SharedTypes exposing ( Model, Msg, Msg (..)
+import SharedTypes exposing ( Model, modelVersion
+                            , Msg, Msg (..)
                             , IntBoard, HintsBoard, Selection
                             , Flags)
 import Styles.Page exposing (id, class, PId(..), PClass(..))
@@ -94,13 +95,13 @@ model =
   let (idx, board) = PuzzleDB.nextBoardOfKind initialKind 0
       state = RenderBoard.makeGameState board
   in
-      Model
-        initialKind   --kind
-        idx           --index
-        0             --gencount
-        state         --gameState
---        Nothing       --seed
-        0             --time
+      { version = modelVersion
+      , kind = initialKind
+      , index = idx
+      , gencount = 0
+      , gameState = state
+      , time = 0
+      }
 
 -- UPDATE
 

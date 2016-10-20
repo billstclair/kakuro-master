@@ -51,7 +51,7 @@ fillBoardFromSpec row kind specTail board =
 
 boardFromSpec : Int -> String -> Board Int
 boardFromSpec kind spec =
-  fillBoardFromSpec 0 kind spec (Board.make kind kind 0)
+  fillBoardFromSpec 0 kind spec (Board.makeWithSpec kind kind 0 (Just spec))
 
 comparableForSpec : (Int, Int, Int, Int, String) -> (Int, Int, Int, Int)
 comparableForSpec (k, v, b, n, s) =

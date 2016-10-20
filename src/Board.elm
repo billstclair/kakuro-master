@@ -10,7 +10,10 @@
 ----------------------------------------------------------------------
 
 module Board exposing
-  ( Board, make, makeWithInitial, get, set, getRow, setRow
+  ( Board
+  , make, makeWithInitial
+  , makeWithSpec, makeWithSpecInitial
+  , get, set, getRow, setRow
   )
 
 {-| Two-dimensional game board with integers as elements.
@@ -18,6 +21,8 @@ module Board exposing
 @docs Board
 @docs make
 @docs makeWithInitial
+@docs makeWithSpec
+@docs makeWithSpecInitial
 @docs get
 @docs set
 @docs getRow
@@ -32,6 +37,7 @@ type alias Board a =
   { rows : Int
   , cols : Int
   , defaultValue: a
+  , spec: Maybe String
   , array: Array (Array a)
   }
       
@@ -53,12 +59,29 @@ make rows cols defaultValue =
 -}
 makeWithInitial : Int -> Int -> a -> a -> Board a
 makeWithInitial rows cols defaultValue initial =
-  Board
-    rows
-    cols
-    defaultValue
-    (Array.repeat rows (makeRow cols initial))
-  
+  makeWithSpecInitial rows cols defaultValue initial Nothing
+
+{-| Create a new Board of the given size, with an optional specification.
+
+    makeWithSpec rows cols defaultValue spec
+-}
+makeWithSpec : Int -> Int -> a -> Maybe String -> Board a
+makeWithSpec rows cols defaultValue spec =
+  makeWithSpecInitial rows cols defaultValue defaultValue spec
+
+{-| Create a new Board of the given size, with an optional specification,
+and initialized with a different value than the default.
+
+    makeWithSpec rows cols defaultValue initial spec
+-}
+makeWithSpecInitial : Int -> Int -> a -> a -> Maybe String -> Board a
+makeWithSpecInitial rows cols defaultValue initial spec =
+  { rows = rows
+  ,  cols = cols
+  , defaultValue = defaultValue
+  , spec = spec
+  , array = (Array.repeat rows (makeRow cols initial))
+  }
 
 check : Board a -> Int -> Int -> Bool
 check board row col =

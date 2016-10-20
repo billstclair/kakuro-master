@@ -9,7 +9,7 @@
 --
 ----------------------------------------------------------------------
 
-module SharedTypes exposing ( Model
+module SharedTypes exposing ( Model, modelVersion
                             , Msg, Msg (..)
                             , Selection
                             , GameState
@@ -30,8 +30,18 @@ import Random
 import Time exposing (Time, second)
 import Keyboard
 
+-- The JavaScript code in index.html needs to know this version
+-- number. If it reads a model with a version it doesn't recognize,
+-- it will act as if there's no saved state, to prevent a
+-- run-time error unpacking the save data into Elm data structures.
+-- The version needs to be bumped any time ANY state reachable
+-- from the model is changed, in shape or type.
+modelVersion : Int
+modelVersion = 1
+
 type alias Model =
-      { kind : Int
+      { version: Int
+      , kind : Int
       , index : Int
       , gencount : Int
       , gameState : GameState
