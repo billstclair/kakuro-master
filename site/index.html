@@ -10588,6 +10588,7 @@ var _billstclair$kakuro_master$SimpleMatrix$loc = F2(
 	function (row, col) {
 		return {ctor: '_Tuple2', _0: row, _1: col};
 	});
+var _billstclair$kakuro_master$Styles_Board$greenColor = '#E0FFE0';
 var _billstclair$kakuro_master$Styles_Board$rule = F2(
 	function (selectors, descriptor) {
 		return {selectors: selectors, descriptor: descriptor};
@@ -10609,6 +10610,7 @@ var _billstclair$kakuro_master$Styles_Board$EmptyCellBackground = {ctor: 'EmptyC
 var _billstclair$kakuro_master$Styles_Board$EmptyCell = {ctor: 'EmptyCell'};
 var _billstclair$kakuro_master$Styles_Board$Helper = {ctor: 'Helper'};
 var _billstclair$kakuro_master$Styles_Board$Label = {ctor: 'Label'};
+var _billstclair$kakuro_master$Styles_Board$KeypadButtonHighlight = {ctor: 'KeypadButtonHighlight'};
 var _billstclair$kakuro_master$Styles_Board$KeypadButton = {ctor: 'KeypadButton'};
 var _billstclair$kakuro_master$Styles_Board$KeypadDiv = {ctor: 'KeypadDiv'};
 var _billstclair$kakuro_master$Styles_Board$KeypadTd = {ctor: 'KeypadTd'};
@@ -10713,6 +10715,16 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 				{ctor: '_Tuple2', _0: 'height', _1: '99%'},
 				{ctor: '_Tuple2', _0: 'margin', _1: '0'},
 				{ctor: '_Tuple2', _0: 'padding', _1: '0'}
+			])),
+		A2(
+		_billstclair$kakuro_master$Styles_Board$rule,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_massung$elm_css$Css$Class(_billstclair$kakuro_master$Styles_Board$KeypadButtonHighlight)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				{ctor: '_Tuple2', _0: 'color', _1: 'black'}
 			])),
 		A2(
 		_billstclair$kakuro_master$Styles_Board$rule,
@@ -10845,9 +10857,7 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				{ctor: '_Tuple2', _0: 'width', _1: '100%'},
-				{ctor: '_Tuple2', _0: 'height', _1: '100%'},
-				{ctor: '_Tuple2', _0: 'font-size', _1: '12pt'},
+				{ctor: '_Tuple2', _0: 'font-size', _1: '10pt'},
 				{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'}
 			])),
 		A2(
@@ -10893,7 +10903,7 @@ var _billstclair$kakuro_master$Styles_Board$rules = _elm_lang$core$Native_List.f
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				{ctor: '_Tuple2', _0: 'background-color', _1: '#E0FFE0'}
+				{ctor: '_Tuple2', _0: 'background-color', _1: _billstclair$kakuro_master$Styles_Board$greenColor}
 			]))
 	]);
 var _billstclair$kakuro_master$Styles_Board$stylesheet = A2(_massung$elm_css$Css$stylesheet, _billstclair$kakuro_master$Styles_Board$imports, _billstclair$kakuro_master$Styles_Board$rules);
@@ -12083,11 +12093,17 @@ var _billstclair$kakuro_master$SharedTypes$Model = F6(
 	function (a, b, c, d, e, f) {
 		return {kind: a, index: b, gencount: c, gameState: d, seed: e, time: f};
 	});
-var _billstclair$kakuro_master$SharedTypes$GameState = F7(
-	function (a, b, c, d, e, f, g) {
-		return {board: a, labels: b, allDone: c, cellClasses: d, guesses: e, hints: f, selection: g};
+var _billstclair$kakuro_master$SharedTypes$Flags = F2(
+	function (a, b) {
+		return {isHintInput: a, showPossibilities: b};
+	});
+var _billstclair$kakuro_master$SharedTypes$GameState = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {board: a, labels: b, allDone: c, cellClasses: d, guesses: e, hints: f, flags: g, selection: h};
 	});
 var _billstclair$kakuro_master$SharedTypes$Nop = {ctor: 'Nop'};
+var _billstclair$kakuro_master$SharedTypes$ToggleShowPossibilities = {ctor: 'ToggleShowPossibilities'};
+var _billstclair$kakuro_master$SharedTypes$ToggleHintInput = {ctor: 'ToggleHintInput'};
 var _billstclair$kakuro_master$SharedTypes$PressKey = function (a) {
 	return {ctor: 'PressKey', _0: a};
 };
@@ -12512,14 +12528,23 @@ var _billstclair$kakuro_master$RenderBoard$keypadKeycode = function ($char) {
 		}
 	}
 };
-var _billstclair$kakuro_master$RenderBoard$keycodeCell = F2(
-	function (keycode, label) {
+var _billstclair$kakuro_master$RenderBoard$keypadButtonClass = F2(
+	function (label, state) {
+		var highlight = _elm_lang$core$Native_Utils.eq(label, '*') ? state.flags.showPossibilities : (_elm_lang$core$Native_Utils.eq(label, '#') ? state.flags.isHintInput : false);
+		var highlightClasses = highlight ? _elm_lang$core$Native_List.fromArray(
+			[_billstclair$kakuro_master$Styles_Board$KeypadButtonHighlight]) : _elm_lang$core$Native_List.fromArray(
+			[]);
+		return _billstclair$kakuro_master$Styles_Board$classes(
+			A2(_elm_lang$core$List_ops['::'], _billstclair$kakuro_master$Styles_Board$KeypadButton, highlightClasses));
+	});
+var _billstclair$kakuro_master$RenderBoard$keycodeCell = F3(
+	function (keycode, label, state) {
 		return A2(
 			_elm_lang$html$Html$td,
 			_elm_lang$core$Native_List.fromArray(
 				[
 					_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$KeypadTd),
-					A2(_billstclair$kakuro_master$Events$onClickWithInt, _billstclair$kakuro_master$SharedTypes$PressKey, keycode)
+					_elm_lang$core$Native_Utils.eq(label, '*') ? _elm_lang$html$Html_Events$onClick(_billstclair$kakuro_master$SharedTypes$ToggleShowPossibilities) : (_elm_lang$core$Native_Utils.eq(label, '#') ? _elm_lang$html$Html_Events$onClick(_billstclair$kakuro_master$SharedTypes$ToggleHintInput) : A2(_billstclair$kakuro_master$Events$onClickWithInt, _billstclair$kakuro_master$SharedTypes$PressKey, keycode))
 				]),
 			_elm_lang$core$Native_List.fromArray(
 				[
@@ -12527,7 +12552,7 @@ var _billstclair$kakuro_master$RenderBoard$keycodeCell = F2(
 					_elm_lang$html$Html$button,
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$KeypadButton),
+							A2(_billstclair$kakuro_master$RenderBoard$keypadButtonClass, label, state),
 							_elm_lang$html$Html_Attributes$autofocus(
 							_elm_lang$core$Native_Utils.eq(label, ' '))
 						]),
@@ -12537,36 +12562,46 @@ var _billstclair$kakuro_master$RenderBoard$keycodeCell = F2(
 						]))
 				]));
 	});
-var _billstclair$kakuro_master$RenderBoard$renderKeypadCell = function ($char) {
-	return A2(
-		_billstclair$kakuro_master$RenderBoard$keycodeCell,
-		_billstclair$kakuro_master$RenderBoard$keypadKeycode($char),
-		_elm_lang$core$String$fromList(
+var _billstclair$kakuro_master$RenderBoard$renderKeypadCell = F2(
+	function ($char, state) {
+		return A3(
+			_billstclair$kakuro_master$RenderBoard$keycodeCell,
+			_billstclair$kakuro_master$RenderBoard$keypadKeycode($char),
+			_elm_lang$core$String$fromList(
+				_elm_lang$core$Native_List.fromArray(
+					[$char])),
+			state);
+	});
+var _billstclair$kakuro_master$RenderBoard$renderKeypadRow = F2(
+	function (string, state) {
+		var chars = _elm_lang$core$String$toList(string);
+		return A2(
+			_elm_lang$html$Html$tr,
 			_elm_lang$core$Native_List.fromArray(
-				[$char])));
-};
-var _billstclair$kakuro_master$RenderBoard$renderKeypadRow = function (string) {
-	var chars = _elm_lang$core$String$toList(string);
+				[]),
+			A2(
+				_elm_lang$core$List$map,
+				function (x) {
+					return A2(_billstclair$kakuro_master$RenderBoard$renderKeypadCell, x, state);
+				},
+				chars));
+	});
+var _billstclair$kakuro_master$RenderBoard$renderKeypad = function (state) {
 	return A2(
-		_elm_lang$html$Html$tr,
+		_elm_lang$html$Html$table,
 		_elm_lang$core$Native_List.fromArray(
-			[]),
-		A2(_elm_lang$core$List$map, _billstclair$kakuro_master$RenderBoard$renderKeypadCell, chars));
+			[
+				_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Table)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_billstclair$kakuro_master$Styles_Board$style,
+				A2(_billstclair$kakuro_master$RenderBoard$renderKeypadRow, '123*', state),
+				A2(_billstclair$kakuro_master$RenderBoard$renderKeypadRow, '456#', state),
+				A2(_billstclair$kakuro_master$RenderBoard$renderKeypadRow, '78^ ', state),
+				A2(_billstclair$kakuro_master$RenderBoard$renderKeypadRow, '9<v>', state)
+			]));
 };
-var _billstclair$kakuro_master$RenderBoard$renderKeypad = A2(
-	_elm_lang$html$Html$table,
-	_elm_lang$core$Native_List.fromArray(
-		[
-			_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Table)
-		]),
-	_elm_lang$core$Native_List.fromArray(
-		[
-			_billstclair$kakuro_master$Styles_Board$style,
-			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('123*'),
-			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('456#'),
-			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('78^ '),
-			_billstclair$kakuro_master$RenderBoard$renderKeypadRow('9<v>')
-		]));
 var _billstclair$kakuro_master$RenderBoard$helperLoop = F6(
 	function (start, cnt, inc, board, guesses, res) {
 		helperLoop:
@@ -12797,6 +12832,7 @@ var _billstclair$kakuro_master$RenderBoard$computeLabelsRowLoop = F3(
 			}
 		}
 	});
+var _billstclair$kakuro_master$RenderBoard$defaultFlags = {isHintInput: false, showPossibilities: true};
 var _billstclair$kakuro_master$RenderBoard$emptyHints = _elm_lang$core$Native_List.fromArray(
 	[]);
 var _billstclair$kakuro_master$RenderBoard$emptyLabels = {ctor: '_Tuple2', _0: 0, _1: 0};
@@ -12821,6 +12857,7 @@ var _billstclair$kakuro_master$RenderBoard$makeGameState = function (board) {
 		cellClasses: cellClasses,
 		guesses: guesses,
 		hints: hints,
+		flags: _billstclair$kakuro_master$RenderBoard$defaultFlags,
 		selection: _elm_lang$core$Maybe$Nothing
 	};
 };
@@ -13073,6 +13110,41 @@ var _billstclair$kakuro_master$RenderBoard$unfilledCell = F3(
 						]))
 				]));
 	});
+var _billstclair$kakuro_master$RenderBoard$br = A2(
+	_elm_lang$html$Html$br,
+	_elm_lang$core$Native_List.fromArray(
+		[]),
+	_elm_lang$core$Native_List.fromArray(
+		[]));
+var _billstclair$kakuro_master$RenderBoard$hintCell = F4(
+	function (isSelected, hints, row, col) {
+		return A2(
+			_elm_lang$html$Html$td,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					isSelected ? _billstclair$kakuro_master$Styles_Board$classes(
+					_elm_lang$core$Native_List.fromArray(
+						[_billstclair$kakuro_master$Styles_Board$Hint, _billstclair$kakuro_master$Styles_Board$Selected])) : _billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Hint)
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(
+					_elm_lang$html$Html$div,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							A2(_billstclair$kakuro_master$RenderBoard$cellId, row, col),
+							_billstclair$kakuro_master$Events$onClickWithId(_billstclair$kakuro_master$SharedTypes$ClickCell)
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							A3(_billstclair$kakuro_master$RenderBoard$hintRow, 1, 3, hints),
+							_billstclair$kakuro_master$RenderBoard$br,
+							A3(_billstclair$kakuro_master$RenderBoard$hintRow, 4, 6, hints),
+							_billstclair$kakuro_master$RenderBoard$br,
+							A3(_billstclair$kakuro_master$RenderBoard$hintRow, 7, 9, hints)
+						]))
+				]));
+	});
 var _billstclair$kakuro_master$RenderBoard$renderCell = F3(
 	function (row, col, state) {
 		var selection = state.selection;
@@ -13093,10 +13165,11 @@ var _billstclair$kakuro_master$RenderBoard$renderCell = F3(
 		var right = _p13._0;
 		var bottom = _p13._1;
 		if (_elm_lang$core$Native_Utils.eq(right, 0) && _elm_lang$core$Native_Utils.eq(bottom, 0)) {
+			var hints = A3(_billstclair$kakuro_master$Board$get, bRow, bCol, state.hints);
 			var val = A3(_billstclair$kakuro_master$Board$get, bRow, bCol, state.guesses);
 			return _elm_lang$core$Native_Utils.eq(val, 0) ? (_elm_lang$core$Native_Utils.eq(
 				A3(_billstclair$kakuro_master$Board$get, bRow, bCol, state.board),
-				0) ? _billstclair$kakuro_master$RenderBoard$emptyCell : A3(_billstclair$kakuro_master$RenderBoard$unfilledCell, isSelected, bRow, bCol)) : A5(_billstclair$kakuro_master$RenderBoard$renderFilledCell, isSelected, val, bRow, bCol, state);
+				0) ? _billstclair$kakuro_master$RenderBoard$emptyCell : (_elm_lang$core$List$isEmpty(hints) ? A3(_billstclair$kakuro_master$RenderBoard$unfilledCell, isSelected, bRow, bCol) : A4(_billstclair$kakuro_master$RenderBoard$hintCell, isSelected, hints, bRow, bCol))) : A5(_billstclair$kakuro_master$RenderBoard$renderFilledCell, isSelected, val, bRow, bCol, state);
 		} else {
 			return A2(_billstclair$kakuro_master$RenderBoard$labelCell, right, bottom);
 		}
@@ -13174,38 +13247,6 @@ var _billstclair$kakuro_master$RenderBoard$renderRows = function (state) {
 			[]),
 		state2);
 };
-var _billstclair$kakuro_master$RenderBoard$br = A2(
-	_elm_lang$html$Html$br,
-	_elm_lang$core$Native_List.fromArray(
-		[]),
-	_elm_lang$core$Native_List.fromArray(
-		[]));
-var _billstclair$kakuro_master$RenderBoard$hintCell = F3(
-	function (hints, row, col) {
-		return A2(
-			_elm_lang$html$Html$td,
-			_elm_lang$core$Native_List.fromArray(
-				[
-					A2(_billstclair$kakuro_master$RenderBoard$cellId, row, col)
-				]),
-			_elm_lang$core$Native_List.fromArray(
-				[
-					A2(
-					_elm_lang$html$Html$div,
-					_elm_lang$core$Native_List.fromArray(
-						[
-							_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Hint)
-						]),
-					_elm_lang$core$Native_List.fromArray(
-						[
-							A3(_billstclair$kakuro_master$RenderBoard$hintRow, 1, 3, hints),
-							_billstclair$kakuro_master$RenderBoard$br,
-							A3(_billstclair$kakuro_master$RenderBoard$hintRow, 4, 6, hints),
-							_billstclair$kakuro_master$RenderBoard$br,
-							A3(_billstclair$kakuro_master$RenderBoard$hintRow, 7, 9, hints)
-						]))
-				]));
-	});
 var _billstclair$kakuro_master$RenderBoard$render = function (state) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -13221,7 +13262,7 @@ var _billstclair$kakuro_master$RenderBoard$render = function (state) {
 						_billstclair$kakuro_master$Styles_Board$class(_billstclair$kakuro_master$Styles_Board$Table)
 					]),
 				_billstclair$kakuro_master$RenderBoard$renderRows(state)),
-				A2(
+				state.flags.showPossibilities ? A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
@@ -13240,7 +13281,7 @@ var _billstclair$kakuro_master$RenderBoard$render = function (state) {
 							_elm_lang$core$Basics_ops['++'],
 							'col: ',
 							_billstclair$kakuro_master$RenderBoard$colHelperText(state)))
-					]))
+					])) : _billstclair$kakuro_master$RenderBoard$br
 			]));
 };
 var _elm_lang$html$Html_App$programWithFlags = _elm_lang$virtual_dom$VirtualDom$programWithFlags;
@@ -13377,6 +13418,22 @@ var _billstclair$kakuro_master$Main$logoLink = F4(
 var _billstclair$kakuro_master$Main$subscriptions = function (model) {
 	return _elm_lang$keyboard$Keyboard$downs(_billstclair$kakuro_master$SharedTypes$PressKey);
 };
+var _billstclair$kakuro_master$Main$toggleFlag = F3(
+	function (reader, writer, model) {
+		var gameState = model.gameState;
+		var flags = gameState.flags;
+		var flags$ = A2(
+			writer,
+			_elm_lang$core$Basics$not(
+				reader(flags)),
+			flags);
+		var gameState$ = _elm_lang$core$Native_Utils.update(
+			gameState,
+			{flags: flags$});
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{gameState: gameState$});
+	});
 var _billstclair$kakuro_master$Main$getBoard = F3(
 	function (kind, index, model) {
 		var index$ = (_elm_lang$core$Native_Utils.cmp(index - 1, 0) < 0) ? (_billstclair$kakuro_master$PuzzleDB$numberOfBoardsOfKind(kind) - 1) : (index - 1);
@@ -13387,6 +13444,14 @@ var _billstclair$kakuro_master$Main$getBoard = F3(
 		return _elm_lang$core$Native_Utils.update(
 			model,
 			{kind: kind, index: idx, gencount: model.gencount + 1, gameState: gameState});
+	});
+var _billstclair$kakuro_master$Main$toggleHint = F4(
+	function (row, col, digit, hints) {
+		var val = A3(_billstclair$kakuro_master$Board$get, row, col, hints);
+		var isThere = A2(_elm_lang$core$List$member, digit, val);
+		var $new = _elm_lang$core$Native_Utils.eq(digit, 0) ? _elm_lang$core$Native_List.fromArray(
+			[]) : (isThere ? A2(_elm_community$list_extra$List_Extra$remove, digit, val) : A2(_elm_lang$core$List_ops['::'], digit, val));
+		return A4(_billstclair$kakuro_master$Board$set, row, col, $new, hints);
 	});
 var _billstclair$kakuro_master$Main$newLocationLoop = F5(
 	function (min, max, delta, res, board) {
@@ -13557,10 +13622,13 @@ var _billstclair$kakuro_master$Main$processDigitKeys = F2(
 		var gameState = model.gameState;
 		var selection = gameState.selection;
 		var guesses = gameState.guesses;
+		var hints = gameState.hints;
 		var _p10 = selection;
 		if (_p10.ctor === 'Nothing') {
 			return model;
 		} else {
+			var _p12 = _p10._0._0;
+			var _p11 = _p10._0._1;
 			var $char = _elm_lang$core$Char$fromCode(keyCode);
 			var digit = A2(
 				_billstclair$kakuro_master$Main$charToDigit,
@@ -13571,10 +13639,14 @@ var _billstclair$kakuro_master$Main$processDigitKeys = F2(
 			return (_elm_lang$core$Native_Utils.cmp(digit, 0) < 0) ? model : _elm_lang$core$Native_Utils.update(
 				model,
 				{
-					gameState: _elm_lang$core$Native_Utils.update(
+					gameState: gameState.flags.isHintInput ? _elm_lang$core$Native_Utils.update(
 						gameState,
 						{
-							guesses: A4(_billstclair$kakuro_master$Board$set, _p10._0._0, _p10._0._1, digit, guesses)
+							hints: A4(_billstclair$kakuro_master$Main$toggleHint, _p12, _p11, digit, hints)
+						}) : _elm_lang$core$Native_Utils.update(
+						gameState,
+						{
+							guesses: A4(_billstclair$kakuro_master$Board$set, _p12, _p11, digit, guesses)
 						})
 				});
 		}
@@ -13693,7 +13765,9 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 				_elm_lang$core$Native_List.fromArray(
 					[]),
 				_elm_lang$core$Native_List.fromArray(
-					[_billstclair$kakuro_master$RenderBoard$renderKeypad])),
+					[
+						_billstclair$kakuro_master$RenderBoard$renderKeypad(model.gameState)
+					])),
 				A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
@@ -13709,6 +13783,10 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 								_elm_lang$html$Html$text('Click to select. Arrows, WASD, or IJKL to move.'),
 								_billstclair$kakuro_master$Main$br,
 								_elm_lang$html$Html$text('1-9 to enter number. 0 or space to erase.'),
+								_billstclair$kakuro_master$Main$br,
+								_elm_lang$html$Html$text('* toggles row/col possibility display.'),
+								_billstclair$kakuro_master$Main$br,
+								_elm_lang$html$Html$text('# toggles hint input'),
 								_billstclair$kakuro_master$Main$br,
 								_elm_lang$html$Html$text('Under development. New features daily.')
 							])),
@@ -13753,9 +13831,9 @@ var _billstclair$kakuro_master$Main$view = function (model) {
 };
 var _billstclair$kakuro_master$Main$initialKind = 6;
 var _billstclair$kakuro_master$Main$model = function () {
-	var _p11 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, _billstclair$kakuro_master$Main$initialKind, 0);
-	var idx = _p11._0;
-	var board = _p11._1;
+	var _p13 = A2(_billstclair$kakuro_master$PuzzleDB$nextBoardOfKind, _billstclair$kakuro_master$Main$initialKind, 0);
+	var idx = _p13._0;
+	var board = _p13._1;
 	var state = _billstclair$kakuro_master$RenderBoard$makeGameState(board);
 	return A6(_billstclair$kakuro_master$SharedTypes$Model, _billstclair$kakuro_master$Main$initialKind, idx, 0, state, _elm_lang$core$Maybe$Nothing, 0);
 }();
@@ -13831,7 +13909,7 @@ var _billstclair$kakuro_master$Main$processMovementKeys = F2(
 	function (keyCode, model) {
 		var $char = _elm_lang$core$Char$toLower(
 			_elm_lang$core$Char$fromCode(keyCode));
-		var _p12 = A2(
+		var _p14 = A2(
 			_elm_community$list_extra$List_Extra$find,
 			function (x) {
 				return _elm_lang$core$Native_Utils.eq(
@@ -13839,36 +13917,36 @@ var _billstclair$kakuro_master$Main$processMovementKeys = F2(
 					$char);
 			},
 			_billstclair$kakuro_master$Main$movementKeyDirections);
-		if (_p12.ctor === 'Nothing') {
+		if (_p14.ctor === 'Nothing') {
 			return _elm_lang$core$Maybe$Nothing;
 		} else {
 			return _elm_lang$core$Maybe$Just(
-				A2(_billstclair$kakuro_master$Main$moveSelection, _p12._0._1, model));
+				A2(_billstclair$kakuro_master$Main$moveSelection, _p14._0._1, model));
 		}
 	});
 var _billstclair$kakuro_master$Main$processKeyPress = F2(
 	function (keyCode, model) {
-		var _p13 = A2(_billstclair$kakuro_master$Main$processMovementKeys, keyCode, model);
-		if (_p13.ctor === 'Nothing') {
+		var _p15 = A2(_billstclair$kakuro_master$Main$processMovementKeys, keyCode, model);
+		if (_p15.ctor === 'Nothing') {
 			return A2(_billstclair$kakuro_master$Main$processDigitKeys, keyCode, model);
 		} else {
-			return _p13._0;
+			return _p15._0;
 		}
 	});
 var _billstclair$kakuro_master$Main$update = F2(
 	function (msg, model) {
-		var _p14 = msg;
-		switch (_p14.ctor) {
+		var _p16 = msg;
+		switch (_p16.ctor) {
 			case 'ChangeKind':
 				return {
 					ctor: '_Tuple2',
-					_0: A3(_billstclair$kakuro_master$Main$getBoard, _p14._0, model.index, model),
+					_0: A3(_billstclair$kakuro_master$Main$getBoard, _p16._0, model.index, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Generate':
 				return {
 					ctor: '_Tuple2',
-					_0: A3(_billstclair$kakuro_master$Main$getBoard, model.kind, model.index + _p14._0, model),
+					_0: A3(_billstclair$kakuro_master$Main$getBoard, model.kind, model.index + _p16._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Tick':
@@ -13887,20 +13965,54 @@ var _billstclair$kakuro_master$Main$update = F2(
 						{
 							seed: _elm_lang$core$Maybe$Just(
 								_elm_lang$core$Random$initialSeed(
-									_elm_lang$core$Basics$round(_p14._0)))
+									_elm_lang$core$Basics$round(_p16._0)))
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'ClickCell':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_billstclair$kakuro_master$Main$updateSelectedCell, _p14._0, model),
+					_0: A2(_billstclair$kakuro_master$Main$updateSelectedCell, _p16._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'PressKey':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_billstclair$kakuro_master$Main$processKeyPress, _p14._0, model),
+					_0: A2(_billstclair$kakuro_master$Main$processKeyPress, _p16._0, model),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'ToggleHintInput':
+				return {
+					ctor: '_Tuple2',
+					_0: A3(
+						_billstclair$kakuro_master$Main$toggleFlag,
+						function (_) {
+							return _.isHintInput;
+						},
+						F2(
+							function (v, r) {
+								return _elm_lang$core$Native_Utils.update(
+									r,
+									{isHintInput: v});
+							}),
+						model),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'ToggleShowPossibilities':
+				return {
+					ctor: '_Tuple2',
+					_0: A3(
+						_billstclair$kakuro_master$Main$toggleFlag,
+						function (_) {
+							return _.showPossibilities;
+						},
+						F2(
+							function (v, r) {
+								return _elm_lang$core$Native_Utils.update(
+									r,
+									{showPossibilities: v});
+							}),
+						model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
