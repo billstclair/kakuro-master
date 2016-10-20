@@ -25,7 +25,7 @@ import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
 import Events exposing (onClickWithId, onClickWithInt)
-import PlayHelpers exposing (isAllDone, computeFilledCellClasses)
+import PlayHelpers exposing (isAllDone, computeFilledCellClasses, possibilities)
 import Array exposing (Array)
 import Char
 import String
@@ -315,12 +315,69 @@ renderRows state =
   in
       renderRowsLoop 0 [] state2
 
+helperLoop : (Int, Int) -> Int -> (Int, Int) -> IntBoard -> IntBoard -> (Int, Int, List Int) -> (Int, Int, List Int)
+helperLoop start cnt inc board guesses res =
+  if cnt <= 0 then
+    res
+  else
+    let (row, col) = start
+        value = Board.get row col board
+        guess = Board.get row col guesses
+    in
+        if  value == 0 then
+          res
+        else
+          let (ri, ci) = inc
+              (zeroes, sum, nums) = res
+              zeroes' = if guess == 0 then zeroes+1 else zeroes
+              sum' = sum + value
+              nums' = if guess == 0 then nums else (guess :: nums)
+          in
+              helperLoop (row+ri, col+ci) (cnt-1) inc board guesses (zeroes', sum', nums')
+
+helperText : (Int, Int) -> (Int, Int) -> ((Int, Int) -> Int) -> GameState -> String
+helperText inc neginc acc state =
+  let board = state.board
+      guesses = state.guesses
+  in
+      case state.selection of
+          Nothing -> ""
+          Just loc ->
+            let (row, col) = loc
+                (ri, ci) = neginc
+                rc = acc loc
+                (zeroes, sum, nums) =
+                  helperLoop loc (10 - rc) inc
+                    board guesses (0, 0, [])
+                (zeroes', sum', nums') =
+                  helperLoop (row+ri, col+ci) rc neginc
+                    board guesses (zeroes, sum, nums)
+                leftsum = sum' - (List.foldr (+) 0 nums')
+                run = possibilities leftsum zeroes' nums'
+            in
+                List.map (\x -> List.map toString x) run
+                  |> List.map String.concat
+                  |> String.join " "
+
+rowHelperText : GameState -> String
+rowHelperText state =
+  helperText (0, 1) (0, -1) snd state
+
+colHelperText : GameState -> String
+colHelperText state =
+  helperText (1, 0) (-1, 0) fst state
+
 render : GameState -> Html Msg
 render state =
   div []
     [ Styles.Board.style
     , table [ class Table ]
         (renderRows state)
+    , div [ class Helper ]
+      [ text ("row: " ++ (rowHelperText state))
+      , br
+      , text ("col: " ++ (colHelperText state))
+      ]
     ]
 
 --

@@ -9,7 +9,9 @@
 --
 ----------------------------------------------------------------------
 
-module PlayHelpers exposing (isAllDone, computeFilledCellClasses
+module PlayHelpers exposing (isAllDone
+                            , computeFilledCellClasses
+                            , possibilities
                             )
 
 import SharedTypes exposing (GameState, IntBoard
@@ -22,7 +24,6 @@ import SimpleMatrix exposing (Matrix, IntMatrix, Location
                              , loc, row, col, incRowBy, incColBy)
 
 import List.Extra as LE
-import Set exposing (Set)
 
 doneColLoop : Int-> Int -> Int -> IntBoard -> IntBoard -> Bool
 doneColLoop rowidx colidx cols board guesses =
@@ -181,9 +182,26 @@ computeFilledRowClasses : IntBoard -> IntBoard -> BClassBoard -> BClassBoard
 computeFilledRowClasses board guesses res =
   computeFilledRowClassesLoop 0 board.rows board guesses res
 
-possibilitiesLoop : Int -> Int -> Int -> Set Int -> List Int -> List (List Int) -> List (List Int)
-possibilitiesLoop start sum count used one res =
-  res              
+possLoop : Int -> Int -> Int -> Int -> List Int -> List Int -> List (List Int) -> List (List Int)
+possLoop start count sumSoFar sum this used res =
+--  let (a,b,c,d,e,f,g) = log "(start,count,sumSoFar,sum,this,used,res)" (start,count,sumSoFar,sum,this,used,res)
+--  in
+  if count <= 0 || sumSoFar > sum then
+    if sumSoFar == sum then
+      (List.reverse this) :: res
+    else
+      res
+  else if start > 9 then
+      res
+  else
+    let res2 = if List.member start used then
+                 res
+               else
+                 possLoop
+                   (start+1) (count-1) (sumSoFar+start) sum
+                   (start::this) (start::used) res
+    in
+        possLoop (start+1) count sumSoFar sum this used res2
 
 --
 -- Exported functions
@@ -201,6 +219,6 @@ computeFilledCellClasses board guesses =
   Board.make board.rows board.cols Nothing
     |> computeFilledRowClasses board guesses
 
-possibilities : Int -> Int -> Set Int -> List (List Int)
+possibilities : Int -> Int -> List Int -> List (List Int)
 possibilities sum count used =
-  possibilitiesLoop 1 sum count used [] []
+  List.reverse (possLoop 1 count 0 sum [] used [])

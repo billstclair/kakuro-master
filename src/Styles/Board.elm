@@ -21,6 +21,7 @@ type BClass = Table
             | KeypadDiv
             | KeypadButton
             | Label
+            | Helper
             | EmptyCell
             | EmptyCellBackground
             | UnfilledCell
@@ -129,6 +130,9 @@ rules =
       , ("padding", "0")
       , ("margin", "0")
       ]
+  , rule
+      [ Class Helper ]
+      [ ("font-size", "10pt") ]
   , rule
       [ Class Label ]
       [ ("width", "99%")

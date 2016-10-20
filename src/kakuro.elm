@@ -351,7 +351,6 @@ view model =
         -- , showValue model.seed               -- debugging
         ]
     , div [] [ RenderBoard.render model.gameState ]
-    , br
     , div [] [ RenderBoard.renderKeypad ]
     , div []
         [ p []
