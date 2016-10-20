@@ -20,6 +20,7 @@ type BClass = Table
             | KeypadTd
             | KeypadDiv
             | KeypadButton
+            | KeypadButtonHighlight
             | Label
             | Helper
             | EmptyCell
@@ -44,6 +45,9 @@ rule selectors descriptor =
   { selectors = selectors
   , descriptor = descriptor
   }
+
+greenColor : String
+greenColor = "#E0FFE0"
 
 rules =
   [ rule
@@ -94,7 +98,10 @@ rules =
       , ("height", "99%")
       , ("margin", "0")
       , ("padding", "0")
-      ]    
+      ]
+  , rule
+    [ Class KeypadButtonHighlight ]
+    [ ("color", "black") ]
   , rule
       [ Class EmptyCell ]
       [ ("width", "99%")
@@ -159,9 +166,9 @@ rules =
       ]
   , rule
       [ Class Hint]
-      [ ("width", "100%")
-      , ("height", "100%")
-      , ("font-size", "12pt")
+      [ --("width", "100%")
+      --, ("height", "100%")
+       ("font-size", "10pt")
       , ("font-weight", "bold")
       ]
   , rule
@@ -183,7 +190,7 @@ rules =
       ]
   , rule
       [ Class Done]
-      [ ( "background-color", "#E0FFE0" )
+      [ ( "background-color", greenColor )
       ]
   ]
 

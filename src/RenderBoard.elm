@@ -14,11 +14,13 @@ module RenderBoard exposing ( makeGameState
                             , renderKeypad
                             )
 
-import SharedTypes exposing (GameState
+import SharedTypes exposing (GameState, Flags
                             , IntBoard
                             , Labels, LabelsBoard
                             , Hints, HintsBoard
-                            , Msg (ClickCell, PressKey)
+                            , Msg ( ClickCell, PressKey
+                                  , ToggleShowPossibilities
+                                  , ToggleHintInput)
                             )
 import Styles.Board exposing (class, classes, BClass(..))
 import Board exposing(Board, get, set)
@@ -40,7 +42,7 @@ import Html exposing
   (Html, Attribute, div, text, table, tr, td, th, a, img, button)
 import Html.Attributes
   exposing (style, value, href, src, title, alt, id, autofocus)
-import Html.Events exposing (on)
+import Html.Events exposing (on, onClick)
 
 br : Html a
 br =
@@ -110,10 +112,16 @@ hintRow min max hints =
   |> String.left (2*(max-min)+1)
   |> text
 
-hintCell : List Int -> Int -> Int -> Html a
-hintCell hints row col =
-  td [ cellId row col ]
-    [ div [ class Hint ]
+hintCell : Bool -> List Int -> Int -> Int -> Html Msg
+hintCell isSelected hints row col =
+  td [ if isSelected then
+              classes [ Hint, Selected ]
+            else
+              class Hint
+     ]
+    [ div [ cellId row col
+          , onClickWithId ClickCell
+          ]
         [ hintRow 1 3 hints
         , br
         , hintRow 4 6 hints
@@ -146,6 +154,12 @@ emptyLabels = (0, 0)
 
 emptyHints : Hints
 emptyHints = []
+
+defaultFlags : Flags
+defaultFlags =
+  { isHintInput = False
+  , showPossibilities = True
+  }
 
 sumColLoop : Int -> Int -> Int -> (IntBoard) -> Int
 sumColLoop row col sum board =
@@ -248,12 +262,15 @@ renderCell row col state =
   in
       if right==0 && bottom==0 then
         let val = (get bRow bCol state.guesses)
+            hints = (get bRow bCol state.hints)
         in
             if val == 0 then
               if (get bRow bCol state.board) == 0 then
                 emptyCell
-              else
+              else if List.isEmpty hints then
                 unfilledCell isSelected bRow bCol
+              else
+                hintCell isSelected hints bRow bCol
             else
               renderFilledCell isSelected val bRow bCol state
       else
@@ -301,6 +318,7 @@ makeGameState board =
       , cellClasses = cellClasses
       , guesses = guesses
       , hints = hints
+      , flags = defaultFlags
       , selection = Nothing
       }
 
@@ -373,23 +391,47 @@ render state =
     [ Styles.Board.style
     , table [ class Table ]
         (renderRows state)
-    , div [ class Helper ]
-      [ text ("row: " ++ (rowHelperText state))
-      , br
-      , text ("col: " ++ (colHelperText state))
-      ]
+    , if state.flags.showPossibilities then
+        div [ class Helper ]
+          [ text ("row: " ++ (rowHelperText state))
+          , br
+          , text ("col: " ++ (colHelperText state))
+          ]
+      else
+        br
     ]
 
 --
 -- The push-button keypad
 --
 
-keycodeCell : Int -> String -> Html Msg
-keycodeCell keycode label =
+keypadButtonClass : String -> GameState -> Attribute Msg
+keypadButtonClass label state =
+  let highlight =
+        if label == "*" then
+          state.flags.showPossibilities
+        else if label == "#" then
+          state.flags.isHintInput
+        else
+          False
+      highlightClasses = if highlight then
+                           [KeypadButtonHighlight]
+                         else
+                           []
+  in
+      classes (KeypadButton :: highlightClasses)
+
+keycodeCell : Int -> String -> GameState -> Html Msg
+keycodeCell keycode label state =
   td [ class KeypadTd
-     , onClickWithInt PressKey keycode
+     , if label == "*" then
+         onClick ToggleShowPossibilities
+       else if label == "#" then
+         onClick ToggleHintInput
+       else
+         onClickWithInt PressKey keycode
      ]
-    [ button [ class KeypadButton
+    [ button [ keypadButtonClass label state
              , autofocus (label == " ")]
         [ text  label ]
     ]
@@ -418,26 +460,27 @@ keypadKeycode char =
           Just (_, res) ->
             res
 
-renderKeypadCell : Char -> Html Msg
-renderKeypadCell char =
-  keycodeCell (keypadKeycode char) (String.fromList [char])
+renderKeypadCell : Char -> GameState -> Html Msg
+renderKeypadCell char state =
+  keycodeCell (keypadKeycode char) (String.fromList [char]) state
 
-renderKeypadRow : String -> Html Msg
-renderKeypadRow string =
+renderKeypadRow : String -> GameState -> Html Msg
+renderKeypadRow string state =
   let chars = String.toList string
   in
       tr []
-        <| List.map renderKeypadCell chars
+        <| List.map (\x -> renderKeypadCell x state) chars
+
 -- 1 2 3 ^
 -- 4 5 6 v
 -- 7 8 9 <
 -- * 0 # >
-renderKeypad : Html Msg
-renderKeypad =
+renderKeypad : GameState -> Html Msg
+renderKeypad state =
   table [ class Table]
     [ Styles.Board.style
-    , renderKeypadRow "123*"
-    , renderKeypadRow "456#"
-    , renderKeypadRow "78^ "
-    , renderKeypadRow "9<v>"
+    , renderKeypadRow "123*" state
+    , renderKeypadRow "456#" state
+    , renderKeypadRow "78^ " state
+    , renderKeypadRow "9<v>" state
     ]

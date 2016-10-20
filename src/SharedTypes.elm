@@ -12,7 +12,7 @@
 module SharedTypes exposing ( Model
                             , Msg, Msg (..)
                             , Selection
-                            , GameState
+                            , GameState, Flags
                             , IntBoard
                             , BClassMatrix
                             , BClassBoard
@@ -45,6 +45,8 @@ type Msg
   | Seed Time
   | ClickCell String
   | PressKey Keyboard.KeyCode
+  | ToggleHintInput
+  | ToggleShowPossibilities
   | Nop
 
 type alias IntBoard =
@@ -71,6 +73,11 @@ type alias BClassMatrix =
 type alias BClassBoard =
   Board (Maybe BClass)
 
+type alias Flags =
+  { isHintInput : Bool
+  , showPossibilities : Bool
+  }
+
 type alias GameState =
   { board : IntBoard
   , labels : LabelsBoard
@@ -78,5 +85,6 @@ type alias GameState =
   , cellClasses : BClassBoard
   , guesses : IntBoard
   , hints : HintsBoard
+  , flags : Flags
   , selection : Maybe Selection
   }

@@ -10,7 +10,8 @@
 ----------------------------------------------------------------------
 
 import SharedTypes exposing ( Model, Msg, Msg (..)
-                            , IntBoard, HintsBoard, Selection, GameState)
+                            , IntBoard, HintsBoard, Selection
+                            , GameState, Flags)
 import Styles.Page exposing (id, class, PId(..), PClass(..))
 import KakuroNative exposing (sha256)
 import Board exposing(Board)
@@ -205,11 +206,25 @@ processMovementKeys keyCode model =
           Just (_, direction) ->
             Just <| moveSelection direction model
 
+toggleHint : Int -> Int -> Int -> HintsBoard -> HintsBoard
+toggleHint row col digit hints =
+  let val = Board.get row col hints
+      isThere = List.member digit val
+      new = if digit == 0 then
+              []
+            else if isThere then
+              LE.remove digit val
+            else
+              digit :: val
+  in
+      Board.set row col new hints
+
 processDigitKeys : Int -> Model -> Model
 processDigitKeys keyCode model =
   let gameState = model.gameState
       selection = gameState.selection
       guesses = gameState.guesses
+      hints = gameState.hints
   in
       case selection of
           Nothing ->
@@ -222,9 +237,14 @@ processDigitKeys keyCode model =
                   model
                 else
                   { model | gameState =
-                      { gameState | guesses =
-                          Board.set row col digit guesses
-                      }
+                      if gameState.flags.isHintInput then
+                        { gameState | hints =
+                            toggleHint row col digit hints
+                        }
+                      else
+                        { gameState | guesses =
+                            Board.set row col digit guesses
+                        }
                   }
                   
 processKeyPress : Int -> Model -> Model
@@ -251,6 +271,16 @@ getBoard kind index model =
           , gameState = gameState
           }
 
+toggleFlag : ( Flags -> Bool) -> ( Bool -> Flags -> Flags) -> Model -> Model
+toggleFlag reader writer model =
+  let gameState = model.gameState
+      flags = gameState.flags
+      flags' = writer (not (reader flags)) flags
+      gameState' = { gameState | flags = flags' }
+  in
+      { model | gameState = gameState' }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
@@ -266,6 +296,12 @@ update msg model =
       (updateSelectedCell id model, Cmd.none)
     PressKey code ->
       (processKeyPress code model, Cmd.none)
+    ToggleHintInput ->
+      (toggleFlag .isHintInput (\v r -> { r | isHintInput = v }) model
+      , Cmd.none)
+    ToggleShowPossibilities ->
+      (toggleFlag .showPossibilities (\v r -> { r | showPossibilities = v }) model
+      , Cmd.none)
     Nop ->
       (model, Cmd.none)
           
@@ -351,12 +387,16 @@ view model =
         -- , showValue model.seed               -- debugging
         ]
     , div [] [ RenderBoard.render model.gameState ]
-    , div [] [ RenderBoard.renderKeypad ]
+    , div [] [ RenderBoard.renderKeypad model.gameState ]
     , div []
         [ p []
             [ text "Click to select. Arrows, WASD, or IJKL to move."
             , br
             , text "1-9 to enter number. 0 or space to erase."
+            , br
+            , text "* toggles row/col possibility display."
+            , br
+            , text "# toggles hint input"
             , br
             , text "Under development. New features daily."
             ]
