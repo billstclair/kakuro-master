@@ -31,32 +31,32 @@ import Array exposing (Array)
 type alias Board a =
   { rows : Int
   , cols : Int
-  , default: a
+  , defaultValue: a
   , array: Array (Array a)
   }
       
 makeRow : Int -> a -> (Array a)
-makeRow cols default =
-  Array.repeat cols default
+makeRow cols defaultValue =
+  Array.repeat cols defaultValue
 
-{-| Create a new Board of the given size, initialized with the default value.
+{-| Create a new Board of the given size, initialized with the defaultValue value.
 
-    make rows cols default
+    make rows cols defaultValue
 -}
 make : Int -> Int -> a -> Board a
-make rows cols default =
-  makeWithInitial rows cols default default
+make rows cols defaultValue =
+  makeWithInitial rows cols defaultValue defaultValue
 
 {-| Create a new Board of the given size, initialized with a different value.
 
-    makeWithInitial rows cols default initial
+    makeWithInitial rows cols defaultValue initial
 -}
 makeWithInitial : Int -> Int -> a -> a -> Board a
-makeWithInitial rows cols default initial =
+makeWithInitial rows cols defaultValue initial =
   Board
     rows
     cols
-    default
+    defaultValue
     (Array.repeat rows (makeRow cols initial))
   
 
@@ -71,10 +71,10 @@ check board row col =
 get : Int -> Int -> Board a -> a
 get row col board =
   case Array.get row board.array of
-      Nothing -> board.default
+      Nothing -> board.defaultValue
       Just r ->
         case Array.get col r of
-            Nothing -> board.default
+            Nothing -> board.defaultValue
             Just res -> res
 
 {-| Set a single element. Does nothing if row or col is out of range.
@@ -102,7 +102,7 @@ set row col val board =
 getRow : Int -> Board a -> Array a
 getRow row board =
   case Array.get row board.array of
-      Nothing -> makeRow board.cols board.default
+      Nothing -> makeRow board.cols board.defaultValue
       Just row -> row
 
 {-| Set row in board to rowArray. Do nothing if row is out of range.

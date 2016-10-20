@@ -48,11 +48,22 @@ main =
   Html.programWithFlags
     { init = init
     , view = view
-    , update = update
+    , update = updateWithStorage
     , subscriptions = subscriptions
     }
 
 port setStorage : Model -> Cmd msg
+
+-- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
+updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
+updateWithStorage msg model =
+  let
+    ( newModel, cmds ) =
+      update msg model
+  in
+      ( newModel
+      , Cmd.batch [ setStorage newModel, cmds ]
+      )
 
 -- MODEL
 

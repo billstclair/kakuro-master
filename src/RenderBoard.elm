@@ -337,7 +337,7 @@ makeGameState : IntBoard -> GameState
 makeGameState board =
   let rows = board.rows
       cols = board.cols
-      guesses = Board.make rows cols board.default
+      guesses = Board.make rows cols board.defaultValue
       hints = Board.make rows cols emptyHints
   in
       { board = board
