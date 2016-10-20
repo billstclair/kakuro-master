@@ -396,7 +396,7 @@ view model =
             , br
             , text "* toggles row/col possibility display."
             , br
-            , text "# toggles hint input"
+            , text "# toggles hint input."
             , br
             , text "Under development. New features daily."
             ]
