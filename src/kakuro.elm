@@ -304,6 +304,7 @@ getBoard kind index model =
                 ( { model |
                     gameState = gameState
                   , index = idx
+                  , kind = kind
                   }
                 , Cmd.none)
           Just spec ->
@@ -390,6 +391,7 @@ update msg model =
           Just gameState ->
             ( { model |
                 gameState = gameState
+              , kind = Board.kind gameState.board
               , index = realBoardIndex gameState.board
               }
             , Cmd.none
