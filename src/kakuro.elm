@@ -12,11 +12,12 @@
 port module Kakuro exposing (..)
 
 import SharedTypes exposing ( Model, modelVersion
+                            , GameState
                             , Msg, Msg (..)
                             , IntBoard, HintsBoard, Selection
                             , Flags)
 import Styles.Page exposing (id, class, PId(..), PClass(..))
-import KakuroNative exposing (sha256)
+import KakuroNative
 import Board exposing(Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
@@ -54,6 +55,11 @@ main =
     }
 
 port setStorage : Model -> Cmd msg
+
+port saveGame : (String, GameState) -> Cmd msg
+
+port requestGame : String -> Cmd msg
+port receiveGame : (Maybe String -> msg) -> Sub msg
 
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,6 +107,7 @@ model =
       , gencount = 0
       , gameState = state
       , time = 0
+      , message = Nothing
       }
 
 -- UPDATE
@@ -284,8 +291,8 @@ getBoard kind index model =
       (idx, board) = PuzzleDB.nextBoardOfKind kind index'
       gameState = RenderBoard.makeGameState board
       in
-          {model |
-             kind = kind
+          { model |
+            kind = kind
           , index = idx
           , gencount = (model.gencount+1)
           , gameState = gameState
@@ -316,7 +323,7 @@ update msg model =
     Generate increment ->
       (getBoard model.kind (model.index + increment) model, Cmd.none)
     Tick time ->
-      ({model | time = model.time + 1}, Cmd.none)
+      ({ model | time = model.time + 1 }, Cmd.none)
 {-
     Seed time ->
       ({model | seed = Just <| Random.initialSeed (round time)}, Cmd.none)
@@ -329,6 +336,8 @@ update msg model =
       (toggleHintInput model, Cmd.none)
     ToggleShowPossibilities ->
       (toggleShowPossibilities model, Cmd.none)
+    ReceiveGame maybeHash ->
+      ({ model | message = maybeHash }, Cmd.none)
     Nop ->
       (model, Cmd.none)
           
@@ -409,7 +418,6 @@ view model =
         , text "Board Number: "
         , text (toString model.index)
         , br
-        -- , text ("sha256(\"foo\"): " ++ sha256("foo"))
         -- , text (" " ++ toString model.time)  -- Will eventually be timer
         -- , showValue model.seed               -- debugging
         ]

@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <title>Kakuro Dojo</title>
   <script type="text/javascript" src="kakuro.js"></script>
+  <script type="text/javascript" src="js/sha256.js"></script>
 </head>
 
 <body>
@@ -16,7 +17,7 @@
 // or we ignore the saved state.
 // Once it's in production, this file will need to have code to
 // update old state to match current state.
-var modelVersion = 1;
+var modelVersion = 4;
 
 var storageName = 'kakuro-dojo';
 var storedState = localStorage.getItem(storageName);
@@ -32,6 +33,17 @@ if (startingState) {
 var kakuro = Elm.Kakuro.fullscreen(startingState);
 kakuro.ports.setStorage.subscribe(function(state) {
     localStorage.setItem(storageName, JSON.stringify(state));
+});
+
+kakuro.ports.saveGame.subscribe(function(spec, gameState) {
+  var hash = sha224(spec);
+  localStorage.setItem(hash, JSON.stringify(gameState));
+});
+
+// This isn't restoring yet. It just sends the hash back
+kakuro.ports.requestGame.subscribe(function(spec) {
+  var hash = sha224(spec);
+  app.ports.receiveGame.send(hash);
 });
 
 </script>

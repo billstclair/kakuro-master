@@ -14,7 +14,7 @@ module RenderBoard exposing ( makeGameState
                             , renderKeypad
                             )
 
-import SharedTypes exposing (GameState
+import SharedTypes exposing (GameState, modelVersion
                             , Flags
                             , IntBoard
                             , BClassBoard
@@ -340,7 +340,8 @@ makeGameState board =
       guesses = Board.make rows cols board.defaultValue
       hints = Board.make rows cols emptyHints
   in
-      { board = board
+      { version = modelVersion
+      , board = board
       , labels = (computeLabels board)
       , allDone = False
       , guesses = guesses

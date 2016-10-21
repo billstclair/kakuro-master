@@ -11,7 +11,6 @@
 
 module KakuroNative exposing
   ( setTitle
-  , sha256
   )
 
 import Native.Kakuro
@@ -19,7 +18,3 @@ import Native.Kakuro
 setTitle: String -> String
 setTitle =
   Native.Kakuro.setTitle
-
-sha256: String -> String
-sha256 =
-  Native.Kakuro.sha256
