@@ -62,6 +62,7 @@ type Msg
   | ToggleHintInput
   | ToggleShowPossibilities
   | ReceiveGame (Maybe GameState)
+  | AnswerConfirmed String Bool
   | Nop
 
 type alias IntBoard =

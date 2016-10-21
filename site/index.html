@@ -57,7 +57,6 @@ kakuro.ports.saveGame.subscribe(function(specAndState) {
   localStorage.setItem(hash, json);
 });
 
-// This isn't restoring yet. It just sends the hash back
 kakuro.ports.requestGame.subscribe(function(spec) {
   var hash = specHash(spec);
   var json = localStorage.getItem(hash);
@@ -67,6 +66,11 @@ kakuro.ports.requestGame.subscribe(function(spec) {
     gameState = null;
   }
   kakuro.ports.receiveGame.send(gameState);
+});
+
+kakuro.ports.confirmDialog.subscribe(function(query) {
+  var answer = window.confirm(query);
+  kakuro.ports.confirmAnswer.send([query, answer]);
 });
 
 </script>

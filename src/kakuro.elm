@@ -62,6 +62,9 @@ port receiveGame : (Maybe GameState -> msg) -> Sub msg
 
 port setTitle : String -> Cmd msg
 
+port confirmDialog : String -> Cmd msg
+port confirmAnswer : ((String, Bool) -> msg) -> Sub msg
+
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
 updateWithStorage msg model =
@@ -361,7 +364,7 @@ update msg model =
     Generate increment ->
       getBoard model.kind (model.index + increment) model
     Restart ->
-      (resetGameState model, Cmd.none)
+      (model, confirmDialog "Restart this puzzle?")
     Tick time ->
       ({ model | time = model.time + 1 }, Cmd.none)
 {-
@@ -391,15 +394,26 @@ update msg model =
               }
             , Cmd.none
             )
+    AnswerConfirmed question doit ->
+      ( if doit then (resetGameState model) else model
+      , Cmd.none)      
     Nop ->
       (model, Cmd.none)
           
 -- SUBSCRIPTIONS
 
+-- So far there's only one question, whether to actually clear the board
+answerConfirmed : (String, Bool) -> Msg
+answerConfirmed answer =
+  let (question, doit) = answer
+  in
+      AnswerConfirmed question doit
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
   --Time.every second Tick
   Sub.batch [ Keyboard.downs (PressKey)
+            , confirmAnswer answerConfirmed
             , receiveGame (\maybeGame -> ReceiveGame maybeGame)
             ]
 
