@@ -17,7 +17,7 @@ import SharedTypes exposing ( Model, modelVersion
                             , IntBoard, HintsBoard, Selection
                             , Flags)
 import Styles.Page exposing (id, class, PId(..), PClass(..))
-import Board exposing(Board)
+import Board exposing (Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
 import DebuggingRender
@@ -53,12 +53,12 @@ main =
     , subscriptions = subscriptions
     }
 
-port setStorage : Model -> Cmd msg
+port setStorage : Model -> Cmd a
 
 port saveGame : (String, GameState) -> Cmd msg
 
 port requestGame : String -> Cmd msg
-port receiveGame : (Maybe String -> msg) -> Sub msg
+port receiveGame : (Maybe GameState -> msg) -> Sub msg
 
 port setTitle : String -> Cmd msg
 
@@ -91,16 +91,11 @@ init : Maybe Model -> ( Model, Cmd Msg )
 init savedModel =
   Maybe.withDefault model savedModel ! [ setTitle pageTitle ]
 
-defaultBoard : IntBoard
-defaultBoard =
-  Board.make 6 6 0
-    |> Board.set 6 7 9
-    |> Board.set 1 2 5
-
 model : Model
 model =
-  let (idx, board) = PuzzleDB.nextBoardOfKind initialKind 0
+  let board = PuzzleDB.getBoardOfKind initialKind 1
       state = RenderBoard.makeGameState board
+      idx = realBoardIndex board
   in
       { version = modelVersion
       , kind = initialKind
@@ -108,6 +103,7 @@ model =
       , gencount = 0
       , gameState = state
       , time = 0
+      , awaitingCommand = Nothing
       , message = Nothing
       }
 
@@ -283,17 +279,54 @@ processKeyPress keyCode model =
       Just model ->
         model
 
-getBoard : Int -> Int -> Model -> Model
+realBoardIndex : IntBoard -> Int
+realBoardIndex board =
+  case board.index of
+      Nothing -> 0
+      Just index -> index
+
+getBoard : Int -> Int -> Model -> (Model, Cmd a)
 getBoard kind index model =
-  let index' = if (index-1) < 0 then
-                 (PuzzleDB.numberOfBoardsOfKind kind) - 1
+  let index' = if index < 1 then
+                 PuzzleDB.numberOfBoardsOfKind kind
                else
-                 index-1
-      (idx, board) = PuzzleDB.nextBoardOfKind kind index'
+                 index
+      board = PuzzleDB.getBoardOfKind kind index'
+  in
+      case board.spec of
+          Nothing ->
+            let gameState = RenderBoard.makeGameState board
+                idx = realBoardIndex board
+            in
+                ( { model |
+                    gameState = gameState
+                  , index = idx
+                  }
+                , Cmd.none)
+          Just spec ->
+            let currentGameState = model.gameState
+                maybeSpec = currentGameState.board.spec
+            in
+                ( { model |
+                      awaitingCommand = Just spec
+                  }
+                , Cmd.batch ( requestGame spec
+                            ::
+                              case maybeSpec of
+                                  Nothing -> []
+                                  Just currentSpec ->
+                                    [ saveGame (currentSpec, currentGameState) ]
+                            )
+                )
+
+getBoardFromSpec : String -> Model -> Model
+getBoardFromSpec spec model =
+  let board = PuzzleDB.findBoard spec
       gameState = RenderBoard.makeGameState board
+      idx = realBoardIndex board
       in
           { model |
-            kind = kind
+            kind = Board.kind board
           , index = idx
           , gencount = (model.gencount+1)
           , gameState = gameState
@@ -316,13 +349,19 @@ toggleShowPossibilities : Model -> Model
 toggleShowPossibilities model =
   toggleFlag .showPossibilities (\v r -> { r | showPossibilities = v }) model
 
+resetGameState : Model -> Model
+resetGameState model =
+  { model | gameState = RenderBoard.makeGameState model.gameState.board }
+
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
     ChangeKind kind ->
-      (getBoard kind model.index model, Cmd.none)
+      getBoard kind model.index model
     Generate increment ->
-      (getBoard model.kind (model.index + increment) model, Cmd.none)
+      getBoard model.kind (model.index + increment) model
+    Restart ->
+      (resetGameState model, Cmd.none)
     Tick time ->
       ({ model | time = model.time + 1 }, Cmd.none)
 {-
@@ -337,8 +376,21 @@ update msg model =
       (toggleHintInput model, Cmd.none)
     ToggleShowPossibilities ->
       (toggleShowPossibilities model, Cmd.none)
-    ReceiveGame maybeGame ->
-      ({ model | message = maybeGame }, Cmd.none)
+    ReceiveGame maybeGameState ->
+      case maybeGameState of
+          Nothing ->
+            case model.awaitingCommand of
+                Nothing ->
+                  (model, Cmd.none)
+                Just spec ->
+                  (getBoardFromSpec spec model, Cmd.none)
+          Just gameState ->
+            ( { model |
+                gameState = gameState
+              , index = realBoardIndex gameState.board
+              }
+            , Cmd.none
+            )
     Nop ->
       (model, Cmd.none)
           
@@ -411,15 +463,27 @@ view model =
             ]
         , text " "
         , button [ onClick (Generate -1)
-                 , class ControlsClass ]
+                 , class ControlsClass
+                 , title "Go to the previous game." ]
            [ text "<" ]
         , text " "
+        , button [ onClick Restart
+                 , class ControlsClass
+                 , title "Start over on this game." ]
+          [ text "X" ]
+        , text " "
         , button [ onClick (Generate 1)
-                 , class ControlsClass ]
+                 , class ControlsClass
+                 , title "Go to the next game." ]
            [ text ">" ]
         , br
         , text "Board Number: "
-        , text (toString model.index)
+        , text ((toString model.index) ++
+          case model.message of
+              Nothing -> ""
+              Just hash ->
+                " (" ++ hash ++ ")"
+               )
         , br
         -- , text (" " ++ toString model.time)  -- Will eventually be timer
         -- , showValue model.seed               -- debugging
@@ -430,7 +494,7 @@ view model =
         [ p []
             [ text "Click to select. Arrows, WASD, or IJKL to move."
             , br
-            , text "1-9 to enter number. 0 or space to erase."
+            , text "1-9 to enter number. 0 to erase."
             , br
             , text "* toggles row/col possibility display."
             , br

@@ -17,7 +17,7 @@
 // or we ignore the saved state.
 // Once it's in production, this file will need to have code to
 // update old state to match current state.
-var modelVersion = 4;
+var modelVersion = 6;
 
 var storageName = 'kakuro-dojo';
 var storedState = localStorage.getItem(storageName);
@@ -39,15 +39,34 @@ kakuro.ports.setTitle.subscribe(function(title) {
   document.title = title;
 })
 
-kakuro.ports.saveGame.subscribe(function(spec, gameState) {
-  var hash = sha224(spec);
-  localStorage.setItem(hash, JSON.stringify(gameState));
+function specHash(spec) {
+  var hash = sha256(spec);
+  return hash.substring(0, 8);
+}
+
+function log (x) {
+  console.log(x+"\n");
+}
+
+kakuro.ports.saveGame.subscribe(function(specAndState) {
+  var spec = specAndState[0]
+  var gameState = specAndState[1]
+  var hash = specHash(spec);
+  var json = JSON.stringify(gameState)
+  //log("Saving: " + hash + ", from: " + spec + " as: " + json);
+  localStorage.setItem(hash, json);
 });
 
 // This isn't restoring yet. It just sends the hash back
 kakuro.ports.requestGame.subscribe(function(spec) {
-  var hash = sha224(spec);
-  app.ports.receiveGame.send(hash);
+  var hash = specHash(spec);
+  var json = localStorage.getItem(hash);
+  //log("Restored: " + hash + " from: " + spec + " as: " + json);
+  var gameState = json ? JSON.parse(json) : null;
+  if (gameState != null && gameState.version != modelVersion) {
+    gameState = null;
+  }
+  kakuro.ports.receiveGame.send(gameState);
 });
 
 </script>

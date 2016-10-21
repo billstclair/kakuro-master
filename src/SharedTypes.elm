@@ -37,7 +37,7 @@ import Keyboard
 -- The version needs to be bumped any time ANY state reachable
 -- from the model is changed, in shape or type.
 modelVersion : Int
-modelVersion = 4
+modelVersion = 6
 
 type alias Model =
   { version: Int
@@ -47,11 +47,13 @@ type alias Model =
   , gameState : GameState
 --, seed : Maybe Random.Seed
   , time : Time
+  , awaitingCommand : Maybe String
   , message : Maybe String
   }
-  
+
 type Msg
   = Generate Int
+  | Restart
   | ChangeKind Int
   | Tick Time
 --  | Seed Time
@@ -59,7 +61,7 @@ type Msg
   | PressKey Keyboard.KeyCode
   | ToggleHintInput
   | ToggleShowPossibilities
-  | ReceiveGame (Maybe String)
+  | ReceiveGame (Maybe GameState)
   | Nop
 
 type alias IntBoard =

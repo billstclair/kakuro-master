@@ -13,7 +13,9 @@ module PuzzleDB exposing
   ( boardKinds
   , boardsOfKind
   , numberOfBoardsOfKind
-  , nextBoardOfKind
+  , getBoardOfKind
+  , kindForSpec
+  , findBoard
   )
 
 import Puzzles
@@ -67,14 +69,20 @@ log str a b =
   in
       b
 
-segregatePuzzles : List (Int, Int, Int, Int, String) -> List (Int, List (Board Int)) -> List (Int, List (Int, (Board Int)))
+setBoardIndex : Int -> Board Int -> Board Int
+setBoardIndex index board =
+  { board | index = Just index }
+
+segregatePuzzles : List (Int, Int, Int, Int, String) -> List (Int, List (Board Int)) -> List (Int, List (Board Int))
 segregatePuzzles specs res =
   case specs of
       [] ->
         let (kinds, boardss) = List.unzip res
             tupless = List.map
                       (\boards ->
-                         LE.zip [1..(List.length boards)] (List.reverse boards))
+                         List.map2 setBoardIndex
+                                   [1..(List.length boards)]
+                                   (List.reverse boards))
                       boardss
         in
             LE.zip kinds tupless
@@ -90,13 +98,13 @@ segregatePuzzles specs res =
         in
             segregatePuzzles tail newres
 
-kindedBoards : List (Int, List (Int, (Board Int)))
+kindedBoards : List (Int, List ( Board Int))
 kindedBoards = segregatePuzzles (sortSpecs Puzzles.puzzles) []
 
 boardKinds : List Int
 boardKinds = List.map fst kindedBoards
 
-boardsOfKind : Int -> List (Int, (Board Int))
+boardsOfKind : Int -> List (Board Int)
 boardsOfKind kind =
   case LE.find (\(k,b) -> k == kind) kindedBoards of
       Nothing -> []
@@ -106,13 +114,32 @@ numberOfBoardsOfKind : Int -> Int
 numberOfBoardsOfKind kind =
   List.length (boardsOfKind kind)
 
-nextBoardOfKind : Int -> Int -> (Int, (Board Int))
-nextBoardOfKind kind number =
-  case List.head (LE.dropWhile (\(n,b) -> n<=number) (boardsOfKind kind))
+getBoardOfKind : Int -> Int -> Board Int
+getBoardOfKind kind index =
+  case LE.find (\board -> board.index == (Just index))
+               (boardsOfKind kind)
   of
       Nothing ->
-        case List.head (boardsOfKind kind) of
-            Nothing -> (0, Board.make kind kind 0)
-            Just res -> res
+        if index == 1 then
+          Board.make kind kind 0
+        else
+          getBoardOfKind kind 1
       Just res ->
         res
+
+kindForSpec : String -> Int
+kindForSpec spec =
+  case String.length spec of
+      100 -> 10
+      64 -> 8
+      _ -> 6
+
+findBoard : String -> Board Int
+findBoard spec =
+  let kind = kindForSpec spec
+  in
+      case LE.find (\board -> board.spec == (Just spec))
+                   (boardsOfKind kind)
+      of
+          Nothing -> getBoardOfKind kind 1
+          Just res -> res

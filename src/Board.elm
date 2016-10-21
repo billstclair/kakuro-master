@@ -14,6 +14,7 @@ module Board exposing
   , make, makeWithInitial
   , makeWithSpec, makeWithSpecInitial
   , get, set, getRow, setRow
+  , kind
   )
 
 {-| Two-dimensional game board with integers as elements.
@@ -27,6 +28,7 @@ module Board exposing
 @docs set
 @docs getRow
 @docs setRow
+@docs kind
 
 -}
 
@@ -38,6 +40,7 @@ type alias Board a =
   , cols : Int
   , defaultValue: a
   , spec: Maybe String
+  , index: Maybe Int
   , array: Array (Array a)
   }
       
@@ -79,6 +82,7 @@ makeWithSpecInitial rows cols defaultValue initial spec =
   { rows = rows
   ,  cols = cols
   , defaultValue = defaultValue
+  , index = Nothing
   , spec = spec
   , array = (Array.repeat rows (makeRow cols initial))
   }
@@ -135,3 +139,8 @@ getRow row board =
 setRow : Int -> Array a -> Board a -> Board a
 setRow row rowArray board =
   { board | array = Array.set row rowArray board.array }
+
+{-| Another name for .cols
+-}
+kind : Board a -> Int
+kind = .cols
