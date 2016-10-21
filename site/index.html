@@ -35,6 +35,10 @@ kakuro.ports.setStorage.subscribe(function(state) {
     localStorage.setItem(storageName, JSON.stringify(state));
 });
 
+kakuro.ports.setTitle.subscribe(function(title) {
+  document.title = title;
+})
+
 kakuro.ports.saveGame.subscribe(function(spec, gameState) {
   var hash = sha224(spec);
   localStorage.setItem(hash, JSON.stringify(gameState));

@@ -17,7 +17,6 @@ import SharedTypes exposing ( Model, modelVersion
                             , IntBoard, HintsBoard, Selection
                             , Flags)
 import Styles.Page exposing (id, class, PId(..), PClass(..))
-import KakuroNative
 import Board exposing(Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
@@ -61,6 +60,8 @@ port saveGame : (String, GameState) -> Cmd msg
 port requestGame : String -> Cmd msg
 port receiveGame : (Maybe String -> msg) -> Sub msg
 
+port setTitle : String -> Cmd msg
+
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
 updateWithStorage msg model =
@@ -78,7 +79,7 @@ initialKind : Int
 initialKind = 6
 
 pageTitle : String
-pageTitle = KakuroNative.setTitle "Kakuro Dojo"
+pageTitle = "Kakuro Dojo"
 
 {-
 seedCmd : Cmd Msg
@@ -88,7 +89,7 @@ seedCmd =
 
 init : Maybe Model -> ( Model, Cmd Msg )
 init savedModel =
-  Maybe.withDefault model savedModel ! [ Cmd.none ]  --[ seedCmd ]
+  Maybe.withDefault model savedModel ! [ setTitle pageTitle ]
 
 defaultBoard : IntBoard
 defaultBoard =
@@ -336,8 +337,8 @@ update msg model =
       (toggleHintInput model, Cmd.none)
     ToggleShowPossibilities ->
       (toggleShowPossibilities model, Cmd.none)
-    ReceiveGame maybeHash ->
-      ({ model | message = maybeHash }, Cmd.none)
+    ReceiveGame maybeGame ->
+      ({ model | message = maybeGame }, Cmd.none)
     Nop ->
       (model, Cmd.none)
           
@@ -346,7 +347,9 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
   --Time.every second Tick
-  Keyboard.downs (PressKey)
+  Sub.batch [ Keyboard.downs (PressKey)
+            , receiveGame (\maybeGame -> ReceiveGame maybeGame)
+            ]
 
 -- VIEW
 
