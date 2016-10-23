@@ -11,7 +11,7 @@
 
 port module Kakuro exposing (..)
 
-import SharedTypes exposing ( Model, modelVersion
+import SharedTypes exposing ( SavedModel, modelVersion, Model
                             , GameState
                             , Msg, Msg (..)
                             , IntBoard, HintsBoard, Selection
@@ -44,7 +44,7 @@ import Html.App as Html
 import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
 
-main : Program (Maybe Model)
+main : Program (Maybe SavedModel)
 main =
   Html.programWithFlags
     { init = init
@@ -53,7 +53,7 @@ main =
     , subscriptions = subscriptions
     }
 
-port setStorage : Model -> Cmd a
+port setStorage : SavedModel -> Cmd a
 
 port saveGame : (String, GameState) -> Cmd msg
 
@@ -69,11 +69,11 @@ port confirmAnswer : ((String, Bool) -> msg) -> Sub msg
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
 updateWithStorage msg model =
   let
-    ( newModel, cmds ) =
-      update msg model
+    ( newModel, cmds ) = update msg model
+    savedModel = SharedTypes.modelToSavedModel newModel
   in
       ( newModel
-      , Cmd.batch [ setStorage newModel, cmds ]
+      , Cmd.batch [ setStorage savedModel, cmds ]
       )
 
 -- MODEL
@@ -90,9 +90,13 @@ seedCmd =
   Task.perform (\x -> Nop) (\x -> Seed x) Time.now
 -}
 
-init : Maybe Model -> ( Model, Cmd Msg )
+init : Maybe SavedModel -> ( Model, Cmd Msg )
 init savedModel =
-  Maybe.withDefault model savedModel ! [ setTitle pageTitle ]
+  ( case savedModel of
+        Nothing -> model
+        Just m -> SharedTypes.savedModelToModel m
+  , setTitle pageTitle
+  )
 
 model : Model
 model =
@@ -100,12 +104,12 @@ model =
       state = RenderBoard.makeGameState board
       idx = realBoardIndex board
   in
-      { version = modelVersion
-      , kind = initialKind
+      { kind = initialKind
       , index = idx
       , gencount = 0
       , gameState = state
       , time = 0
+      , seed = Nothing
       , awaitingCommand = Nothing
       , message = Nothing
       }

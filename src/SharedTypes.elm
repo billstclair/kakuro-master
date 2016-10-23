@@ -9,7 +9,8 @@
 --
 ----------------------------------------------------------------------
 
-module SharedTypes exposing ( Model, modelVersion
+module SharedTypes exposing ( SavedModel, modelVersion, Model
+                            , modelToSavedModel, savedModelToModel
                             , Msg, Msg (..)
                             , Selection
                             , GameState
@@ -37,18 +38,53 @@ import Keyboard
 -- The version needs to be bumped any time ANY state reachable
 -- from the model is changed, in shape or type.
 modelVersion : Int
-modelVersion = 6
+modelVersion = 7
 
-type alias Model =
+-- This gets saved in the browser database.
+-- Changing it currently causes all saved state to be lost.
+-- Fix that eventually.
+type alias SavedModel =
   { version: Int
   , kind : Int
   , index : Int
   , gencount : Int
   , gameState : GameState
---, seed : Maybe Random.Seed
   , time : Time
+  }
+
+type alias Model =
+  { -- on disk. Copied to and from SavedModel instance.
+    kind : Int
+  , index : Int
+  , gencount : Int
+  , gameState : GameState
+  , time : Time
+  -- in-memory only
+  , seed : Maybe Random.Seed
   , awaitingCommand : Maybe String
   , message : Maybe String
+  }
+
+modelToSavedModel : Model -> SavedModel
+modelToSavedModel model =
+  { version = modelVersion
+  , kind = model.kind
+  , index = model.index
+  , gencount = model.gencount
+  , gameState = model.gameState
+  , time = model.time
+  }
+
+savedModelToModel : SavedModel -> Model
+savedModelToModel savedModel =
+  { kind = savedModel.kind
+  , index = savedModel.index
+  , gencount = savedModel.gencount
+  , gameState = savedModel.gameState
+  , time = savedModel.time
+  , seed = Nothing
+  , awaitingCommand = Nothing
+  , message = Nothing           
   }
 
 type Msg

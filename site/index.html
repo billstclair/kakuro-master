@@ -21,7 +21,7 @@
 // or we ignore the saved state.
 // Once it's in production, this file will need to have code to
 // update old state to match current state.
-var modelVersion = 6;
+var modelVersion = 7;
 
 var storageName = 'kakuro-dojo';
 var storedState = localStorage.getItem(storageName);
@@ -29,14 +29,19 @@ var startingState = storedState ? JSON.parse(storedState) : null;
 
 if (startingState) {
   var version = startingState.version;
+  
   if (version != modelVersion) {
     startingState = null;
   }
 }
 
+//log("storedState: " + storedState + "\n")
+
 var kakuro = Elm.Kakuro.fullscreen(startingState);
 kakuro.ports.setStorage.subscribe(function(state) {
-    localStorage.setItem(storageName, JSON.stringify(state));
+    var json = JSON.stringify(state);
+    //log("setStorage: " + json + "\n")
+    localStorage.setItem(storageName, json);
 });
 
 kakuro.ports.setTitle.subscribe(function(title) {
