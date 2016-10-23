@@ -46,6 +46,8 @@ import Html exposing
 import Html.Attributes
   exposing (style, value, href, src, title, alt, id, autofocus)
 import Html.Events exposing (on, onClick)
+import Svg exposing (svg, text, line, rect, g)
+import Svg.attributes exposing (x, y, width, height, x2, y2, fill)
 
 -- I wanted to make GameState be an extensible record type,
 -- but I couldn't figure it out, so I have to copy stuff. Yuck.
