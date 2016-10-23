@@ -1,0 +1,60 @@
+<html>
+<head>
+<style scoped='true'>
+  .label { padding: 2px; fill:#f0f0f0; stroke:white; stroke-width:1; }
+  .slash { stroke:black; stroke-width:3; }
+  .labeltext { fill:black; font-size:20px; font-weight:bold; }
+  .cell { fill:white; fill-opacity: 0.0; stroke: black; stroke-width: 1px; }
+  .selected { stroke-width: 3px; }
+  .celltext { font-size:50px; font-weight:bold; }
+  .hinttext { font-size:20px; font-weight:bold; }
+  .emptycell { fill:black; stroke:black; stroke-width:1 }
+</style>
+</head>
+<body>
+<div>
+<svg width='303' height='303' xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <g>
+    <rect class='cell' x="0" y="0" width="303" height="303" />
+
+    <rect class='cell' x="3" y="3" width="97" height="97" />
+    <rect class='label' x="5" y="5" width="93" height="93" />
+    <line class='slash' x1="3" y1="3" x2="100" y2="100" />
+    <text class='labeltext' fill='black' x="28" y="78">16</text>
+    <text class='labeltext' x="63" y="47">17</text>
+
+    <text class='celltext' x="140" y="68">9</text>
+    <rect class='selected cell' x="104" y="4" width="95" height="95" onclick="alert('100,0')" />
+
+    <text class='celltext' x="240" y="68">8</text>
+    <rect class='cell' x="203" y="3" width="97" height="97" onclick="alert('200,0')" />
+
+    <text class='celltext' x="40" y="168">7</text>
+    <rect class='cell' x="3" y="103" width="97" height="97" onclick="alert('0,100')" />
+
+    <text class='celltext' x="40" y="268">9</text>
+    <rect class='cell' x="3" y="203" width="97" height="97" onclick="alert('0,200')" />
+
+    <rect class='emptycell' x="103" y="103" width="97" height="97" />
+
+    <rect class='cell' x="203" y="103" width="97" height="97" />
+    <rect class='label' x="205" y="105" width="93" height="93" />
+    <line class='slash' x1="203" y1="103" x2="300" y2="200" />
+    <text class='labeltext' x="228" y="178">10</text>
+
+    <rect class='emptycell' x="103" y="203" width="97" height="97" />
+
+    <text class="hinttext" x="215" y="230">1</text>
+    <text class="hinttext" x="245" y="230">2</text>
+    <text class="hinttext" x="275" y="230">3</text>
+    <text class="hinttext" x="215" y="260">4</text>
+    <text class="hinttext" x="275" y="260">6</text>
+    <text class="hinttext" x="215" y="290">7</text>
+    <text class="hinttext" x="245" y="290">8</text>
+    <text class="hinttext" x="275" y="290">9</text>
+    <rect class='cell' x="203" y="203" width="97" height="97" onclick="alert('200,200')" />
+
+  </g>
+</svg>
+</div>
+</html>
