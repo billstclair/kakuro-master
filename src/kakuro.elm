@@ -43,6 +43,7 @@ import Html.Attributes
 import Html.App as Html
 import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
+import Window
 
 main : Program (Maybe SavedModel)
 main =
@@ -84,19 +85,24 @@ initialKind = 6
 pageTitle : String
 pageTitle = "Kakuro Dojo"
 
-{-
 seedCmd : Cmd Msg
 seedCmd =
   Task.perform (\x -> Nop) (\x -> Seed x) Time.now
--}
 
 init : Maybe SavedModel -> ( Model, Cmd Msg )
 init savedModel =
   ( case savedModel of
         Nothing -> model
         Just m -> SharedTypes.savedModelToModel m
-  , setTitle pageTitle
+  , Cmd.batch [ setTitle pageTitle
+              , windowSizeCmd
+              , seedCmd
+              ]
   )
+
+windowSizeCmd : Cmd Msg
+windowSizeCmd =
+  Task.perform (\x -> Nop) (\x -> WindowSize x) Window.size
 
 model : Model
 model =
@@ -109,6 +115,7 @@ model =
       , gencount = 0
       , gameState = state
       , time = 0
+      , windowSize = Nothing
       , seed = Nothing
       , awaitingCommand = Nothing
       , message = Nothing
@@ -372,10 +379,9 @@ update msg model =
       (model, confirmDialog "Restart this puzzle?")
     Tick time ->
       ({ model | time = model.time + 1 }, Cmd.none)
-{-
     Seed time ->
-      ({model | seed = Just <| Random.initialSeed (round time)}, Cmd.none)
--}
+      ( { model | seed = Just <| Random.initialSeed (round time) }
+      , Cmd.none)
     ClickCell id ->
       (updateSelectedCell id model, Cmd.none)
     PressKey code ->
@@ -402,7 +408,9 @@ update msg model =
             )
     AnswerConfirmed question doit ->
       ( if doit then (resetGameState model) else model
-      , Cmd.none)      
+      , Cmd.none)
+    WindowSize size ->
+      ( { model | windowSize = Just size }, Cmd.none)
     Nop ->
       (model, Cmd.none)
           
@@ -421,6 +429,7 @@ subscriptions model =
   Sub.batch [ Keyboard.downs (PressKey)
             , confirmAnswer answerConfirmed
             , receiveGame (\maybeGame -> ReceiveGame maybeGame)
+            , Window.resizes (\size -> WindowSize size)
             ]
 
 -- VIEW

@@ -30,6 +30,7 @@ import PuzzleDB
 import Random
 import Time exposing (Time, second)
 import Keyboard
+import Window
 
 -- The JavaScript code in index.html needs to know this version
 -- number. If it reads a model with a version it doesn't recognize,
@@ -60,6 +61,7 @@ type alias Model =
   , gameState : GameState
   , time : Time
   -- in-memory only
+  , windowSize : Maybe Window.Size
   , seed : Maybe Random.Seed
   , awaitingCommand : Maybe String
   , message : Maybe String
@@ -82,6 +84,7 @@ savedModelToModel savedModel =
   , gencount = savedModel.gencount
   , gameState = savedModel.gameState
   , time = savedModel.time
+  , windowSize = Nothing
   , seed = Nothing
   , awaitingCommand = Nothing
   , message = Nothing           
@@ -92,13 +95,14 @@ type Msg
   | Restart
   | ChangeKind Int
   | Tick Time
---  | Seed Time
+  | Seed Time
   | ClickCell String
   | PressKey Keyboard.KeyCode
   | ToggleHintInput
   | ToggleShowPossibilities
   | ReceiveGame (Maybe GameState)
   | AnswerConfirmed String Bool
+  | WindowSize Window.Size
   | Nop
 
 type alias IntBoard =
