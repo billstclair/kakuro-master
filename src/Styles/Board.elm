@@ -153,7 +153,8 @@ rules =
       ]
   , rule
       [ Class Helper ]
-      [ ("font-size", "10pt") ]
+      [ ("font-size", "10pt")
+      ]
   , rule
       [ Class Label ]
       [ ("width", "99%")
@@ -227,7 +228,7 @@ rules =
      ]
   , rule
      [ Class SvgCell ]
-     [ ("fill-opacity", "1.0")
+     [ ("fill-opacity", "0.0")
      , ("stroke", "black")
      , ("stroke-width", "1px")
      ]

@@ -334,8 +334,9 @@ renderSvgCell row col sizes state =
          else
            let bgr = BoardSize.labelBackgroundRect cr
            in
-               ( rectHtml ::
-                   (svgLabelHtml label sizes cr bgr)               
+               ( List.append
+                   (svgLabelHtml label sizes cr bgr)
+                   [ rectHtml ]
                )
         )
 
@@ -399,6 +400,9 @@ helperLoop start cnt inc board guesses res =
           in
               helperLoop (row+ri, col+ci) (cnt-1) inc board guesses (zeroes', sum', nums')
 
+maxHelperLen : Int
+maxHelperLen = 200              -- needs to be computed on window width
+
 helperText : (Int, Int) -> (Int, Int) -> ((Int, Int) -> Int) -> GameState -> String
 helperText inc neginc acc state =
   let board = state.board
@@ -418,10 +422,16 @@ helperText inc neginc acc state =
                     board guesses (zeroes, sum, nums)
                 leftsum = sum' - (List.foldr (+) 0 nums')
                 run = possibilities leftsum zeroes' nums'
+                runlen = List.length run
+                maxRunlen = maxHelperLen // (zeroes'+1)
+                run' = List.take maxRunlen run
             in
-                List.map (\x -> List.map toString x) run
+                String.append
+                  (List.map (\x -> List.map toString x) run'
                   |> List.map String.concat
                   |> String.join " "
+                  )
+                  <| if runlen > maxRunlen then "..." else ""
 
 rowHelperText : Model -> String
 rowHelperText model =

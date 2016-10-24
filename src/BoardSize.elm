@@ -24,13 +24,13 @@ cellBorder : Int
 cellBorder = 1
 
 labelBackgroundInset : Int
-labelBackgroundInset = 2
+labelBackgroundInset = 1
 
 selectionBorder : Int
 selectionBorder = 3
 
 whiteSpace : Int
-whiteSpace = 2
+whiteSpace = 1
 
 minimumCellSize : Int
 minimumCellSize = 20
@@ -57,7 +57,7 @@ computeCellSize model =
                        Just ws -> ws
       rows = model.kind+1
       h = windowSize.height
-      total = min windowSize.width <| h - ( 5 * h // ( rows + 5))
+      total = min (windowSize.width - 10) <| h - ( 5 * h // ( rows + 5))
       size = (total - 2*(cellBorder + whiteSpace)) // rows
   in
       max minimumCellSize size
@@ -85,7 +85,7 @@ computeBoardSizes model =
   let cellSize = computeCellSize model
       boardSize = boardFromCellSize model cellSize
       cellFontSize = cellSize // 2
-      labelFontSize = cellSize // 5
+      labelFontSize = cellSize // 4
       hintFontSize = labelFontSize
   in
       { boardSize = boardSize
