@@ -16,26 +16,11 @@ import Css exposing (Sel(..))
 import Html.Attributes
 
 type BClass = Table
-            | CellTd
             | KeypadTd
-            | KeypadDiv
             | KeypadButton
             | KeypadButtonHighlight
-            | Label
             | Helper
-            | EmptyCell
-            | EmptyCellBackground
-            | UnfilledCell
-            | LabelTable
-            | LabelTr
-            | LabelTd
-            | BottomLabelTd
-            | RightLabelTd
-            | Hint
             | Error
-            | SelectedError
-            | Selected
-            | Done
             -- SVG Classes
             | SvgLabel
             | SvgSlash
@@ -85,28 +70,20 @@ rules =
       , ("border", "1px solid black")
       ]
   , rule
-      [ Class CellTd ]
-      [ ("text-align", "center")
-      ]
-  , rule
       [ Class KeypadTd ]
       [ ("text-align", "center")
-      , ("width", "2.0em")
-      , ("height", "2.0em")
+      --, ("width", "99%")
+      --, ("height", "99%")
       , ("color", "#ffffff")
       , ("background-color", "#808080")
-      ]
-  , rule
-      [ Class KeypadDiv ]
-      [ ("font-size", "30pt")
       ]
   ,rule
       [ Type "button" ]
       [ ("outline", "none") ]
   , rule
       [ Class KeypadButton ]
-      [ ("font-size", "30pt")
-      , ("background-color", "#808080")
+      [ --("font-size", "30pt")
+        ("background-color", "#808080")
       , ("color", "#ffffff")
       , ("width", "99%")
       , ("height", "99%")
@@ -117,95 +94,13 @@ rules =
     [ Class KeypadButtonHighlight ]
     [ ("color", "black") ]
   , rule
-      [ Class EmptyCell ]
-      [ ("width", "99%")
-      , ("height", "99%")
-      , ("background-color", "#808080")
-      ]
-  , rule
-      [ Class EmptyCellBackground ]
-      [ ("background-color", "#808080")
-      ]
-  , rule
-      [ Class UnfilledCell ]
-      [ ("width", "99%")
-      , ("height", "99%")
-      , ("background-color", "#ffffff")
-      ]
-  , rule
-      [ Class LabelTable]
-      [ ("width", "99%")
-      , ("height", "99%")
-      , ("border", "none")
-      ]
-  , rule
-      [ Class LabelTr]
-      [("width", "50%")
-      , ("height", "99%")
-      ]
-  , rule
-      [ Class LabelTd]
-      [ ("width", "50%")
-      , ("font-size", "10pt")
-      , ("border", "none")
-      , ("padding", "0")
-      , ("margin", "0")
-      ]
-  , rule
       [ Class Helper ]
       [ ("font-size", "10pt")
-      ]
-  , rule
-      [ Class Label ]
-      [ ("width", "99%")
-      , ("height", "99%")
-      , ("background-image", "url('images/diagonal-line-200x200.png')")
-      ]
-  , rule
-      [ Class BottomLabelTd]
-      [ ("font-weight", "bold")
-      , ("vertical-align", "center")
-      , ("text-align", "right")
-      , ("width"," 50%")
-      , ("font-size", "10pt")
-      , ("border", "none")
-      ]
-  , rule
-      [ Class RightLabelTd]
-      [ ("font-weight", "bold")
-      , ("vertical-align", "bottom")
-      , ("text-align", "center")
-      , ("width", "50%")
-      , ("font-size", "10pt")
-      , ("border", "none")
-      ]
-  , rule
-      [ Class Hint]
-      [ --("width", "100%")
-      --, ("height", "100%")
-       ("font-size", "10pt")
-      , ("font-weight", "bold")
       ]
   , rule
       [ Class Error]
       [ ("background-color", "red")
       , ("color", "white")
-      ]
-  , rule
-      [ Class SelectedError]
-      [ ("background-color", "#FF8080")
-      , ("color", "white")
-      , ("border", "3px solid black")
-      , ("padding", "0")
-      ]
-  , rule
-      [ Class Selected]
-      [ ("border", "3px solid black")
-      , ("padding", "0")
-      ]
-  , rule
-      [ Class Done]
-      [ ( "background-color", greenColor )
       ]
 
   -- SVG classes
@@ -255,7 +150,7 @@ rules =
      ]
   , rule
      [ Class SvgSelected ]
-     [ ("stroke-width", "3px")
+     [ ("stroke-width", "4px")
      ]
   , rule
      [ Class SvgCellText ]

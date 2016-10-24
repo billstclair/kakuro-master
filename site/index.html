@@ -6,9 +6,8 @@
   <title>Kakuro Dojo</title>
   <script type="text/javascript" src="kakuro.js"></script>
   <script type="text/javascript" src="js/sha256.js"></script>
-<!--  <meta name="apple-mobile-web-app-capable" content="yes"> -->
-  <meta name="viewport" content="width=device-width">
-  <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 </head>
 
 <body>
@@ -33,6 +32,16 @@
 // Once it's in production, this file will need to have code to
 // update old state to match current state.
 var modelVersion = 7;
+
+// I said, in the "viewport" meta tag above, not to allow the user to
+// zoom the viewport ("user-scalable=no"), but the geniuses who make
+// Apple's Safari web browser decided to ignore that.
+// Thank you, Joseph! http://stackoverflow.com/a/38573198/1386989
+document.documentElement.addEventListener('touchstart', function (event) {
+  if (event.touches.length > 1) {
+    event.preventDefault();
+  }
+}, false);
 
 var storageName = 'kakuro-dojo';
 var storedState = localStorage.getItem(storageName);

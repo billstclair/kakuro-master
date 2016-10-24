@@ -20,6 +20,7 @@ import Styles.Page exposing (id, class, PId(..), PClass(..))
 import Board exposing (Board)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
+import BoardSize
 import DebuggingRender
 import RenderBoard
 
@@ -116,6 +117,7 @@ model =
       , gameState = state
       , time = 0
       , windowSize = Nothing
+      , boardSizes = Nothing
       , seed = Nothing
       , awaitingCommand = Nothing
       , message = Nothing
@@ -410,7 +412,11 @@ update msg model =
       ( if doit then (resetGameState model) else model
       , Cmd.none)
     WindowSize size ->
-      ( { model | windowSize = Just size }, Cmd.none)
+      let model' = { model | windowSize = Just size }
+          sizes = BoardSize.computeBoardSizes model'
+      in
+          ( { model' | boardSizes = Just sizes}
+          , Cmd.none)
     Nop ->
       (model, Cmd.none)
           
@@ -518,7 +524,7 @@ view model =
         -- , showValue model.seed               -- debugging
         ]
     , div [] [ RenderBoard.render model ]
-    , div [] [ RenderBoard.renderKeypad model.gameState ]
+    , div [] [ RenderBoard.renderKeypad model ]
     , div []
         [ p []
             [ text "Click to select. Arrows, WASD, or IJKL to move."

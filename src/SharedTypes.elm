@@ -11,6 +11,7 @@
 
 module SharedTypes exposing ( SavedModel, modelVersion, Model
                             , modelToSavedModel, savedModelToModel
+                            , BoardSizes
                             , Msg, Msg (..)
                             , Selection
                             , GameState
@@ -53,6 +54,16 @@ type alias SavedModel =
   , time : Time
   }
 
+type alias BoardSizes =
+  { boardSize : Int
+  , cellSize : Int
+  , cellFontSize : Int
+  , labelFontSize : Int
+  , hintFontSize : Int
+  , keypadSize : Int
+  , keypadFontSize : Int
+  }
+
 type alias Model =
   { -- on disk. Copied to and from SavedModel instance.
     kind : Int
@@ -62,6 +73,7 @@ type alias Model =
   , time : Time
   -- in-memory only
   , windowSize : Maybe Window.Size
+  , boardSizes : Maybe BoardSizes
   , seed : Maybe Random.Seed
   , awaitingCommand : Maybe String
   , message : Maybe String
@@ -84,6 +96,7 @@ savedModelToModel savedModel =
   , gencount = savedModel.gencount
   , gameState = savedModel.gameState
   , time = savedModel.time
+  , boardSizes = Nothing
   , windowSize = Nothing
   , seed = Nothing
   , awaitingCommand = Nothing

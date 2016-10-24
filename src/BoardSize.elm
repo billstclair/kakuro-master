@@ -9,16 +9,17 @@
 --
 ----------------------------------------------------------------------
 
-module BoardSize exposing (BoardSizes, computeBoardSizes
+module BoardSize exposing ( computeBoardSizes
                           , Rect, cellRect, cellTextLocation
                           , insetRectForSelection
                           , bottomLabelLocation, rightLabelLocation
                           , labelBackgroundRect
                           , hintTextLocation)
 
-import SharedTypes exposing ( Model )
+import SharedTypes exposing ( Model, BoardSizes )
 
 import Window
+import Debug exposing (log)
 
 cellBorder : Int
 cellBorder = 1
@@ -47,18 +48,28 @@ minimumPossibilitiesHeight = 60
 keypadRows: Int
 keypadRows = 4
 
+maxKeypadSize : Int
+maxKeypadSize = 300
+
 defaultWindowSize : Window.Size
 defaultWindowSize = { width = 1024, height = 768 }
 
+getWindowSize : Model -> Window.Size
+getWindowSize model =
+  log "WindowSize" (
+  case model.windowSize of
+      Nothing -> defaultWindowSize
+      Just ws -> ws
+                   )
+
 computeCellSize : Model -> Int
 computeCellSize model =
-  let windowSize = case model.windowSize of
-                       Nothing -> defaultWindowSize
-                       Just ws -> ws
+  let windowSize = getWindowSize model
       rows = model.kind+1
       h = windowSize.height
       total = min (windowSize.width - 10) <| h - ( 5 * h // ( rows + 5))
-      size = (total - 2*(cellBorder + whiteSpace)) // rows
+      total' = min total (h * 2 // 3)
+      size = (total' - 2*(cellBorder + whiteSpace)) // rows
   in
       max minimumCellSize size
         |> min maximumCellSize
@@ -72,27 +83,24 @@ computeBoardSize model =
   computeCellSize model
     |> boardFromCellSize model
       
-type alias BoardSizes =
-  { boardSize : Int
-  , cellSize : Int
-  , cellFontSize : Int
-  , labelFontSize : Int
-  , hintFontSize : Int
-  }
-
 computeBoardSizes : Model -> BoardSizes
 computeBoardSizes model =
   let cellSize = computeCellSize model
-      boardSize = boardFromCellSize model cellSize
+      boardSize = log "boardSize" (boardFromCellSize model cellSize)
       cellFontSize = cellSize // 2
       labelFontSize = cellSize // 4
       hintFontSize = labelFontSize
+      windowSize = log "windowSize" (getWindowSize model)
+      keypadSize = min maxKeypadSize
+                   <| 4 * (windowSize.height - boardSize - 50) // 5
   in
       { boardSize = boardSize
       , cellSize = cellSize
       , cellFontSize = cellFontSize
       , labelFontSize = labelFontSize
       , hintFontSize = hintFontSize
+      , keypadSize = log "keypadSize" keypadSize
+      , keypadFontSize = keypadSize // (keypadRows * 2)
       }
                    
 type alias Rect =

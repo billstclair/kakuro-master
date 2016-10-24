@@ -15,6 +15,7 @@ module RenderBoard exposing ( makeGameState
                             )
 
 import SharedTypes exposing (GameState, Model, modelVersion
+                            , BoardSizes
                             , Flags
                             , IntBoard
                             , BClassBoard
@@ -26,7 +27,7 @@ import SharedTypes exposing (GameState, Model, modelVersion
                                   , ToggleHintInput)
                             )
 import Styles.Board exposing (class, classes, BClass(..))
-import BoardSize exposing (BoardSizes)
+import BoardSize
 import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
@@ -363,9 +364,15 @@ renderSvgRows row rows res sizes state =
     in
         renderSvgRows (row+1) rows (rowHtml :: res) sizes state
 
+getBoardSizes : Model -> BoardSizes
+getBoardSizes model =
+  case model.boardSizes of
+      Nothing -> BoardSize.computeBoardSizes model
+      Just bs -> bs  
+
 renderSvgBoard : Model -> Html Msg
 renderSvgBoard model =
-  let sizes = BoardSize.computeBoardSizes model
+  let sizes = getBoardSizes model
       state = model.gameState
       size = toString sizes.boardSize
       cellClasses = computeFilledCellClasses state.board state.guesses
@@ -477,8 +484,8 @@ keypadButtonClass label state =
   in
       classes (KeypadButton :: highlightClasses)
 
-keycodeCell : Int -> String -> GameState -> Html Msg
-keycodeCell keycode label state =
+keycodeCell : Int -> String -> String -> GameState -> Html Msg
+keycodeCell keycode label fontSize state =
   td [ class KeypadTd
      , if label == "*" then
          onClick ToggleShowPossibilities
@@ -488,6 +495,8 @@ keycodeCell keycode label state =
          onClickWithInt PressKey keycode
      ]
     [ button [ keypadButtonClass label state
+             , style [ ( "font-size", fontSize )
+                     , ( "line-height", fontSize ) ]
              , autofocus (label == " ")]
         [ text  label ]
     ]
@@ -516,27 +525,36 @@ keypadKeycode char =
           Just (_, res) ->
             res
 
-renderKeypadCell : Char -> GameState -> Html Msg
-renderKeypadCell char state =
-  keycodeCell (keypadKeycode char) (String.fromList [char]) state
+renderKeypadCell : Char -> String -> GameState -> Html Msg
+renderKeypadCell char fontSize state =
+  keycodeCell (keypadKeycode char) (String.fromList [char]) fontSize state
 
-renderKeypadRow : String -> GameState -> Html Msg
-renderKeypadRow string state =
+renderKeypadRow : String -> String -> GameState -> Html Msg
+renderKeypadRow string fontSize state =
   let chars = String.toList string
   in
       tr []
-        <| List.map (\x -> renderKeypadCell x state) chars
+        <| List.map (\x -> renderKeypadCell x fontSize state) chars
 
 -- 1 2 3 ^
 -- 4 5 6 v
 -- 7 8 9 <
 -- * 0 # >
-renderKeypad : GameState -> Html Msg
-renderKeypad state =
-  table [ class Table]
-    [ Styles.Board.style
-    , renderKeypadRow "123*" state
-    , renderKeypadRow "456#" state
-    , renderKeypadRow "78^ " state
-    , renderKeypadRow "9<v>" state
-    ]
+renderKeypad : Model -> Html Msg
+renderKeypad model =
+  let boardSizes = getBoardSizes model
+      keypadSize = (toString boardSizes.keypadSize) ++ "px"
+      fontSize = (toString boardSizes.keypadFontSize) ++ "px"
+      state = model.gameState
+  in
+      table [ class Table
+            , style [ ("width", keypadSize)
+                    , ("height", keypadSize)
+                    ]
+            ]
+      [ Styles.Board.style
+      , renderKeypadRow "123*" fontSize state
+      , renderKeypadRow "456#" fontSize state
+      , renderKeypadRow "78^ " fontSize state
+      , renderKeypadRow "9<v>" fontSize state
+      ]
