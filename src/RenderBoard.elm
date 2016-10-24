@@ -85,103 +85,6 @@ cellId : Int -> Int -> Attribute m
 cellId row col =
   id ((toString row) ++ "," ++ (toString col))
 
-classedCell : Int -> Int -> Int -> List BClass -> Html Msg
-classedCell num row col classTypes =
-  td [ classes <| CellTd :: classTypes
-     , cellId row col
-     , onClickWithId ClickCell
-     ]
-    [ text <| toString num ]
-
-cell : Bool -> Int -> Int -> Int -> Html Msg
-cell isSelected num row col =
-  classedCell num row col (if isSelected then [ Selected ] else [])
-
-emptyCell : Html a
-emptyCell =
-  td [ classes [ CellTd, EmptyCellBackground ] ]
-    [ div [ class EmptyCell ]
-        [ text nbsp ]
-    ]
-
-unfilledCell : Bool -> Int -> Int -> Html Msg
-unfilledCell isSelected row col =
-  let cls = if isSelected then
-              classes [CellTd, Selected]
-            else
-              class CellTd
-  in
-      td [ cls
-         , onClickWithId ClickCell
-         ]
-      [ div [ class UnfilledCell
-            , cellId row col
-            ]
-          [ text nbsp ]
-    ]
-
-errorCell : Int -> Int -> Int -> Html Msg
-errorCell num row col =
-  classedCell num row col [ Error ]
-
-selectedCell : Int -> Int -> Int -> Html Msg
-selectedCell num row col =
-  classedCell num row col [ Selected ]
-
-selectedErrorCell : Int -> Int -> Int -> Html Msg
-selectedErrorCell num row col =
-  classedCell num row col [ SelectedError ]
-
-hintChars : List Int -> Int -> String
-hintChars hints hint =
-  String.append (if (List.member hint hints) then toString hint else nbsp)
-                nbsp
-
-hintRow : Int -> Int -> List Int -> Html a
-hintRow min max hints =
-  [min .. max]
-  |> map (hintChars hints)
-  |> String.concat
-  |> String.left (2*(max-min)+1)
-  |> text
-
-hintCell : Bool -> List Int -> Int -> Int -> Html Msg
-hintCell isSelected hints row col =
-  td [ if isSelected then
-              classes [ Hint, Selected ]
-            else
-              class Hint
-     ]
-    [ div [ cellId row col
-          , onClickWithId ClickCell
-          ]
-        [ hintRow 1 3 hints
-        , br
-        , hintRow 4 6 hints
-        , br
-        , hintRow 7 9 hints
-        ]
-    ]
-
-labelCell : Int -> Int -> Html a
-labelCell right bottom =
-  td []
-    [ div [ class Label ]
-        [ table [ class LabelTable ]
-            [ tr [ class LabelTr ]
-                [ td [ class LabelTd ] [ text nbsp ]
-                , td [ class RightLabelTd ]
-                  [ text <| if right == 0 then nbsp else (toString right) ]
-                ]
-            , tr [ class LabelTr ]
-              [ td [ class BottomLabelTd ]
-                  [ text <| if bottom == 0 then nbsp else (toString bottom) ]
-              , td [ class LabelTd ] [ text nbsp ]
-              ]
-            ]
-        ]
-    ]
-
 emptyLabels : Labels
 emptyLabels = (0, 0)
 
@@ -266,77 +169,6 @@ computeLabels : IntBoard -> LabelsBoard
 computeLabels board =
   computeLabelsRow 0 board
 
-renderFilledCell : Bool -> Int -> Int -> Int -> RenderState -> Html Msg
-renderFilledCell isSelected num row col state =
-  let maybeClass = if state.allDone then
-                     Just Done
-                   else
-                     Board.get row col state.cellClasses
-      classes = case maybeClass of
-                    Nothing -> []
-                    Just a -> [ a ]
-      selectedClasses = case maybeClass of
-                            Just Error -> [ SelectedError ]
-                            _ -> Selected :: classes
-      classes2 = if isSelected then selectedClasses else classes
-  in
-      classedCell num row col classes2
-
-renderCell : Int -> Int -> RenderState -> Html Msg
-renderCell row col state =
-  let labels = state.labels
-      (right, bottom) = get row col labels
-      bRow = row - 1
-      bCol = col - 1
-      selection = state.selection
-      isSelected = case selection of
-                     Nothing -> False
-                     Just x -> x == (bRow, bCol)
-  in
-      if right==0 && bottom==0 then
-        let val = (get bRow bCol state.guesses)
-            hints = (get bRow bCol state.hints)
-        in
-            if val == 0 then
-              if (get bRow bCol state.board) == 0 then
-                emptyCell
-              else if List.isEmpty hints then
-                unfilledCell isSelected bRow bCol
-              else
-                hintCell isSelected hints bRow bCol
-            else
-              renderFilledCell isSelected val bRow bCol state
-      else
-        labelCell right bottom               
-
-renderColsLoop : Int -> Int -> List (Html Msg) -> RenderState -> List (Html Msg)
-renderColsLoop row col res state =
-  if col >= state.labels.cols then
-    List.reverse res
-  else
-    renderColsLoop
-      row
-      (col+1)
-      (renderCell row col state :: res)
-      state
-          
-renderCols : Int -> RenderState -> List (Html Msg)
-renderCols row state =
-  renderColsLoop row 0 [] state
-
-renderRow : Int -> RenderState -> Html Msg
-renderRow row state =
-   tr [] <| renderCols row state
-
-renderRowsLoop : Int -> List (Html Msg) -> RenderState -> List (Html Msg)
-renderRowsLoop row res state =
-  if row >= state.labels.rows then
-    List.reverse res
-  else
-    renderRowsLoop (row+1)
-                   (renderRow row state :: res)
-                   state
-
 makeGameState : IntBoard -> GameState
 makeGameState board =
   let rows = board.rows
@@ -353,66 +185,6 @@ makeGameState board =
       , flags = defaultFlags
       , selection = Nothing
       }
-
-renderRows : GameState -> List (Html Msg)
-renderRows state =
-  let cellClasses = computeFilledCellClasses state.board state.guesses
-      allDone = isAllDone state.board state.guesses
-      state2 = makeRenderState state cellClasses allDone
-  in
-      renderRowsLoop 0 [] state2
-
-helperLoop : (Int, Int) -> Int -> (Int, Int) -> IntBoard -> IntBoard -> (Int, Int, List Int) -> (Int, Int, List Int)
-helperLoop start cnt inc board guesses res =
-  if cnt <= 0 then
-    res
-  else
-    let (row, col) = start
-        value = Board.get row col board
-        guess = Board.get row col guesses
-    in
-        if  value == 0 then
-          res
-        else
-          let (ri, ci) = inc
-              (zeroes, sum, nums) = res
-              zeroes' = if guess == 0 then zeroes+1 else zeroes
-              sum' = sum + value
-              nums' = if guess == 0 then nums else (guess :: nums)
-          in
-              helperLoop (row+ri, col+ci) (cnt-1) inc board guesses (zeroes', sum', nums')
-
-helperText : (Int, Int) -> (Int, Int) -> ((Int, Int) -> Int) -> GameState -> String
-helperText inc neginc acc state =
-  let board = state.board
-      guesses = state.guesses
-  in
-      case state.selection of
-          Nothing -> ""
-          Just loc ->
-            let (row, col) = loc
-                (ri, ci) = neginc
-                rc = acc loc
-                (zeroes, sum, nums) =
-                  helperLoop loc (10 - rc) inc
-                    board guesses (0, 0, [])
-                (zeroes', sum', nums') =
-                  helperLoop (row+ri, col+ci) rc neginc
-                    board guesses (zeroes, sum, nums)
-                leftsum = sum' - (List.foldr (+) 0 nums')
-                run = possibilities leftsum zeroes' nums'
-            in
-                List.map (\x -> List.map toString x) run
-                  |> List.map String.concat
-                  |> String.join " "
-
-rowHelperText : Model -> String
-rowHelperText model =
-  helperText (0, 1) (0, -1) snd model.gameState
-
-colHelperText : Model -> String
-colHelperText model =
-  helperText (1, 0) (-1, 0) fst model.gameState
 
 toTwoDigitString : Int -> String
 toTwoDigitString x =
@@ -606,6 +378,58 @@ renderSvgBoard model =
 
 svgClass : String -> Attribute msg
 svgClass = Svg.Attributes.class
+
+helperLoop : (Int, Int) -> Int -> (Int, Int) -> IntBoard -> IntBoard -> (Int, Int, List Int) -> (Int, Int, List Int)
+helperLoop start cnt inc board guesses res =
+  if cnt <= 0 then
+    res
+  else
+    let (row, col) = start
+        value = Board.get row col board
+        guess = Board.get row col guesses
+    in
+        if  value == 0 then
+          res
+        else
+          let (ri, ci) = inc
+              (zeroes, sum, nums) = res
+              zeroes' = if guess == 0 then zeroes+1 else zeroes
+              sum' = sum + value
+              nums' = if guess == 0 then nums else (guess :: nums)
+          in
+              helperLoop (row+ri, col+ci) (cnt-1) inc board guesses (zeroes', sum', nums')
+
+helperText : (Int, Int) -> (Int, Int) -> ((Int, Int) -> Int) -> GameState -> String
+helperText inc neginc acc state =
+  let board = state.board
+      guesses = state.guesses
+  in
+      case state.selection of
+          Nothing -> ""
+          Just loc ->
+            let (row, col) = loc
+                (ri, ci) = neginc
+                rc = acc loc
+                (zeroes, sum, nums) =
+                  helperLoop loc (10 - rc) inc
+                    board guesses (0, 0, [])
+                (zeroes', sum', nums') =
+                  helperLoop (row+ri, col+ci) rc neginc
+                    board guesses (zeroes, sum, nums)
+                leftsum = sum' - (List.foldr (+) 0 nums')
+                run = possibilities leftsum zeroes' nums'
+            in
+                List.map (\x -> List.map toString x) run
+                  |> List.map String.concat
+                  |> String.join " "
+
+rowHelperText : Model -> String
+rowHelperText model =
+  helperText (0, 1) (0, -1) snd model.gameState
+
+colHelperText : Model -> String
+colHelperText model =
+  helperText (1, 0) (-1, 0) fst model.gameState
 
 render : Model -> Html Msg
 render model =
