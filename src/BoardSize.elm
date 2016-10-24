@@ -157,11 +157,11 @@ hintToCol hint =
 hintColToTextX : Int -> Int
 hintColToTextX hintCol =
   if hintCol == 0 then
-    12
+    16
   else if hintCol == 1 then
     42
   else
-    72
+    69
 hintRowToTextY : Int -> Int
 hintRowToTextY hintRow =
   if hintRow == 0 then
