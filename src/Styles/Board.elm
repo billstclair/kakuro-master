@@ -41,8 +41,12 @@ type BClass = Table
             | SvgSlash
             | SvgLabelText
             | SvgCell
-            | SvgDone
+            | SvgClick
             | SvgSelected
+            | SvgCellColor
+            | SvgDoneColor
+            | SvgErrorColor
+            | SvgSelectedErrorColor
             | SvgCellText
             | SvgHintText
             | SvgEmptyCell
@@ -223,17 +227,30 @@ rules =
      ]
   , rule
      [ Class SvgCell ]
-     [ ("fill", "white")
-     , ("fill-opacity", "0.0")
-     , ("stroke", " black")
+     [ ("fill-opacity", "1.0")
+     , ("stroke", "black")
      , ("stroke-width", "1px")
      ]
   , rule
-     [ Class SvgDone ]
+      [ Class SvgClick ]
+      [ ("fill-opacity", "0.0")
+      , ("stroke-width", "0")
+      ]
+  , rule
+      [ Class SvgCellColor ]
+      [ ("fill", "white")
+      ]
+  , rule
+     [ Class SvgDoneColor ]
      [ ("fill", greenColor)
-     , ("fill-opacity", "0.0")
-     , ("stroke", " black")
-     , ("stroke-width", "1px")
+     ]
+  , rule
+     [ Class SvgErrorColor ]
+     [ ("fill", "red")
+     ]
+  , rule
+     [ Class SvgSelectedErrorColor ]
+     [ ("fill", "#FF8080")
      ]
   , rule
      [ Class SvgSelected ]

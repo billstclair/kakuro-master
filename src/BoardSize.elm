@@ -11,6 +11,7 @@
 
 module BoardSize exposing (BoardSizes, computeBoardSizes
                           , Rect, cellRect, cellTextLocation
+                          , insetRectForSelection
                           , bottomLabelLocation, rightLabelLocation
                           , labelBackgroundRect
                           , hintTextLocation)
@@ -112,6 +113,16 @@ cellRect row col sizes =
   in
       { x = x, y = y, w = w, h = h}
 
+insetRectForSelection : Rect -> Rect
+insetRectForSelection rect =
+  let delta = selectionBorder - cellBorder - 1
+      x = rect.x + delta
+      y = rect.y + delta
+      w = rect.w - 2*delta
+      h = rect.h - 2*delta
+  in
+      { x = x, y = y, w = w, h = h }
+
 cellTextLocation : Rect -> (Int, Int)
 cellTextLocation cellRect =
   ( cellRect.x + (cellRect.w * 37 // 97)
@@ -139,16 +150,20 @@ hintToRow hint =
   else
     2
 
-hintRowToTextX : Int -> Int
-hintRowToTextX  hintRow =
-  if hintRow == 0 then
+hintToCol : Int -> Int
+hintToCol hint =
+  (hint-1) % 3
+
+hintColToTextX : Int -> Int
+hintColToTextX hintCol =
+  if hintCol == 0 then
     12
-  else if hintRow == 1 then
+  else if hintCol == 1 then
     42
   else
     72
 hintRowToTextY : Int -> Int
-hintRowToTextY  hintRow =
+hintRowToTextY hintRow =
   if hintRow == 0 then
     27
   else if hintRow == 1 then
@@ -159,11 +174,12 @@ hintRowToTextY  hintRow =
 hintTextLocation : Int -> Rect -> (Int, Int)
 hintTextLocation hint cellRect =
   let row = hintToRow hint
-      x = hintRowToTextX row
+      col = hintToCol hint
+      x = hintColToTextX col
       y = hintRowToTextY row
   in
       ( cellRect.x + (cellRect.w * x // 97)
-      , cellRect.y + (cellRect.w * y // 97)
+      , cellRect.y + (cellRect.h * y // 97)
       )
 
 labelBackgroundRect : Rect -> Rect

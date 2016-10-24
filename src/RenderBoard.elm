@@ -30,7 +30,7 @@ import BoardSize exposing (BoardSizes)
 import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
-import Events exposing (onClickWithId, onClickWithInt)
+import Events exposing (onClickWithId, onClickWithInt, svgOnClickWithId)
 import PlayHelpers exposing (isAllDone, computeFilledCellClasses, possibilities)
 import Array exposing (Array)
 import Char
@@ -414,6 +414,15 @@ colHelperText : Model -> String
 colHelperText model =
   helperText (1, 0) (-1, 0) fst model.gameState
 
+toTwoDigitString : Int -> String
+toTwoDigitString x =
+  let str = toString x
+  in
+      if String.length str == 1 then
+        nbsp ++ str
+      else
+        str
+
 svgLabelTextHtml : Int -> BoardSize.Rect -> BoardSizes -> ( BoardSize.Rect -> (Int, Int) ) -> List (Html msg)
 svgLabelTextHtml label cr sizes labelLocation =
   let (blx, bly) = labelLocation cr
@@ -422,7 +431,7 @@ svgLabelTextHtml label cr sizes labelLocation =
                   , fontSize (toString sizes.labelFontSize)
                   , x (toString blx), y (toString bly)
                   ]
-          [ Svg.text (toString label) ]
+          [ Svg.text (toTwoDigitString label) ]
       ]            
             
 svgLabelHtml : (Int, Int) -> BoardSizes -> BoardSize.Rect -> BoardSize.Rect -> List (Html msg)
@@ -455,46 +464,99 @@ svgLabelHtml label sizes cr bgr =
         List.append res2
           <| svgLabelTextHtml right cr sizes BoardSize.rightLabelLocation
           
-renderSvgCell : Int -> Int -> BoardSizes -> GameState -> Html msg
+svgHintTexts : List Int -> BoardSizes -> BoardSize.Rect -> List (Html msg) -> List (Html msg)
+svgHintTexts hints sizes cr res =
+  case hints of
+      [] ->
+        List.reverse res
+      ( hint :: tail ) ->
+        let ( blx, bly ) = BoardSize.hintTextLocation hint cr
+            html = Svg.text' [ svgClass "SvgHintText"
+                             , fontSize (toString sizes.hintFontSize)
+                             , x (toString blx)
+                             , y (toString bly)
+                             ]
+                     [ Svg.text (toString hint) ]
+        in
+            svgHintTexts tail sizes cr (html :: res)
+
+renderSvgCell : Int -> Int -> BoardSizes -> RenderState -> Html Msg
 renderSvgCell row col sizes state =
   let cr = BoardSize.cellRect row col sizes
       value = Board.get (row-1) (col-1) state.board
+      (brow, bcol) = (row-1, col-1)
       label = if value == 0 then Board.get row col state.labels else (0, 0)
-      guess = if value /= 0 then Board.get (row-1) (col-1) state.guesses else 0
-      hints = if value == 0 && guess == 0 then
-                Board.get (row-1) (col-1) state.hints
+      guess = if value /= 0 then Board.get brow bcol state.guesses else 0
+      hints = if value /= 0 && guess == 0 then
+                Board.get brow bcol state.hints
               else
                 []
       allDone = state.allDone
+      errorClass = if value == 0 then
+                    SvgCell
+                  else
+                    case Board.get brow bcol state.cellClasses of
+                        Nothing -> SvgCell
+                        Just c -> c
       selection = state.selection
       isSelected = case selection of
                        Nothing -> False
                        Just sel -> sel == (row-1, col-1)
-      cellClass = if value == 0 && label == emptyLabels then
-                    "SvgEmptyCell"
+      colorClass = if value == 0 then
+                     "SvgCellColor"
+                   else if allDone then
+                     "SvgDoneColor"
+                   else if errorClass == Error then
+                     if isSelected then
+                       "SvgSelectedErrorColor"
+                     else
+                       "SvgErrorColor"
+                   else
+                     "SvgCellColor"
+      cellClass = if value == 0 then
+                    if label == emptyLabels then
+                      "SvgEmptyCell"
+                    else
+                      "SvgCell SvgCellColor"
                   else
-                    (if allDone then "SvgDone" else "SvgCell")
-                    ++ (if isSelected then " SvgSelected" else "")
+                    (if isSelected then "SvgSelected " else "")
+                    ++ "SvgCell "
+                    ++ colorClass
+      cr2 = if isSelected then BoardSize.insetRectForSelection cr else cr
       rectHtml = rect [ svgClass cellClass
-                      , x (toString cr.x), y (toString cr.y)
-                      , width (toString cr.w), height (toString cr.h)
+                      , x (toString cr2.x), y (toString cr2.y)
+                      , width (toString cr2.w), height (toString cr2.h)
                       ]
                       []
   in
       g []
         (if value /= 0 then
-           if guess /= 0 then
-             let (tx, ty) = BoardSize.cellTextLocation cr
-             in
-                 [ Svg.text' [ svgClass "SvgCellText"
-                             , fontSize (toString sizes.cellFontSize)
-                             , x (toString tx), y (toString ty)
-                             ]
-                     [ Svg.text (toString guess) ]
-                 , rectHtml
-                 ]
-           else
-             [ rectHtml ]
+           let clickRect = rect [ svgClass "SvgClick"
+                                , x (toString cr.x), y (toString cr.y)
+                                , width (toString cr.w), height (toString cr.h)
+                                , cellId brow bcol
+                                , svgOnClickWithId ClickCell
+                                ]
+                                []
+           in
+               if guess /= 0 then
+                 let (tx, ty) = BoardSize.cellTextLocation cr
+                 in
+                     [ rectHtml
+                     , Svg.text' [ svgClass "SvgCellText"
+                                 , fontSize (toString sizes.cellFontSize)
+                                 , x (toString tx), y (toString ty)
+                                 ]
+                       [ Svg.text (toString guess) ]
+                     , clickRect
+                     ]
+               else
+                 ( rectHtml ::
+                     (List.append
+                        (svgHintTexts hints sizes cr [])
+                        [ clickRect ]
+                     )
+                 )
          else if label == (0, 0) then
            [ rectHtml ]
          else
@@ -505,7 +567,7 @@ renderSvgCell row col sizes state =
                )
         )
 
-renderSvgCells : Int -> Int -> Int -> List (Html Msg) -> BoardSizes -> GameState -> List (Html Msg)
+renderSvgCells : Int -> Int -> Int -> List (Html Msg) -> BoardSizes -> RenderState -> List (Html Msg)
 renderSvgCells row col cols res sizes state =
   if col >= cols then
     List.reverse res
@@ -514,12 +576,12 @@ renderSvgCells row col cols res sizes state =
     in
         renderSvgCells row (col+1) cols (cellHtml :: res) sizes state
 
-renderSvgRow : Int -> BoardSizes -> GameState -> Html Msg
+renderSvgRow : Int -> BoardSizes -> RenderState -> Html Msg
 renderSvgRow row sizes state =
   g []
     <| renderSvgCells row 0 state.labels.cols [] sizes state
 
-renderSvgRows : Int -> Int -> List (Html Msg) -> BoardSizes -> GameState -> List (Html Msg)
+renderSvgRows : Int -> Int -> List (Html Msg) -> BoardSizes -> RenderState -> List (Html Msg)
 renderSvgRows row rows res sizes state =
   if row >= rows then
     List.reverse res
@@ -533,11 +595,14 @@ renderSvgBoard model =
   let sizes = BoardSize.computeBoardSizes model
       state = model.gameState
       size = toString sizes.boardSize
+      cellClasses = computeFilledCellClasses state.board state.guesses
+      allDone = isAllDone state.board state.guesses
+      state2 = makeRenderState state cellClasses allDone
   in
       svg [ width size, height size ]
-        ((rect [ svgClass "SvgCell", width size, height size ] [])
+        ((rect [ svgClass "SvgCell SvgCellColor", width size, height size ] [])
         ::
-           (renderSvgRows 0 state.labels.rows [] sizes state))
+           (renderSvgRows 0 state2.labels.rows [] sizes state2))
 
 svgClass : String -> Attribute msg
 svgClass = Svg.Attributes.class
