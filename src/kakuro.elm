@@ -517,7 +517,7 @@ view model =
         -- , text (" " ++ toString model.time)  -- Will eventually be timer
         -- , showValue model.seed               -- debugging
         ]
-    , div [] [ RenderBoard.render model.gameState ]
+    , div [] [ RenderBoard.render model ]
     , div [] [ RenderBoard.renderKeypad model.gameState ]
     , div []
         [ p []

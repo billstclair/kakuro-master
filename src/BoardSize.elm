@@ -9,7 +9,11 @@
 --
 ----------------------------------------------------------------------
 
-module BoardSize exposing (BoardSizes, computeBoardSizes)
+module BoardSize exposing (BoardSizes, computeBoardSizes
+                          , Rect, cellRect, cellTextLocation
+                          , bottomLabelLocation, rightLabelLocation
+                          , labelBackgroundRect
+                          , hintTextLocation)
 
 import SharedTypes exposing ( Model )
 
@@ -17,6 +21,9 @@ import Window
 
 cellBorder : Int
 cellBorder = 1
+
+labelBackgroundInset : Int
+labelBackgroundInset = 2
 
 selectionBorder : Int
 selectionBorder = 3
@@ -28,7 +35,7 @@ minimumCellSize : Int
 minimumCellSize = 20
 
 maximumCellSize : Int
-maximumCellSize = 100
+maximumCellSize = 80
 
 minimumFontSize : Int
 minimumFontSize = 8
@@ -47,17 +54,17 @@ computeCellSize model =
   let windowSize = case model.windowSize of
                        Nothing -> defaultWindowSize
                        Just ws -> ws
-      kind = model.kind
+      rows = model.kind+1
       h = windowSize.height
-      total = min windowSize.width <| h - ( 5 * h // ( kind + 5))
-      size = (total - 2*(cellBorder + whiteSpace)) // kind 
+      total = min windowSize.width <| h - ( 5 * h // ( rows + 5))
+      size = (total - 2*(cellBorder + whiteSpace)) // rows
   in
       max minimumCellSize size
         |> min maximumCellSize
 
 boardFromCellSize : Model -> Int -> Int
 boardFromCellSize model cellSize =
-  (cellSize * model.kind) + 2*(cellBorder + whiteSpace)
+  (cellSize * (model.kind+1)) + (cellBorder + whiteSpace)
 
 computeBoardSize : Model -> Int
 computeBoardSize model =
@@ -94,39 +101,34 @@ type alias Rect =
   , h : Int
   }
 
-type alias Location =
-  { x : Int
-  , y : Int
-  }
-
 cellRect : Int -> Int -> BoardSizes -> Rect
 cellRect row col sizes =
   let cellSize = sizes.cellSize
       offset = cellBorder + whiteSpace
-      x = row*cellSize + offset
-      y = col*cellSize + offset
+      y = row*cellSize + offset
+      x = col*cellSize + offset
       w = cellSize - offset
       h = cellSize - offset
   in
       { x = x, y = y, w = w, h = h}
 
-cellTextLocation : Rect -> Location
+cellTextLocation : Rect -> (Int, Int)
 cellTextLocation cellRect =
-  { x = cellRect.x + (cellRect.w * 37 // 97)
-  , y = cellRect.y + (cellRect.h * 65 // 97)
-  }
+  ( cellRect.x + (cellRect.w * 37 // 97)
+  , cellRect.y + (cellRect.h * 65 // 97)
+  )
 
-bottomLabelLocation : Rect -> Location
+bottomLabelLocation : Rect -> (Int, Int)
 bottomLabelLocation cellRect =
-  { x = cellRect.x + (cellRect.w * 25 // 97)
-  , y = cellRect.y + (cellRect.h * 78 // 97)
-  }
+  ( cellRect.x + (cellRect.w * 25 // 97)
+  , cellRect.y + (cellRect.h * 78 // 97)
+  )
   
-rightLabelLocation : Rect -> Location
+rightLabelLocation : Rect -> (Int, Int)
 rightLabelLocation cellRect =
-  { x = cellRect.x + (cellRect.w * 60 // 97)
-  , y = cellRect.y + (cellRect.h * 44 // 97)
-  }
+  ( cellRect.x + (cellRect.w * 60 // 97)
+  , cellRect.y + (cellRect.h * 44 // 97)
+  )
 
 hintToRow : Int -> Int
 hintToRow hint =
@@ -154,12 +156,20 @@ hintRowToTextY  hintRow =
   else
     87
 
-hintTextLocation : Int -> Rect -> Location
+hintTextLocation : Int -> Rect -> (Int, Int)
 hintTextLocation hint cellRect =
   let row = hintToRow hint
       x = hintRowToTextX row
       y = hintRowToTextY row
   in
-      { x = cellRect.x + (cellRect.w * x // 97)
-      , y = cellRect.y + (cellRect.w * y // 97)
-      }
+      ( cellRect.x + (cellRect.w * x // 97)
+      , cellRect.y + (cellRect.w * y // 97)
+      )
+
+labelBackgroundRect : Rect -> Rect
+labelBackgroundRect rect =
+  { x = rect.x + labelBackgroundInset
+  , y = rect.y + labelBackgroundInset
+  , w = rect.w - 2*labelBackgroundInset
+  , h = rect.h - 2*labelBackgroundInset
+  }

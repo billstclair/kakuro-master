@@ -14,7 +14,7 @@ module RenderBoard exposing ( makeGameState
                             , renderKeypad
                             )
 
-import SharedTypes exposing (GameState, modelVersion
+import SharedTypes exposing (GameState, Model, modelVersion
                             , Flags
                             , IntBoard
                             , BClassBoard
@@ -26,6 +26,7 @@ import SharedTypes exposing (GameState, modelVersion
                                   , ToggleHintInput)
                             )
 import Styles.Board exposing (class, classes, BClass(..))
+import BoardSize exposing (BoardSizes)
 import Board exposing(Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
@@ -46,8 +47,9 @@ import Html exposing
 import Html.Attributes
   exposing (style, value, href, src, title, alt, id, autofocus)
 import Html.Events exposing (on, onClick)
-import Svg exposing (svg, text, line, rect, g)
-import Svg.attributes exposing (x, y, width, height, x2, y2, fill)
+import Svg exposing (svg, line, rect, g)
+import Svg.Attributes exposing ( x, y, width, height, x1, y1, x2, y2
+                               , fill, stroke, fontSize )
 
 -- I wanted to make GameState be an extensible record type,
 -- but I couldn't figure it out, so I have to copy stuff. Yuck.
@@ -404,25 +406,153 @@ helperText inc neginc acc state =
                   |> List.map String.concat
                   |> String.join " "
 
-rowHelperText : GameState -> String
-rowHelperText state =
-  helperText (0, 1) (0, -1) snd state
+rowHelperText : Model -> String
+rowHelperText model =
+  helperText (0, 1) (0, -1) snd model.gameState
 
-colHelperText : GameState -> String
-colHelperText state =
-  helperText (1, 0) (-1, 0) fst state
+colHelperText : Model -> String
+colHelperText model =
+  helperText (1, 0) (-1, 0) fst model.gameState
 
-render : GameState -> Html Msg
-render state =
+svgLabelTextHtml : Int -> BoardSize.Rect -> BoardSizes -> ( BoardSize.Rect -> (Int, Int) ) -> List (Html msg)
+svgLabelTextHtml label cr sizes labelLocation =
+  let (blx, bly) = labelLocation cr
+  in
+      [ Svg.text' [ svgClass "SvgLabelText"
+                  , fontSize (toString sizes.labelFontSize)
+                  , x (toString blx), y (toString bly)
+                  ]
+          [ Svg.text (toString label) ]
+      ]            
+            
+svgLabelHtml : (Int, Int) -> BoardSizes -> BoardSize.Rect -> BoardSize.Rect -> List (Html msg)
+svgLabelHtml label sizes cr bgr =
+  let res =
+        [ rect [ svgClass "SvgLabel"
+               , x (toString bgr.x), y (toString bgr.y)
+               , width (toString bgr.w), height (toString bgr.h)
+               ]
+            []
+        , line [ svgClass "SvgSlash"
+               , x1 (toString cr.x)
+               , y1 (toString cr.y)
+               , x2 (toString (cr.x + cr.w))
+               , y2 (toString (cr.y + cr.h))
+               ]
+            []
+        ]
+      (right, bottom) = label
+      res2 = if bottom == 0 then
+               res
+             else
+               List.append res
+                 <| svgLabelTextHtml bottom cr sizes BoardSize.bottomLabelLocation
+
+  in
+      if right == 0 then
+        res2
+      else
+        List.append res2
+          <| svgLabelTextHtml right cr sizes BoardSize.rightLabelLocation
+          
+renderSvgCell : Int -> Int -> BoardSizes -> GameState -> Html msg
+renderSvgCell row col sizes state =
+  let cr = BoardSize.cellRect row col sizes
+      value = Board.get (row-1) (col-1) state.board
+      label = if value == 0 then Board.get row col state.labels else (0, 0)
+      guess = if value /= 0 then Board.get (row-1) (col-1) state.guesses else 0
+      hints = if value == 0 && guess == 0 then
+                Board.get (row-1) (col-1) state.hints
+              else
+                []
+      allDone = state.allDone
+      selection = state.selection
+      isSelected = case selection of
+                       Nothing -> False
+                       Just sel -> sel == (row-1, col-1)
+      cellClass = if value == 0 && label == emptyLabels then
+                    "SvgEmptyCell"
+                  else
+                    (if allDone then "SvgDone" else "SvgCell")
+                    ++ (if isSelected then " SvgSelected" else "")
+      rectHtml = rect [ svgClass cellClass
+                      , x (toString cr.x), y (toString cr.y)
+                      , width (toString cr.w), height (toString cr.h)
+                      ]
+                      []
+  in
+      g []
+        (if value /= 0 then
+           if guess /= 0 then
+             let (tx, ty) = BoardSize.cellTextLocation cr
+             in
+                 [ Svg.text' [ svgClass "SvgCellText"
+                             , fontSize (toString sizes.cellFontSize)
+                             , x (toString tx), y (toString ty)
+                             ]
+                     [ Svg.text (toString guess) ]
+                 , rectHtml
+                 ]
+           else
+             [ rectHtml ]
+         else if label == (0, 0) then
+           [ rectHtml ]
+         else
+           let bgr = BoardSize.labelBackgroundRect cr
+           in
+               ( rectHtml ::
+                   (svgLabelHtml label sizes cr bgr)               
+               )
+        )
+
+renderSvgCells : Int -> Int -> Int -> List (Html Msg) -> BoardSizes -> GameState -> List (Html Msg)
+renderSvgCells row col cols res sizes state =
+  if col >= cols then
+    List.reverse res
+  else
+    let cellHtml = renderSvgCell row col sizes state
+    in
+        renderSvgCells row (col+1) cols (cellHtml :: res) sizes state
+
+renderSvgRow : Int -> BoardSizes -> GameState -> Html Msg
+renderSvgRow row sizes state =
+  g []
+    <| renderSvgCells row 0 state.labels.cols [] sizes state
+
+renderSvgRows : Int -> Int -> List (Html Msg) -> BoardSizes -> GameState -> List (Html Msg)
+renderSvgRows row rows res sizes state =
+  if row >= rows then
+    List.reverse res
+  else
+    let rowHtml = renderSvgRow row sizes state
+    in
+        renderSvgRows (row+1) rows (rowHtml :: res) sizes state
+
+renderSvgBoard : Model -> Html Msg
+renderSvgBoard model =
+  let sizes = BoardSize.computeBoardSizes model
+      state = model.gameState
+      size = toString sizes.boardSize
+  in
+      svg [ width size, height size ]
+        ((rect [ svgClass "SvgCell", width size, height size ] [])
+        ::
+           (renderSvgRows 0 state.labels.rows [] sizes state))
+
+svgClass : String -> Attribute msg
+svgClass = Svg.Attributes.class
+
+render : Model -> Html Msg
+render model =
   div []
     [ Styles.Board.style
-    , table [ class Table ]
-        (renderRows state)
-    , if state.flags.showPossibilities then
+    , renderSvgBoard model
+    , if model.gameState.flags.showPossibilities then
         div [ class Helper ]
-          [ text ("row: " ++ (rowHelperText state))
+          [ text <| "row: " ++ (rowHelperText model)
           , br
-          , text ("col: " ++ (colHelperText state))
+          , text <| "col: " ++ (colHelperText model)
+          , br
           ]
       else
         br

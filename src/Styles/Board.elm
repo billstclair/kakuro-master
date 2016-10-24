@@ -36,6 +36,16 @@ type BClass = Table
             | SelectedError
             | Selected
             | Done
+            -- SVG Classes
+            | SvgLabel
+            | SvgSlash
+            | SvgLabelText
+            | SvgCell
+            | SvgDone
+            | SvgSelected
+            | SvgCellText
+            | SvgHintText
+            | SvgEmptyCell
 
 imports : List String
 imports = []
@@ -192,6 +202,57 @@ rules =
       [ Class Done]
       [ ( "background-color", greenColor )
       ]
+
+  -- SVG classes
+  , rule
+     [ Class SvgLabel ]
+     [ ("padding", "2px")
+     , ("fill", "#f0f0f0")
+     , ("stroke", "white")
+     , ("stroke-width", "1")
+     ]
+  , rule
+     [ Class SvgSlash ]
+     [ ("stroke", "#808080")
+     , ("stroke-width", "3")
+     ]
+  , rule
+     [ Class SvgLabelText ]
+     [ ("fill", "black")
+     , ("font-weight", "bold")
+     ]
+  , rule
+     [ Class SvgCell ]
+     [ ("fill", "white")
+     , ("fill-opacity", "0.0")
+     , ("stroke", " black")
+     , ("stroke-width", "1px")
+     ]
+  , rule
+     [ Class SvgDone ]
+     [ ("fill", greenColor)
+     , ("fill-opacity", "0.0")
+     , ("stroke", " black")
+     , ("stroke-width", "1px")
+     ]
+  , rule
+     [ Class SvgSelected ]
+     [ ("stroke-width", "3px")
+     ]
+  , rule
+     [ Class SvgCellText ]
+     [ ("font-weight", "bold")
+     ]
+  , rule
+     [ Class SvgHintText ]
+     [ ("font-weight", "bold")
+     ]
+  , rule
+     [ Class SvgEmptyCell ]
+     [ ("fill", "#808080")
+     , ("stroke", "black")
+     , ("stroke-width", "1")
+     ]
   ]
 
 stylesheet = Css.stylesheet imports rules
