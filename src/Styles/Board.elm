@@ -35,6 +35,9 @@ type BClass = Table
             | SvgCellText
             | SvgHintText
             | SvgEmptyCell
+            | SvgKeypad
+            | SvgKeypadColor
+            | SvgKeypadHighlightColor
 
 imports : List String
 imports = []
@@ -107,7 +110,7 @@ rules =
   , rule
      [ Class SvgLabel ]
      [ ("padding", "2px")
-     , ("fill", "#f0f0f0")
+     , ("fill", "#ececec")
      , ("stroke", "white")
      , ("stroke-width", "1")
      ]
@@ -115,6 +118,7 @@ rules =
      [ Class SvgSlash ]
      [ ("stroke", "#808080")
      , ("stroke-width", "3")
+     , ("stroke-linecap", "round")
      ]
   , rule
      [ Class SvgLabelText ]
@@ -123,7 +127,7 @@ rules =
      ]
   , rule
      [ Class SvgCell ]
-     [ ("fill-opacity", "0.0")
+     [ ("fill-opacity", "1.0")
      , ("stroke", "black")
      , ("stroke-width", "1px")
      ]
@@ -166,6 +170,18 @@ rules =
      , ("stroke", "black")
      , ("stroke-width", "1")
      ]
+  , rule
+    [ Class SvgKeypad ]
+    [ ("fill", "#808080")
+    , ("stroke", "white")
+    , ("stroke-width", "1")
+    ]
+  , rule
+      [ Class SvgKeypadColor ]
+      [ ("fill", "#ffffff") ]
+  , rule
+    [ Class SvgKeypadHighlightColor ]
+    [ ("fill", "black") ]
   ]
 
 stylesheet = Css.stylesheet imports rules

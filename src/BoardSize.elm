@@ -92,15 +92,15 @@ computeBoardSizes model =
       hintFontSize = labelFontSize
       windowSize = log "windowSize" (getWindowSize model)
       keypadSize = min maxKeypadSize
-                   <| 4 * (windowSize.height - boardSize - 50) // 5
+                   <| 9 * (windowSize.height - boardSize - 50) // 10
   in
       { boardSize = boardSize
       , cellSize = cellSize
       , cellFontSize = cellFontSize
       , labelFontSize = labelFontSize
       , hintFontSize = hintFontSize
-      , keypadSize = log "keypadSize" keypadSize
-      , keypadFontSize = keypadSize // (keypadRows * 2)
+      , keypadSize = keypadSize
+      , keypadFontSize = (2 * keypadSize) // (keypadRows * 3)
       }
                    
 type alias Rect =

@@ -48,9 +48,9 @@ import Html exposing
 import Html.Attributes
   exposing (style, value, href, src, title, alt, id, autofocus)
 import Html.Events exposing (on, onClick)
-import Svg exposing (svg, line, rect, g)
+import Svg exposing (Svg, svg, line, rect, g)
 import Svg.Attributes exposing ( x, y, width, height, x1, y1, x2, y2
-                               , fill, stroke, fontSize )
+                               , fill, stroke, fontSize, transform )
 
 -- I wanted to make GameState be an extensible record type,
 -- but I couldn't figure it out, so I have to copy stuff. Yuck.
@@ -216,10 +216,10 @@ svgLabelHtml label sizes cr bgr =
                ]
             []
         , line [ svgClass "SvgSlash"
-               , x1 (toString cr.x)
-               , y1 (toString cr.y)
-               , x2 (toString (cr.x + cr.w))
-               , y2 (toString (cr.y + cr.h))
+               , x1 (toString (cr.x+1))
+               , y1 (toString (cr.y+1))
+               , x2 (toString (cr.x + cr.w - 1))
+               , y2 (toString (cr.y + cr.h - 1))
                ]
             []
         ]
@@ -336,8 +336,8 @@ renderSvgCell row col sizes state =
            let bgr = BoardSize.labelBackgroundRect cr
            in
                ( List.append
-                   (svgLabelHtml label sizes cr bgr)
                    [ rectHtml ]
+                   (svgLabelHtml label sizes cr bgr)
                )
         )
 
@@ -468,38 +468,52 @@ render model =
 -- The push-button keypad
 --
 
-keypadButtonClass : String -> GameState -> Attribute Msg
-keypadButtonClass label state =
+keypadTextColorClass : String -> GameState -> String
+keypadTextColorClass label state =
   let highlight =
         if label == "*" then
           state.flags.showPossibilities
-        else if label == "#" then
+        else if String.contains label "#123456789" then
           state.flags.isHintInput
         else
           False
-      highlightClasses = if highlight then
-                           [KeypadButtonHighlight]
-                         else
-                           []
   in
-      classes (KeypadButton :: highlightClasses)
+      if highlight then
+        "SvgKeypadHighlightColor"
+      else
+        "SvgKeypadColor"
 
-keycodeCell : Int -> String -> String -> GameState -> Html Msg
-keycodeCell keycode label fontSize state =
-  td [ class KeypadTd
-     , if label == "*" then
-         onClick ToggleShowPossibilities
-       else if label == "#" then
-         onClick ToggleHintInput
-       else
-         onClickWithInt PressKey keycode
-     ]
-    [ button [ keypadButtonClass label state
-             , style [ ( "font-size", fontSize )
-                     , ( "line-height", fontSize ) ]
-             , autofocus (label == " ")]
-        [ text  label ]
-    ]
+keycodeCell : Int -> String -> String -> String -> Int -> String -> GameState -> Html Msg
+keycodeCell keycode label cx cy cellSize fontsize state =
+  let msg = if label == "*" then
+              onClick ToggleShowPossibilities
+            else if label == "#" then
+              onClick ToggleHintInput
+            else
+              onClickWithInt PressKey keycode
+      cs = toString cellSize
+      fx = (5 * cellSize) // 16
+      fy = 3 * cellSize // 4
+  in
+    g [ transform <| "translate("++cx++","++cy++")" ]
+      [ rect [ svgClass "SvgKeypad"
+             , width cs
+             , height cs
+             ]
+          []
+      , Svg.text' [ svgClass <| keypadTextColorClass label state
+                  , x <| toString fx
+                  , y <| toString fy
+                  , fontSize fontsize
+                  ]
+          [ Svg.text label ]
+      , rect [ svgClass "SvgClick"
+             ,width cs
+             , height cs
+             , msg
+             ]
+          []
+      ]
 
 keypadAlist : List (Char, Int)
 keypadAlist =
@@ -525,16 +539,25 @@ keypadKeycode char =
           Just (_, res) ->
             res
 
-renderKeypadCell : Char -> String -> GameState -> Html Msg
-renderKeypadCell char fontSize state =
-  keycodeCell (keypadKeycode char) (String.fromList [char]) fontSize state
-
-renderKeypadRow : String -> String -> GameState -> Html Msg
-renderKeypadRow string fontSize state =
-  let chars = String.toList string
+renderKeypadCell : Char -> String -> Int -> Int -> String -> GameState -> Svg Msg
+renderKeypadCell char cy col cellSize fontSize state =
+  let cx = toString(1 + col*(cellSize+1))
+      cs = toString cellSize
   in
-      tr []
-        <| List.map (\x -> renderKeypadCell x fontSize state) chars
+      keycodeCell
+        (keypadKeycode char) (String.fromList [char]) cx cy cellSize fontSize state
+
+renderKeypadRow : Int -> String -> Int -> String -> GameState -> Svg Msg
+renderKeypadRow row string cellSize fontSize state =
+  let y = 1 + row * (cellSize+1)
+      cy = toString y
+      chars = String.toList string
+  in
+      g []
+        <| List.map2 (\char col ->
+                        renderKeypadCell char cy col cellSize fontSize state)
+             chars
+             [0..(List.length chars)]
 
 -- 1 2 3 ^
 -- 4 5 6 v
@@ -543,18 +566,25 @@ renderKeypadRow string fontSize state =
 renderKeypad : Model -> Html Msg
 renderKeypad model =
   let boardSizes = getBoardSizes model
-      keypadSize = (toString boardSizes.keypadSize) ++ "px"
+      cellSize = (boardSizes.keypadSize-5) // 4
+      keypadSize = toString(cellSize*4 + 5)
       fontSize = (toString boardSizes.keypadFontSize) ++ "px"
       state = model.gameState
   in
-      table [ class Table
-            , style [ ("width", keypadSize)
-                    , ("height", keypadSize)
-                    ]
+      div []
+        [ Styles.Board.style
+        , svg [ width keypadSize, height keypadSize ]
+            [ rect [ svgClass "SvgCell SvgCellColor"
+                   , x "0"
+                   , y "0"
+                   , width keypadSize
+                   , height keypadSize
+                   ]
+                []
+            , renderKeypadRow 0 "123*" cellSize fontSize state
+            , renderKeypadRow 1 "456#" cellSize fontSize state
+            , renderKeypadRow 2 "78^ " cellSize fontSize state
+            , renderKeypadRow 3 "9<v>" cellSize fontSize state
             ]
-      [ Styles.Board.style
-      , renderKeypadRow "123*" fontSize state
-      , renderKeypadRow "456#" fontSize state
-      , renderKeypadRow "78^ " fontSize state
-      , renderKeypadRow "9<v>" fontSize state
-      ]
+        ]
+        

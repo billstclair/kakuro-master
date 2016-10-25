@@ -314,11 +314,12 @@ getBoard kind index model =
             let gameState = RenderBoard.makeGameState board
                 idx = realBoardIndex board
             in
-                ( { model |
-                    gameState = gameState
-                  , index = idx
-                  , kind = kind
-                  }
+                ( addBoardSizesToModel
+                    { model |
+                      gameState = gameState
+                    , index = idx
+                    , kind = kind
+                    }
                 , Cmd.none)
           Just spec ->
             let currentGameState = model.gameState
@@ -370,6 +371,10 @@ resetGameState : Model -> Model
 resetGameState model =
   { model | gameState = RenderBoard.makeGameState model.gameState.board }
 
+addBoardSizesToModel : Model -> Model
+addBoardSizesToModel model =
+  { model | boardSizes = Just <| BoardSize.computeBoardSizes model }
+
 update : Msg -> Model -> ( Model, Cmd Msg)
 update msg model =
   case msg of
@@ -399,24 +404,24 @@ update msg model =
                 Nothing ->
                   (model, Cmd.none)
                 Just spec ->
-                  (getBoardFromSpec spec model, Cmd.none)
+                  (addBoardSizesToModel
+                     <| getBoardFromSpec spec model
+                  , Cmd.none)
           Just gameState ->
-            ( { model |
-                gameState = gameState
-              , kind = Board.kind gameState.board
-              , index = realBoardIndex gameState.board
-              }
+            ( addBoardSizesToModel
+                { model |
+                  gameState = gameState
+                , kind = Board.kind gameState.board
+                , index = realBoardIndex gameState.board
+                }
             , Cmd.none
             )
     AnswerConfirmed question doit ->
       ( if doit then (resetGameState model) else model
       , Cmd.none)
     WindowSize size ->
-      let model' = { model | windowSize = Just size }
-          sizes = BoardSize.computeBoardSizes model'
-      in
-          ( { model' | boardSizes = Just sizes}
-          , Cmd.none)
+      ( addBoardSizesToModel { model | windowSize = Just size }
+      , Cmd.none)
     Nop ->
       (model, Cmd.none)
           
