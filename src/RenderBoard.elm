@@ -196,6 +196,13 @@ toTwoDigitString x =
       else
         str
 
+-- I really want to use the CSS classes from Styles/Board.elm
+-- with class and id, but I get a JavaScript runtime error
+-- when I do that:
+-- Uncaught TypeError: Cannot assign to read only property 'className' of object '#<SVGTextElement>'(…)
+svgClass : String -> Attribute msg
+svgClass = Svg.Attributes.class
+
 svgLabelTextHtml : Int -> BoardSize.Rect -> BoardSizes -> ( BoardSize.Rect -> (Int, Int) ) -> List (Html msg)
 svgLabelTextHtml label cr sizes labelLocation =
   let (blx, bly) = labelLocation cr
@@ -383,9 +390,6 @@ renderSvgBoard model =
         ((rect [ svgClass "SvgCell SvgCellColor", width size, height size ] [])
         ::
            (renderSvgRows 0 state2.labels.rows [] sizes state2))
-
-svgClass : String -> Attribute msg
-svgClass = Svg.Attributes.class
 
 helperLoop : (Int, Int) -> Int -> (Int, Int) -> IntBoard -> IntBoard -> (Int, Int, List Int) -> (Int, Int, List Int)
 helperLoop start cnt inc board guesses res =
