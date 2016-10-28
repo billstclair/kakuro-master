@@ -22,7 +22,7 @@ import SharedTypes exposing (GameState, Model, modelVersion
                             , Labels, LabelsBoard
                             , Selection
                             , Hints, HintsBoard
-                            , Msg ( ClickCell, PressKey
+                            , Msg ( ClickCell, DownKey
                                   , ToggleShowPossibilities
                                   , ToggleHintInput)
                             )
@@ -495,7 +495,7 @@ keycodeCell keycode label cx cy cellSize fontsize state =
             else if label == "#" then
               onClick ToggleHintInput
             else
-              onClickWithInt PressKey keycode
+              onClickWithInt DownKey keycode
       cs = toString cellSize
       fx = (5 * cellSize) // 16
       fy = 3 * cellSize // 4
