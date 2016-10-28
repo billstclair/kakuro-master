@@ -472,8 +472,8 @@ render model =
 -- The push-button keypad
 --
 
-keypadTextColorClass : String -> GameState -> String
-keypadTextColorClass label state =
+keypadTextClass : String -> GameState -> String
+keypadTextClass label state =
   let highlight =
         if label == "*" then
           state.flags.showPossibilities
@@ -481,11 +481,12 @@ keypadTextColorClass label state =
           state.flags.isHintInput
         else
           False
+      color = if highlight then
+                "SvgKeypadHighlightColor"
+              else
+                "SvgKeypadColor"
   in
-      if highlight then
-        "SvgKeypadHighlightColor"
-      else
-        "SvgKeypadColor"
+      "SvgKeypadText " ++ color
 
 keycodeCell : Int -> String -> String -> String -> Int -> String -> GameState -> Html Msg
 keycodeCell keycode label cx cy cellSize fontsize state =
@@ -505,7 +506,7 @@ keycodeCell keycode label cx cy cellSize fontsize state =
              , height cs
              ]
           []
-      , Svg.text' [ svgClass <| keypadTextColorClass label state
+      , Svg.text' [ svgClass <| keypadTextClass label state
                   , x <| toString fx
                   , y <| toString fy
                   , fontSize fontsize

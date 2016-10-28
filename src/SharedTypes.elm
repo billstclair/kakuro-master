@@ -77,6 +77,7 @@ type alias Model =
   , seed : Maybe Random.Seed
   , awaitingCommand : Maybe String
   , message : Maybe String
+  , shifted : Bool
   }
 
 modelToSavedModel : Model -> SavedModel
@@ -100,7 +101,8 @@ savedModelToModel savedModel =
   , windowSize = Nothing
   , seed = Nothing
   , awaitingCommand = Nothing
-  , message = Nothing           
+  , message = Nothing
+  , shifted = False
   }
 
 type Msg
@@ -111,6 +113,8 @@ type Msg
   | Seed Time
   | ClickCell String
   | PressKey Keyboard.KeyCode
+  | DownKey Keyboard.KeyCode
+  | UpKey Keyboard.KeyCode
   | ToggleHintInput
   | ToggleShowPossibilities
   | ReceiveGame (Maybe GameState)

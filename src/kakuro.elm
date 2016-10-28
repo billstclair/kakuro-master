@@ -121,6 +121,7 @@ model =
       , seed = Nothing
       , awaitingCommand = Nothing
       , message = Nothing
+      , shifted = False
       }
 
 -- UPDATE
@@ -286,13 +287,39 @@ processDigitKeys keyCode model =
                             Board.set row col digit guesses
                         }
                   }
-                  
+
+shiftKeyCode : Int
+shiftKeyCode = 16
+
+processKeyUp : Int -> Model -> Model
+processKeyUp keyCode model =
+  if keyCode == shiftKeyCode then
+    { model | shifted = False }
+  else
+    model
+
+processKeyDown : Int -> Model -> Model
+processKeyDown keyCode model =
+  if keyCode == shiftKeyCode then
+    { model | shifted = True }
+  else if model.shifted then
+    model
+  else
+    case processMovementKeys keyCode model of
+        Nothing ->
+          processDigitKeys keyCode model
+        Just model ->
+          model
+
 processKeyPress : Int -> Model -> Model
 processKeyPress keyCode model =
-  case processMovementKeys keyCode model of
-      Nothing ->
-        processDigitKeys keyCode model
-      Just model ->
+  let char = Char.fromCode keyCode
+  in
+      if char == '*' then
+        toggleShowPossibilities model
+      else if char == '#' then
+        toggleHintInput model
+      else
         model
 
 realBoardIndex : IntBoard -> Int
@@ -391,6 +418,10 @@ update msg model =
       , Cmd.none)
     ClickCell id ->
       (updateSelectedCell id model, Cmd.none)
+    DownKey code ->
+      (processKeyDown code model, Cmd.none)
+    UpKey code ->
+      (processKeyUp code model, Cmd.none)
     PressKey code ->
       (processKeyPress code model, Cmd.none)
     ToggleHintInput ->
@@ -437,7 +468,9 @@ answerConfirmed answer =
 subscriptions : Model -> Sub Msg
 subscriptions model =
   --Time.every second Tick
-  Sub.batch [ Keyboard.downs (PressKey)
+  Sub.batch [ Keyboard.downs (DownKey)
+            , Keyboard.ups (UpKey)
+            , Keyboard.presses (PressKey)
             , confirmAnswer answerConfirmed
             , receiveGame (\maybeGame -> ReceiveGame maybeGame)
             , Window.resizes (\size -> WindowSize size)

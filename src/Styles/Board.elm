@@ -36,6 +36,7 @@ type BClass = Table
             | SvgHintText
             | SvgEmptyCell
             | SvgKeypad
+            | SvgKeypadText
             | SvgKeypadColor
             | SvgKeypadHighlightColor
 
@@ -171,11 +172,14 @@ rules =
      , ("stroke-width", "1")
      ]
   , rule
-    [ Class SvgKeypad ]
-    [ ("fill", "#808080")
-    , ("stroke", "white")
-    , ("stroke-width", "1")
-    ]
+      [ Class SvgKeypad ]
+      [ ("fill", "#808080")
+      , ("stroke", "white")
+     , ("stroke-width", "1")
+      ]
+  , rule
+      [ Class SvgKeypadText ]
+      [ ("font-family", "\"Lucida Console\", Monaco, monospace") ]
   , rule
       [ Class SvgKeypadColor ]
       [ ("fill", "#ffffff") ]
