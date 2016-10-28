@@ -1,6 +1,6 @@
 Kakuro in [Elm](http://elm-lang.org/).
 
-It's live at [kakuro-dojo.com](http://kakuro-dojo.com/).
+It's live at [kakuro-dojo.com](https://kakuro-dojo.com/).
 
 Code is in the ```src``` directory, scripts in the ```bin``` directory.
 
