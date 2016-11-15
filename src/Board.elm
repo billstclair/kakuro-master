@@ -9,44 +9,44 @@
 --
 ----------------------------------------------------------------------
 
-module Board exposing
-  ( Board
-  , make, makeWithInitial
-  , makeWithSpec, makeWithSpecInitial
-  , get, set, getRow, setRow
-  , kind
-  )
+module Board
+    exposing
+        ( Board
+        , make
+        , makeWithInitial
+        , makeWithSpec
+        , makeWithSpecInitial
+        , get
+        , set
+        , getRow
+        , setRow
+        , kind
+        )
 
 {-| Two-dimensional game board with integers as elements.
 
 @docs Board
-@docs make
-@docs makeWithInitial
-@docs makeWithSpec
-@docs makeWithSpecInitial
-@docs get
-@docs set
-@docs getRow
-@docs setRow
+@docs make, makeWithInitial, makeWithSpec, makeWithSpecInitial
+@docs get, set, getRow, setRow
 @docs kind
 
 -}
 
 import Array exposing (Array)
 
-{-|-}
+{-| -}
 type alias Board a =
-  { rows : Int
-  , cols : Int
-  , defaultValue: a
-  , spec: Maybe String
-  , index: Maybe Int
-  , array: Array (Array a)
-  }
-      
-makeRow : Int -> a -> (Array a)
+    { rows : Int
+    , cols : Int
+    , defaultValue : a
+    , spec : Maybe String
+    , index : Maybe Int
+    , array : Array (Array a)
+    }
+
+makeRow : Int -> a -> Array a
 makeRow cols defaultValue =
-  Array.repeat cols defaultValue
+    Array.repeat cols defaultValue
 
 {-| Create a new Board of the given size, initialized with the defaultValue value.
 
@@ -54,7 +54,7 @@ makeRow cols defaultValue =
 -}
 make : Int -> Int -> a -> Board a
 make rows cols defaultValue =
-  makeWithInitial rows cols defaultValue defaultValue
+    makeWithInitial rows cols defaultValue defaultValue
 
 {-| Create a new Board of the given size, initialized with a different value.
 
@@ -62,7 +62,7 @@ make rows cols defaultValue =
 -}
 makeWithInitial : Int -> Int -> a -> a -> Board a
 makeWithInitial rows cols defaultValue initial =
-  makeWithSpecInitial rows cols defaultValue initial Nothing
+    makeWithSpecInitial rows cols defaultValue initial Nothing
 
 {-| Create a new Board of the given size, with an optional specification.
 
@@ -70,7 +70,7 @@ makeWithInitial rows cols defaultValue initial =
 -}
 makeWithSpec : Int -> Int -> a -> Maybe String -> Board a
 makeWithSpec rows cols defaultValue spec =
-  makeWithSpecInitial rows cols defaultValue defaultValue spec
+    makeWithSpecInitial rows cols defaultValue defaultValue spec
 
 {-| Create a new Board of the given size, with an optional specification,
 and initialized with a different value than the default.
@@ -79,17 +79,17 @@ and initialized with a different value than the default.
 -}
 makeWithSpecInitial : Int -> Int -> a -> a -> Maybe String -> Board a
 makeWithSpecInitial rows cols defaultValue initial spec =
-  { rows = rows
-  ,  cols = cols
-  , defaultValue = defaultValue
-  , index = Nothing
-  , spec = spec
-  , array = (Array.repeat rows (makeRow cols initial))
-  }
+    { rows = rows
+    , cols = cols
+    , defaultValue = defaultValue
+    , index = Nothing
+    , spec = spec
+    , array = (Array.repeat rows (makeRow cols initial))
+    }
 
 check : Board a -> Int -> Int -> Bool
 check board row col =
-  row>=0 && row<board.rows && col>=0 && col<board.cols
+    row >= 0 && row < board.rows && col >= 0 && col < board.cols
 
 {-| Get a single element. Returns 0 if row or col is out of range.
 
@@ -97,12 +97,12 @@ check board row col =
 -}
 get : Int -> Int -> Board a -> a
 get row col board =
-  case Array.get row board.array of
-      Nothing -> board.defaultValue
-      Just r ->
-        case Array.get col r of
-            Nothing -> board.defaultValue
-            Just res -> res
+    case Array.get row board.array of
+        Nothing -> board.defaultValue
+        Just r ->
+            case Array.get col r of
+                Nothing -> board.defaultValue
+                Just res -> res
 
 {-| Set a single element. Does nothing if row or col is out of range.
 
@@ -110,17 +110,19 @@ get row col board =
 -}
 set : Int -> Int -> a -> Board a -> Board a
 set row col val board =
-  if not (check board row col) then
-    board
-  else
-    case Array.get row board.array of
-       Nothing -> board
-       Just r -> { board |
-                     array = Array.set
-                               row
-                               (Array.set col val r)
-                               board.array
-                 }
+    if not (check board row col) then
+        board
+    else
+        case Array.get row board.array of
+            Nothing -> board
+            Just r ->
+                { board
+                    | array =
+                        Array.set
+                            row
+                            (Array.set col val r)
+                            board.array
+                }
 
 {-| Return the Array for the given row, or an all-zero array, if out of range.
 
@@ -128,9 +130,9 @@ set row col val board =
 -}
 getRow : Int -> Board a -> Array a
 getRow row board =
-  case Array.get row board.array of
-      Nothing -> makeRow board.cols board.defaultValue
-      Just row -> row
+    case Array.get row board.array of
+        Nothing -> makeRow board.cols board.defaultValue
+        Just row -> row
 
 {-| Set row in board to rowArray. Do nothing if row is out of range.
 
@@ -138,9 +140,10 @@ getRow row board =
 -}
 setRow : Int -> Array a -> Board a -> Board a
 setRow row rowArray board =
-  { board | array = Array.set row rowArray board.array }
+    { board | array = Array.set row rowArray board.array }
 
 {-| Another name for .cols
 -}
 kind : Board a -> Int
-kind = .cols
+kind =
+    .cols

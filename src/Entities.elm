@@ -16,10 +16,12 @@ import Char
 
 stringFromCode : Int -> String
 stringFromCode code =
-  String.fromList [ (Char.fromCode code) ]
+    String.fromList [ (Char.fromCode code) ]
 
 nbsp : String
-nbsp = stringFromCode 160   -- \u00A0
+nbsp =
+    stringFromCode 160  -- \u00A0
 
-copyright: String
-copyright = stringFromCode 169  -- \u00A9
+copyright : String
+copyright =
+    stringFromCode 169  -- \u00A9

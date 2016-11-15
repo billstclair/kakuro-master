@@ -9,8 +9,13 @@
 --
 ----------------------------------------------------------------------
 
-module Events exposing ( onClickWithId, onClickWithString, onClickWithInt
-                       , svgOnClickWithId )
+module Events
+    exposing
+        ( onClickWithId
+        , onClickWithString
+        , onClickWithInt
+        , svgOnClickWithId
+        )
 
 import Html exposing (Attribute)
 import Html.Attributes exposing (id)
@@ -20,20 +25,20 @@ import Svg.Events
 
 targetId : Json.Decoder String
 targetId =
-  Json.at ["target", "id"] Json.string
+    Json.at [ "target", "id" ] Json.string
 
 onClickWithId : (String -> msg) -> Attribute msg
 onClickWithId msg =
-  on "click" (Json.map msg targetId)
+    on "click" (Json.map msg targetId)
 
 svgOnClickWithId : (String -> msg) -> Attribute msg
 svgOnClickWithId msg =
-  Svg.Events.on "click" (Json.map msg targetId)
+    Svg.Events.on "click" (Json.map msg targetId)
 
 onClickWithString : (String -> msg) -> String -> Attribute msg
 onClickWithString msg string =
-  on "click" (Json.map msg <| Json.succeed string)
+    on "click" (Json.map msg <| Json.succeed string)
 
 onClickWithInt : (Int -> msg) -> Int -> Attribute msg
 onClickWithInt msg int =
-  on "click" (Json.map msg <| Json.succeed int)
+    on "click" (Json.map msg <| Json.succeed int)
