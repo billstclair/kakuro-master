@@ -12,6 +12,6 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 
 6. Write Tutorial, with screen shots showing the solution of an easy and harder puzzle.
 
-7. Wrap the whole thing in iOs and Android apps, likely with [Apache Cordova](https://cordova.apache.org/), [Adobe PhoneGap](http://phonegap.com/), or [Ionic](http://ionicframework.com/)
+7. Wrap the whole thing in iOs and Android apps, likely with [Apache Cordova](https://cordova.apache.org/), [Adobe PhoneGap](http://phonegap.com/), or [Ionic](http://ionicframework.com/).
 
-8. Profit
+8. Profit!
