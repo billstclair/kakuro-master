@@ -72,11 +72,9 @@ defaultWindowSize =
 
 getWindowSize : Model -> Window.Size
 getWindowSize model =
-    log "WindowSize"
-        (case model.windowSize of
-            Nothing -> defaultWindowSize
-            Just ws -> ws
-        )
+    case model.windowSize of
+      Nothing -> defaultWindowSize
+      Just ws -> ws
 
 computeCellSize : Model -> Int
 computeCellSize model =
@@ -102,11 +100,11 @@ computeBoardSize model =
 computeBoardSizes : Model -> BoardSizes
 computeBoardSizes model =
     let cellSize = computeCellSize model
-        boardSize = log "boardSize" (boardFromCellSize model cellSize)
+        boardSize = boardFromCellSize model cellSize
         cellFontSize = cellSize // 2
         labelFontSize = cellSize // 4
         hintFontSize = labelFontSize
-        windowSize = log "windowSize" (getWindowSize model)
+        windowSize = getWindowSize model
         keypadSize =
             min maxKeypadSize <|
                 9 * (windowSize.height - boardSize - 50) // 10

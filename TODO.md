@@ -8,7 +8,7 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 
 4. Minimize the home page, with links to go to Rules, Tutorial, Links.
 
-5. Write Rules
+5. Write Rules.
 
 6. Write Tutorial, with screen shots showing the solution of an easy and harder puzzle.
 
