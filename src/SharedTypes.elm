@@ -150,9 +150,7 @@ type alias Flags =
     }
 
 type alias GameState =
-    { version :
-        Int
-        --modelVersion
+    { version : Int --modelVersion
     , board : IntBoard
     , labels : LabelsBoard
     , allDone : Bool

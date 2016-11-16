@@ -12,21 +12,15 @@
 module Board
     exposing
         ( Board
-        , make
-        , makeWithInitial
-        , makeWithSpec
-        , makeWithSpecInitial
-        , get
-        , set
-        , getRow
-        , setRow
+        , make, makeWithInitial, makeWithSpec, makeWithSpecInitial, makeWithAll
+        , get, set, getRow, setRow
         , kind
         )
 
 {-| Two-dimensional game board with integers as elements.
 
 @docs Board
-@docs make, makeWithInitial, makeWithSpec, makeWithSpecInitial
+@docs make, makeWithInitial, makeWithSpec, makeWithSpecInitial, makeWithAll
 @docs get, set, getRow, setRow
 @docs kind
 
@@ -79,12 +73,23 @@ and initialized with a different value than the default.
 -}
 makeWithSpecInitial : Int -> Int -> a -> a -> Maybe String -> Board a
 makeWithSpecInitial rows cols defaultValue initial spec =
+    let array = (Array.repeat rows (makeRow cols initial))
+    in
+      makeWithAll rows cols defaultValue spec Nothing array
+
+{-| Create a new board, specifying all properties.
+Usually called by JSON decoders.
+
+    makeWithAll rows cols defaultValue index spec array
+-}
+makeWithAll : Int -> Int -> a -> Maybe String -> Maybe Int -> Array (Array a) -> Board a
+makeWithAll rows cols defaultValue spec index array =
     { rows = rows
     , cols = cols
     , defaultValue = defaultValue
-    , index = Nothing
+    , index = index
     , spec = spec
-    , array = (Array.repeat rows (makeRow cols initial))
+    , array = array
     }
 
 check : Board a -> Int -> Int -> Bool
