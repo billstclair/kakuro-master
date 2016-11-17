@@ -14,7 +14,9 @@
 -- Start it in the main directory, not "src"
 --
 
-import EncodeDecode exposing (decodeGameState0, decodeSavedModel0)
+import EncodeDecode exposing ( GameState1, SavedModel1
+                             , encodeGameState, encodeSavedModel
+                             , decodeGameState, decodeSavedModel)
 
 import Html exposing (Html, div, text)
 
@@ -33,12 +35,30 @@ br : Html msg
 br =
     Html.br [][]
 
+roundTripGameState : String -> String
+roundTripGameState json =
+    case decodeGameState json of
+      Err err -> err
+      Ok gameState ->
+          encodeGameState gameState
+              |> decodeGameState
+              |> toString
+
+roundTripSavedModel : String -> String
+roundTripSavedModel json =
+    case decodeSavedModel json of
+      Err err -> err
+      Ok gameState ->
+          encodeSavedModel gameState
+              |> decodeSavedModel
+              |> toString
+
 view : model -> Html msg
 view model =
     div []
-        [ text <| "hash: " ++ (toString <| decodeGameState0 hash)
+        [ text <| "hash: " ++ roundTripGameState hash
         , br
-        , text <| "kakuroDojo: " ++ (toString <| decodeSavedModel0 kakuroDojo)
+        , text <| "kakuroDojo: " ++ roundTripSavedModel kakuroDojo
         ]
 
 hash : String
