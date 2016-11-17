@@ -9,7 +9,7 @@
 --
 ----------------------------------------------------------------------
 
-module SharedTypes exposing ( SavedModel, modelVersion, Model
+module SharedTypes exposing ( SavedModel, Model
                             , modelToSavedModel, savedModelToModel
                             , BoardSizes
                             , Msg, Msg(..)
@@ -27,24 +27,12 @@ import Time exposing (Time, second)
 import Keyboard
 import Window
 
--- The JavaScript code in index.html needs to know this version
--- number. If it reads a model with a version it doesn't recognize,
--- it will act as if there's no saved state, to prevent a
--- run-time error unpacking the save data into Elm data structures.
--- The version needs to be bumped any time ANY state reachable
--- from the model is changed, in shape or type.
-
-modelVersion : Int
-modelVersion =
-    7
-
 -- This gets saved in the browser database.
 -- Changing it currently causes all saved state to be lost.
 -- Fix that eventually.
 
 type alias SavedModel =
-    { version : Int
-    , kind : Int
+    { kind : Int
     , index : Int
     , gencount : Int
     , gameState : GameState
@@ -80,8 +68,7 @@ type alias Model =
 
 modelToSavedModel : Model -> SavedModel
 modelToSavedModel model =
-    { version = modelVersion
-    , kind = model.kind
+    { kind = model.kind
     , index = model.index
     , gencount = model.gencount
     , gameState = model.gameState
@@ -115,7 +102,7 @@ type Msg
     | UpKey Keyboard.KeyCode
     | ToggleHintInput
     | ToggleShowPossibilities
-    | ReceiveGame (Maybe GameState)
+    | ReceiveGame (Maybe String)
     | AnswerConfirmed String Bool
     | WindowSize Window.Size
     | Nop
@@ -150,8 +137,7 @@ type alias Flags =
     }
 
 type alias GameState =
-    { version : Int --modelVersion
-    , board : IntBoard
+    { board : IntBoard
     , labels : LabelsBoard
     , allDone : Bool
     , guesses : IntBoard

@@ -11,7 +11,7 @@
 
 port module Kakuro exposing (..)
 
-import SharedTypes exposing ( SavedModel, modelVersion, Model, GameState
+import SharedTypes exposing ( SavedModel, Model, GameState
                             , Msg, Msg(..)
                             , IntBoard, HintsBoard, Selection, Flags
                             )
@@ -22,6 +22,9 @@ import Entities exposing (nbsp, copyright)
 import BoardSize
 import DebuggingRender
 import RenderBoard
+import EncodeDecode exposing ( encodeGameState, encodeSavedModel
+                             , decodeGameState, decodeSavedModel)
+
 import Array exposing (Array)
 import Char
 import List
@@ -46,7 +49,7 @@ import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
 import Window
 
-main : Program (Maybe SavedModel) Model Msg
+main : Program (Maybe String) Model Msg
 main =
     Html.programWithFlags
         { init = init
@@ -55,19 +58,19 @@ main =
         , subscriptions = subscriptions
         }
 
-port setStorage : SavedModel -> Cmd a
+port setStorage : String -> Cmd a
 
-port saveGame : ( String, GameState ) -> Cmd msg
+port saveGame : (String, String) -> Cmd msg
 
 port requestGame : String -> Cmd msg
 
-port receiveGame : (Maybe GameState -> msg) -> Sub msg
+port receiveGame : (Maybe String -> msg) -> Sub msg
 
 port setTitle : String -> Cmd msg
 
 port confirmDialog : String -> Cmd msg
 
-port confirmAnswer : (( String, Bool ) -> msg) -> Sub msg
+port confirmAnswer : ((String, Bool) -> msg) -> Sub msg
 
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 
@@ -75,9 +78,11 @@ updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
 updateWithStorage msg model =
     let ( newModel, cmds ) = update msg model
         savedModel = SharedTypes.modelToSavedModel newModel
+        json = encodeSavedModel savedModel
     in
         ( newModel
-        , Cmd.batch [ setStorage savedModel, cmds ]
+        , Cmd.batch [ setStorage json
+                    , cmds ]
         )
 
 -- MODEL
@@ -94,18 +99,26 @@ seedCmd : Cmd Msg
 seedCmd =
     Task.perform (\x -> Seed x) Time.now
 
-init : Maybe SavedModel -> ( Model, Cmd Msg )
-init savedModel =
-    ( case savedModel of
-        Nothing -> model
-        Just m ->
+init : Maybe String -> ( Model, Cmd Msg )
+init maybeJson =
+    let savedModel = case maybeJson of
+                       Nothing -> Nothing
+                       Just json ->
+                           case decodeSavedModel json of
+                             Err _ -> Nothing
+                             Ok savedModel ->
+                                 Just savedModel
+    in
+      ( case savedModel of
+          Nothing -> model
+          Just m ->
             SharedTypes.savedModelToModel m
-    , Cmd.batch
-        [ setTitle pageTitle
-        , windowSizeCmd
-        , seedCmd
-        ]
-    )
+      , Cmd.batch
+          [ setTitle pageTitle
+          , windowSizeCmd
+          , seedCmd
+          ]
+      )
 
 windowSizeCmd : Cmd Msg
 windowSizeCmd =
@@ -390,7 +403,9 @@ getBoard kind index model =
                             :: case maybeSpec of
                                 Nothing -> []
                                 Just currentSpec ->
-                                    [ saveGame ( currentSpec, currentGameState ) ]
+                                    let json = encodeGameState currentGameState
+                                    in
+                                      [ saveGame ( currentSpec, json ) ]
                         )
                     )
 
@@ -432,6 +447,37 @@ addBoardSizesToModel : Model -> Model
 addBoardSizesToModel model =
     { model | boardSizes = Just <| BoardSize.computeBoardSizes model }
 
+receiveGameJson : Maybe String -> Model -> (Model, Cmd Msg)
+receiveGameJson maybeJson model =
+    let newBoard =
+            (\model2 ->
+                 case model.awaitingCommand of
+                   Nothing ->
+                     ( model2, Cmd.none )
+                   Just spec ->
+                     ( let model3 = addBoardSizesToModel <|
+                                      getBoardFromSpec spec model2
+                       in
+                         { model3 | awaitingCommand = Nothing }
+                     , Cmd.none
+                     )
+            )
+    in                             
+      case maybeJson of
+        Nothing -> newBoard(model)
+        Just json ->
+            case decodeGameState json of
+              Err _ -> newBoard model
+              Ok gameState ->
+                  (addBoardSizesToModel
+                       { model
+                           | gameState = gameState
+                           , kind = Board.kind gameState.board
+                           , index = realBoardIndex gameState.board
+                       }
+                  , Cmd.none
+                  )
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -459,28 +505,8 @@ update msg model =
             ( toggleHintInput model, Cmd.none )
         ToggleShowPossibilities ->
             ( toggleShowPossibilities model, Cmd.none )
-        ReceiveGame maybeGameState ->
-            case maybeGameState of
-                Nothing ->
-                    case model.awaitingCommand of
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                        Just spec ->
-                            ( addBoardSizesToModel <|
-                                getBoardFromSpec spec model
-                            , Cmd.none
-                            )
-
-                Just gameState ->
-                    ( addBoardSizesToModel
-                        { model
-                            | gameState = gameState
-                            , kind = Board.kind gameState.board
-                            , index = realBoardIndex gameState.board
-                        }
-                    , Cmd.none
-                    )
+        ReceiveGame maybeJson ->
+            receiveGameJson maybeJson model
         AnswerConfirmed question doit ->
             ( if doit then
                 (resetGameState model)
@@ -512,7 +538,7 @@ subscriptions model =
         , Keyboard.ups (UpKey)
         , Keyboard.presses (PressKey)
         , confirmAnswer answerConfirmed
-        , receiveGame (\maybeGame -> ReceiveGame maybeGame)
+        , receiveGame (\maybeJson -> ReceiveGame maybeJson)
         , Window.resizes (\size -> WindowSize size)
         ]
 

@@ -14,8 +14,7 @@
 -- Start it in the main directory, not "src"
 --
 
-import EncodeDecode exposing ( GameState1, SavedModel1
-                             , encodeGameState, encodeSavedModel
+import EncodeDecode exposing ( encodeGameState, encodeSavedModel
                              , decodeGameState, decodeSavedModel)
 
 import Html exposing (Html, div, text)

@@ -9,8 +9,7 @@
 --
 ----------------------------------------------------------------------
 
-module EncodeDecode exposing ( GameState1, SavedModel1
-                             , encodeGameState, encodeSavedModel
+module EncodeDecode exposing ( encodeGameState, encodeSavedModel
                              , decodeGameState, decodeSavedModel)
 
 import SharedTypes exposing ( Labels, Hints, Flags, Selection
@@ -353,7 +352,7 @@ encodeGameState1 : GameState1 -> String
 encodeGameState1 gameState =
     JE.encode 0 <| gameStateEncoder gameState
 
-encodeGameState : GameState1 -> String
+encodeGameState : GameState -> String
 encodeGameState gameState =
     encodeVersionedJson gameStateVersion gameState encodeGameState1
 
@@ -361,7 +360,7 @@ encodeSavedModel1 : SavedModel1 -> String
 encodeSavedModel1 model =
     JE.encode 0 <| savedModelEncoder model
 
-encodeSavedModel : SavedModel1 -> String
+encodeSavedModel : SavedModel -> String
 encodeSavedModel model =
     encodeVersionedJson savedModelVersion model encodeSavedModel1
 
@@ -379,10 +378,10 @@ savedModelConverterDict =
         , ( 1, decodeSavedModel1 )
         ]
 
-decodeGameState : String -> Result String GameState1
+decodeGameState : String -> Result String GameState
 decodeGameState json =
     decodeVersionedJson json gameStateConverterDict
 
-decodeSavedModel : String -> Result String SavedModel1
+decodeSavedModel : String -> Result String SavedModel
 decodeSavedModel json =
     decodeVersionedJson json savedModelConverterDict
