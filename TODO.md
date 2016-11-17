@@ -1,8 +1,8 @@
 List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 
-1. Create encoders and decoders for stored JSON state.
+1. Create encoders and decoders for stored JSON state. [**done**]
 
-2. Switch backend to save/restore strings, and use the encoders/decoders on the Elm side. Use [billstclair/elm-versioned-json](http://package.elm-lang.org/packages/billstclair/elm-versioned-json/latest) to make it easy to change the state in the future.
+2. Switch backend to save/restore strings, and use the encoders/decoders on the Elm side. Use [billstclair/elm-versioned-json](http://package.elm-lang.org/packages/billstclair/elm-versioned-json/latest) to make it easy to change the state in the future. [**done**]
 
 3. Integrate [billstclair/elm-dynamodb](http://package.elm-lang.org/packages/billstclair/elm-dynamodb/latest), to share state across browsers/devices.
 
