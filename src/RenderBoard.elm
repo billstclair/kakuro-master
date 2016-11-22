@@ -228,6 +228,7 @@ makeGameState board =
         , hints = hints
         , flags = defaultFlags
         , selection = Nothing
+        , times = { timestamp = 0, elapsed = 0 }
         }
 
 

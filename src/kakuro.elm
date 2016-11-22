@@ -134,7 +134,7 @@ model =
         , index = idx
         , gencount = 0
         , gameState = state
-        , time = 0
+        , times = SharedTypes.emptyModelTimes
         , windowSize = Nothing
         , boardSizes = Nothing
         , seed = Nothing
@@ -478,6 +478,21 @@ receiveGameJson maybeJson model =
                   , Cmd.none
                   )
 
+timeTick : Time -> Model -> Model
+timeTick time model =
+    let gameState = model.gameState
+        gameStateTimes = gameState.times
+        times = model.times
+    in
+      { model |
+        times = { times | timestamp = time }
+      , gameState = { gameState |
+                      times = { gameStateTimes |
+                                elapsed = gameStateTimes.elapsed + 1
+                              }
+                    }
+      }
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -488,7 +503,7 @@ update msg model =
         Restart ->
             ( model, confirmDialog "Restart this puzzle?" )
         Tick time ->
-            ( { model | time = model.time + 1 }, Cmd.none )
+            ( timeTick time model, Cmd.none )
         Seed time ->
             ( { model | seed = Just <| Random.initialSeed (round time) }
             , Cmd.none

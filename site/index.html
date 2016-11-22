@@ -45,6 +45,19 @@ document.documentElement.addEventListener('touchstart', function (event) {
 var storageName = 'kakuro-dojo';
 var storedState = localStorage.getItem(storageName);
 
+// In order to not save to DynamoDB every time something changes,
+// that is delayed, and we query the user, if she tries to leave the
+// page with unsaved changes.
+var queryBeforeUnload = false;
+
+window.onbeforeunload = function(event) {
+    if (queryBeforeUnload) {
+      var text = "Please don't leave this page until it has been saved.";
+      event.returnValue = text;
+      return text;
+    }
+};
+
 //log("storedState: " + storedState + "\n")
 
 var kakuro = Elm.Kakuro.fullscreen(storedState);

@@ -9,11 +9,11 @@
 --
 ----------------------------------------------------------------------
 
-module SharedTypes exposing ( SavedModel, Model
-                            , modelToSavedModel, savedModelToModel
+module SharedTypes exposing ( SavedModel, ModelTimes, Model
+                            , emptyModelTimes, modelToSavedModel, savedModelToModel
                             , BoardSizes
                             , Msg, Msg(..)
-                            , Selection, GameState, Flags
+                            , Selection, GameStateTimes, GameState, Flags
                             , IntBoard, BClassMatrix, BClassBoard
                             , Labels, LabelsBoard, Hints, HintsBoard
                             )
@@ -36,7 +36,7 @@ type alias SavedModel =
     , index : Int
     , gencount : Int
     , gameState : GameState
-    , time : Time
+    , timestamp : Time
     }
 
 type alias BoardSizes =
@@ -49,15 +49,23 @@ type alias BoardSizes =
     , keypadFontSize : Int
     }
 
+type alias ModelTimes =
+    { timestamp : Time
+    , lastPersist : Maybe Time
+    }
+
+emptyModelTimes : ModelTimes
+emptyModelTimes =
+    ModelTimes 0 Nothing
+
 type alias Model =
     { -- on disk. Copied to and from SavedModel instance.
       kind : Int
     , index : Int
     , gencount : Int
     , gameState : GameState
-    , time :
-        Time
-        -- in-memory only
+    -- in-memory only
+    , times : ModelTimes
     , windowSize : Maybe Window.Size
     , boardSizes : Maybe BoardSizes
     , seed : Maybe Random.Seed
@@ -72,7 +80,7 @@ modelToSavedModel model =
     , index = model.index
     , gencount = model.gencount
     , gameState = model.gameState
-    , time = model.time
+    , timestamp = model.times.timestamp
     }
 
 savedModelToModel : SavedModel -> Model
@@ -81,7 +89,7 @@ savedModelToModel savedModel =
     , index = savedModel.index
     , gencount = savedModel.gencount
     , gameState = savedModel.gameState
-    , time = savedModel.time
+    , times = emptyModelTimes
     , boardSizes = Nothing
     , windowSize = Nothing
     , seed = Nothing
@@ -136,6 +144,11 @@ type alias Flags =
     , showPossibilities : Bool
     }
 
+type alias GameStateTimes =
+    { timestamp: Time
+    , elapsed: Time
+    }
+
 type alias GameState =
     { board : IntBoard
     , labels : LabelsBoard
@@ -144,4 +157,5 @@ type alias GameState =
     , hints : HintsBoard
     , flags : Flags
     , selection : Maybe Selection
+    , times: GameStateTimes
     }
