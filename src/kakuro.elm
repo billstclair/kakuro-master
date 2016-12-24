@@ -682,7 +682,8 @@ mainPageDiv model =
 helpPageDiv: Model -> Html Msg
 helpPageDiv model =
     div []
-      [ div []
+      [ h2 [] [ text "Kakuro Dojo" ]
+      , div []
           [ p []
             [ button
                   [ onClick <| ShowPage MainPage
