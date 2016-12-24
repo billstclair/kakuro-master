@@ -10,10 +10,11 @@
 ----------------------------------------------------------------------
 
 module SharedTypes exposing ( SavedModel, ModelTimes, Model
-                            , emptyModelTimes, modelToSavedModel, savedModelToModel
+                            , emptyModelTimes, emptyGameStateTimes
+                            , modelToSavedModel, savedModelToModel
                             , BoardSizes
                             , Msg, Msg(..)
-                            , Selection, GameStateTimes, GameState, Flags
+                            , Selection, GameStateTimes, GameState, Flags, Page(..)
                             , IntBoard, BClassMatrix, BClassBoard
                             , Labels, LabelsBoard, Hints, HintsBoard
                             )
@@ -27,15 +28,18 @@ import Time exposing (Time, second)
 import Keyboard
 import Window
 
+type Page
+    = MainPage
+    | HelpPage    
+
 -- This gets saved in the browser database.
--- Changing it currently causes all saved state to be lost.
--- Fix that eventually.
 
 type alias SavedModel =
     { kind : Int
     , index : Int
     , gencount : Int
     , gameState : GameState
+    , page : Page
     , timestamp : Time
     }
 
@@ -63,6 +67,7 @@ type alias Model =
       kind : Int
     , index : Int
     , gencount : Int
+    , page : Page
     , gameState : GameState
     -- in-memory only
     , times : ModelTimes
@@ -80,6 +85,7 @@ modelToSavedModel model =
     , index = model.index
     , gencount = model.gencount
     , gameState = model.gameState
+    , page = model.page
     , timestamp = model.times.timestamp
     }
 
@@ -89,6 +95,7 @@ savedModelToModel savedModel =
     , index = savedModel.index
     , gencount = savedModel.gencount
     , gameState = savedModel.gameState
+    , page = savedModel.page
     , times = emptyModelTimes
     , boardSizes = Nothing
     , windowSize = Nothing
@@ -113,6 +120,7 @@ type Msg
     | ReceiveGame (Maybe String)
     | AnswerConfirmed String Bool
     | WindowSize Window.Size
+    | ShowPage Page
     | Nop
 
 type alias IntBoard =
@@ -148,6 +156,10 @@ type alias GameStateTimes =
     { timestamp: Time
     , elapsed: Time
     }
+
+emptyGameStateTimes : GameStateTimes
+emptyGameStateTimes =
+    GameStateTimes 0 0
 
 type alias GameState =
     { board : IntBoard

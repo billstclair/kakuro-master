@@ -15,7 +15,7 @@ module EncodeDecode exposing ( encodeGameState, encodeSavedModel
 import SharedTypes exposing ( Labels, Hints, Flags, Selection
                             , IntBoard, LabelsBoard, HintsBoard
                             , GameStateTimes
-                            , GameState, SavedModel
+                            , GameState, Page(..), SavedModel
                             )
 import Board exposing (Board)
 
@@ -106,15 +106,22 @@ gameStateEncoder gameState =
         , ("times", gameStateTimesEncoder gameState.times)
         ]
 
-savedModelEncoder : SavedModel2 -> Value
+savedModelEncoder : SavedModel3 -> Value
 savedModelEncoder model =
     JE.object
         [ ("kind", JE.int model.kind)
         , ("index", JE.int model.index)
         , ("gencount", JE.int model.gencount)
+        , ("page", pageEncoder model.page)
         , ("gameState", gameStateEncoder model.gameState)
         , ("timestamp", JE.float model.timestamp)
         ]
+
+pageEncoder : Page -> Value
+pageEncoder page =
+    case page of
+        MainPage -> JE.string "main"
+        HelpPage -> JE.string "help"
 
 --
 -- Decoders
@@ -227,6 +234,17 @@ type alias SavedModel0 =
     , gameState : GameState0
     , time : Time
     }
+
+pageDecoder : Decoder Page
+pageDecoder =
+    JD.string |> JD.andThen pageHelp
+
+pageHelp : String -> Decoder Page
+pageHelp page =
+    case page of
+        "main" -> JD.succeed MainPage
+        "help" -> JD.succeed HelpPage
+        _ -> JD.fail <| "Bad page name: " ++ page
 
 savedModel0Decoder : Decoder SavedModel0
 savedModel0Decoder =
@@ -366,6 +384,15 @@ type alias SavedModel2 =
     , timestamp : Time
     }
 
+type alias SavedModel3 =
+    { kind : Int
+    , index : Int
+    , gencount : Int
+    , gameState : GameState
+    , page : Page
+    , timestamp : Time
+    }
+
 gameStateTimes2Decoder : Decoder GameStateTimes2
 gameStateTimes2Decoder =
     JD.map2
@@ -461,6 +488,60 @@ savedModel1StringTo2 json =
       Ok savedModel1 ->
         Ok <| savedModel1To2 savedModel1
 
+savedModel3Decoder : Decoder SavedModel3
+savedModel3Decoder =
+    JD.map6
+        SavedModel3
+        (field "kind" JD.int)
+        (field "index" JD.int)
+        (field "gencount" JD.int)
+        (field "gameState" gameState2Decoder)
+        (field "page" pageDecoder)
+        (field "timestamp" JD.float)
+
+decodeSavedModel3 : String -> Result String SavedModel3
+decodeSavedModel3 json =
+    JD.decodeString savedModel3Decoder json
+
+savedModel0To3 : SavedModel0 -> SavedModel3
+savedModel0To3 savedModel =
+    savedModel2To3 <| savedModel0To2 savedModel
+
+savedModel1To3 : SavedModel1 -> SavedModel3
+savedModel1To3 savedModel =
+    savedModel2To3 <| savedModel1To2 savedModel
+
+savedModel2To3 : SavedModel2 -> SavedModel3
+savedModel2To3 savedModel =
+    { kind = savedModel.kind
+    , index = savedModel.index
+    , gencount = savedModel.gencount
+    , gameState = savedModel.gameState
+    , page = HelpPage
+    , timestamp = savedModel.timestamp
+    }
+
+savedModel0StringTo3 : String -> Result String SavedModel3
+savedModel0StringTo3 json =
+    case decodeSavedModel0 json of
+      Err s -> Err s
+      Ok savedModel0 ->
+        Ok <| savedModel0To3 savedModel0
+
+savedModel1StringTo3 : String -> Result String SavedModel3
+savedModel1StringTo3 json =
+    case decodeSavedModel1 json of
+      Err s -> Err s
+      Ok savedModel1 ->
+        Ok <| savedModel1To3 savedModel1
+
+savedModel2StringTo3 : String -> Result String SavedModel3
+savedModel2StringTo3 json =
+    case decodeSavedModel2 json of
+      Err s -> Err s
+      Ok savedModel2 ->
+        Ok <| savedModel2To3 savedModel2
+
 --
 -- Current version encoder and decoder
 --
@@ -476,7 +557,7 @@ gameStateVersion =
 
 savedModelVersion : Int
 savedModelVersion =
-    2
+    3
 
 encodeGameState2 : GameState2 -> String
 encodeGameState2 gameState =
@@ -486,13 +567,13 @@ encodeGameState : GameState -> String
 encodeGameState gameState =
     encodeVersionedJson gameStateVersion gameState encodeGameState2
 
-encodeSavedModel2 : SavedModel2 -> String
-encodeSavedModel2 model =
+encodeSavedModel3 : SavedModel3 -> String
+encodeSavedModel3 model =
     JE.encode 0 <| savedModelEncoder model
 
 encodeSavedModel : SavedModel -> String
 encodeSavedModel model =
-    encodeVersionedJson savedModelVersion model encodeSavedModel2
+    encodeVersionedJson savedModelVersion model encodeSavedModel3
 
 gameStateConverterDict : ConverterDict GameState2
 gameStateConverterDict =
@@ -502,12 +583,13 @@ gameStateConverterDict =
         , ( 2, decodeGameState2 )
         ]
 
-savedModelConverterDict : ConverterDict SavedModel2
+savedModelConverterDict : ConverterDict SavedModel3
 savedModelConverterDict =
     Dict.fromList
-        [ ( 0, savedModel0StringTo2 )
-        , ( 1, savedModel1StringTo2 )
-        , ( 2, decodeSavedModel2 )
+        [ ( 0, savedModel0StringTo3 )
+        , ( 1, savedModel1StringTo3 )
+        , ( 2, savedModel2StringTo3 )
+        , ( 3, decodeSavedModel3 )
         ]
 
 decodeGameState : String -> Result String GameState

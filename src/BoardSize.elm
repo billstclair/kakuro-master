@@ -66,6 +66,10 @@ maxKeypadSize : Int
 maxKeypadSize =
     300
 
+minKeypadSize : Int -> Int
+minKeypadSize windowHeight =
+    1 * windowHeight // 4
+
 defaultWindowSize : Window.Size
 defaultWindowSize =
     { width = 1024, height = 768 }
@@ -81,16 +85,18 @@ computeCellSize model =
     let windowSize = getWindowSize model
         rows = model.kind + 1
         h = windowSize.height
-        total = min (windowSize.width - 10) <| h - (5 * h // (rows + 5))
-        total_ = min total (h * 2 // 3)
-        size = (total_ - 2 * (cellBorder + whiteSpace)) // rows
+        maxSize = h - nonBoardSize - (min maxKeypadSize <| minKeypadSize h)
+        total = min (windowSize.width - 10) maxSize
+        size = (total - 2 * (cellBorder + whiteSpace)) // rows
     in
-        max minimumCellSize size
-            |> min maximumCellSize
+        size
 
 boardFromCellSize : Model -> Int -> Int
 boardFromCellSize model cellSize =
     (cellSize * (model.kind + 1)) + (cellBorder + whiteSpace)
+
+nonBoardSize : Int
+nonBoardSize = 120
 
 computeBoardSize : Model -> Int
 computeBoardSize model =
@@ -105,9 +111,8 @@ computeBoardSizes model =
         labelFontSize = cellSize // 4
         hintFontSize = labelFontSize
         windowSize = getWindowSize model
-        keypadSize =
-            min maxKeypadSize <|
-                9 * (windowSize.height - boardSize - 50) // 10
+        h = windowSize.height
+        keypadSize = h - boardSize - nonBoardSize
     in
         { boardSize = boardSize
         , cellSize = cellSize

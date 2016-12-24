@@ -48,7 +48,7 @@ rules =
         ]
     , rule
         [ Id FooterId ]
-        [ ( "margin-top", "2em" )
+        [ ( "margin-top", "1em" )
         ]
     , rule
         [ Class ControlsClass ]

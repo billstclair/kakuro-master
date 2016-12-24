@@ -12,7 +12,7 @@
 port module Kakuro exposing (..)
 
 import SharedTypes exposing ( SavedModel, Model, GameState
-                            , Msg, Msg(..)
+                            , Msg, Msg(..), Page(..)
                             , IntBoard, HintsBoard, Selection, Flags
                             )
 import Styles.Page exposing (id, class, PId(..), PClass(..))
@@ -133,6 +133,7 @@ model =
         { kind = initialKind
         , index = idx
         , gencount = 0
+        , page = HelpPage
         , gameState = state
         , times = SharedTypes.emptyModelTimes
         , windowSize = Nothing
@@ -496,6 +497,10 @@ timeTick time model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ShowPage page ->
+            ( { model | page = page }
+            , Cmd.none
+            )
         ChangeKind kind ->
             getBoard kind model.index model
         Generate increment ->
@@ -616,86 +621,111 @@ view model =
           --deprecated, so sue me
         ]
         [ Styles.Page.style
-        , h2 [] [ text pageTitle ]
-        , div
-            [ id TopInputId ]
-            [ span []
+        , case model.page of
+              MainPage -> mainPageDiv model
+              HelpPage -> helpPageDiv model
+        ]
+
+mainPageDiv : Model -> Html Msg
+mainPageDiv model =
+    div []
+      [ div [ id TopInputId ]
+          [ button
+                [ onClick <| ShowPage HelpPage
+                , class ControlsClass
+                , title "Show the Help page."
+                ]
+                [ text "?" ]
+          , text " "
+          , span []
                 [ radio "6" (model.kind == 6) (ChangeKind 6)
                 , radio "8" (model.kind == 8) (ChangeKind 8)
                 , radio "10" (model.kind == 10) (ChangeKind 10)
                 ]
-            , text " "
-            , button
+          , text " "
+          , button
                 [ onClick (Generate -1)
                 , class ControlsClass
                 , title "Go to the previous game."
                 ]
                 [ text "<" ]
-            , text " "
-            , button
+          , text " "
+          , button
                 [ onClick Restart
                 , class ControlsClass
                 , title "Start over on this game."
                 ]
                 [ text "X" ]
-            , text " "
-            , button
+          , text " "
+          , button
                 [ onClick (Generate 1)
                 , class ControlsClass
                 , title "Go to the next game."
                 ]
                 [ text ">" ]
-            , br
-            , text "Board Number: "
-            , text
+          , br
+          , text "Board Number: "
+          , text
                 ((toString model.index)
-                    ++ case model.message of
+                 ++ case model.message of
                         Nothing -> ""
-                        Just hash ->
-                            " (" ++ hash ++ ")"
+                        Just hash -> " (" ++ hash ++ ")"
                 )
+          , br
+          -- , text (" " ++ toString model.time)  -- Will eventually be timer
+          -- , showValue model.seed               -- debugging
+          ]
+      , div [] [ RenderBoard.render model ]
+      , div [] [ RenderBoard.renderKeypad model ]
+      ]
+
+helpPageDiv: Model -> Html Msg
+helpPageDiv model =
+    div []
+      [ div []
+          [ p []
+            [ button
+                  [ onClick <| ShowPage MainPage
+                  , class ControlsClass
+                  , title "Play the game."
+                  ]
+                  [ text "Play" ]
+            ]
+          , p []
+            [ text "Click to select. Arrows, WASD, or IJKL to move."
             , br
-              -- , text (" " ++ toString model.time)  -- Will eventually be timer
-              -- , showValue model.seed               -- debugging
-            ]
-        , div [] [ RenderBoard.render model ]
-        , div [] [ RenderBoard.renderKeypad model ]
-        , div []
-            [ p []
-                [ text "Click to select. Arrows, WASD, or IJKL to move."
-                , br
-                , text "1-9 to enter number. 0 to erase."
-                , br
-                , text "* toggles row/col possibility display."
-                , br
-                , text "# toggles hint input."
-                , br
-                , text "Under development. New features daily."
-                ]
-            , p []
-                [ text "Rules: "
-                , a [ href "https://en.wikipedia.org/wiki/Kakuro" ]
-                    [ text "en.wikipedia.org/wiki/Kakuro" ]
-                ]
-            ]
-        , div
-            [ id FooterId ]
-            [ text (copyright ++ " 2016 Bill St. Clair ")
-            , mailLink "billstclair@gmail.com"
+            , text "1-9 to enter number. 0 or <space> to erase."
             , br
-            , logoLink "https://steemit.com/created/kakuro-master"
-                "steemit-icon-114x114.png"
-                "Steemit articles"
-                32
-            , space
-            , logoLink "https://github.com/billstclair/kakuro-master"
-                "GitHub-Mark-32px.png"
-                "GitHub source code"
-                32
-            , space
-            , logoLink "http://elm-lang.org/"
-                "elm-logo-125x125.png"
-                "Elm inside"
-                28
+            , text "* toggles row/col possibility display."
+            , br
+            , text "# toggles hint input."
             ]
-        ]
+          , p []
+              [ text "Rules: "
+              , a [ href "https://en.wikipedia.org/wiki/Kakuro" ]
+                  [ text "en.wikipedia.org/wiki/Kakuro" ]
+            ]
+          ]
+      , div [ id FooterId ]
+          [ text (copyright ++ " 2016 Bill St. Clair ")
+          , mailLink "billstclair@gmail.com"
+          , br
+          , logoLink "https://steemit.com/created/kakuro-master"
+              "steemit-icon-114x114.png"
+              "Steemit articles"
+              32
+          , space
+          , logoLink "https://github.com/billstclair/kakuro-master"
+              "GitHub-Mark-32px.png"
+              "GitHub source code"
+              32
+          , space
+          , logoLink "http://elm-lang.org/"
+              "elm-logo-125x125.png"
+              "Elm inside"
+              28
+          ]
+      ]
+
+          
+          
