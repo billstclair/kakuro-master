@@ -107,9 +107,9 @@ computeBoardSizes : Model -> BoardSizes
 computeBoardSizes model =
     let cellSize = computeCellSize model
         boardSize = boardFromCellSize model cellSize
-        cellFontSize = cellSize // 2
-        labelFontSize = cellSize // 4
-        hintFontSize = labelFontSize
+        cellFontSize = 5 * cellSize // 8
+        labelFontSize = 5 * cellSize // 12
+        hintFontSize = cellSize // 3
         windowSize = getWindowSize model
         h = windowSize.height
         keypadSize = h - boardSize - nonBoardSize
@@ -120,7 +120,7 @@ computeBoardSizes model =
         , labelFontSize = labelFontSize
         , hintFontSize = hintFontSize
         , keypadSize = keypadSize
-        , keypadFontSize = (2 * keypadSize) // (keypadRows * 3)
+        , keypadFontSize = (7 * keypadSize) // (keypadRows * 8)
         }
 
 type alias Rect =
@@ -153,20 +153,20 @@ insetRectForSelection rect =
 
 cellTextLocation : Rect -> ( Int, Int )
 cellTextLocation cellRect =
-    ( cellRect.x + (cellRect.w * 37 // 97)
-    , cellRect.y + (cellRect.h * 65 // 97)
+    ( cellRect.x + (cellRect.w * 34 // 97)
+    , cellRect.y + (cellRect.h * 69 // 97)
     )
 
 bottomLabelLocation : Rect -> ( Int, Int )
 bottomLabelLocation cellRect =
-    ( cellRect.x + (cellRect.w * 25 // 97)
-    , cellRect.y + (cellRect.h * 78 // 97)
+    ( cellRect.x + (cellRect.w * 8 // 97)
+    , cellRect.y + (cellRect.h * 86 // 97)
     )
 
 rightLabelLocation : Rect -> ( Int, Int )
 rightLabelLocation cellRect =
-    ( cellRect.x + (cellRect.w * 60 // 97)
-    , cellRect.y + (cellRect.h * 44 // 97)
+    ( cellRect.x + (cellRect.w * 50 // 97)
+    , cellRect.y + (cellRect.h * 40 // 97)
     )
 
 hintToRow : Int -> Int
@@ -185,20 +185,20 @@ hintToCol hint =
 hintColToTextX : Int -> Int
 hintColToTextX hintCol =
     if hintCol == 0 then
-        16
+        13
     else if hintCol == 1 then
-        42
+        40
     else
-        69
+        67
 
 hintRowToTextY : Int -> Int
 hintRowToTextY hintRow =
     if hintRow == 0 then
-        27
+        30
     else if hintRow == 1 then
-        57
+        60
     else
-        87
+        90
 
 hintTextLocation : Int -> Rect -> ( Int, Int )
 hintTextLocation hint cellRect =

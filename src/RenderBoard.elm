@@ -738,10 +738,10 @@ keycodeCell keycode label cx cy cellSize fontsize state =
             toString cellSize
 
         fx =
-            (5 * cellSize) // 16
+            (7 * cellSize) // 32
 
         fy =
-            3 * cellSize // 4
+            13 * cellSize // 16
     in
         g [ transform <| "translate(" ++ cx ++ "," ++ cy ++ ")" ]
             [ rect

@@ -707,26 +707,28 @@ helpPageDiv model =
                   [ text "en.wikipedia.org/wiki/Kakuro" ]
             ]
           ]
-      , div [ id FooterId ]
-          [ text (copyright ++ " 2016 Bill St. Clair ")
-          , mailLink "billstclair@gmail.com"
-          , br
-          , logoLink "https://steemit.com/created/kakuro-master"
-              "steemit-icon-114x114.png"
-              "Steemit articles"
-              32
-          , space
-          , logoLink "https://github.com/billstclair/kakuro-master"
-              "GitHub-Mark-32px.png"
-              "GitHub source code"
-              32
-          , space
-          , logoLink "http://elm-lang.org/"
-              "elm-logo-125x125.png"
-              "Elm inside"
-              28
-          ]
+      , footerDiv
       ]
 
-          
-          
+footerDiv : Html Msg
+footerDiv =
+    div [ id FooterId ]
+      [ text (copyright ++ " 2016 Bill St. Clair ")
+      , mailLink "billstclair@gmail.com"
+      , br
+      , logoLink "https://steemit.com/created/kakuro-master"
+          "steemit-icon-114x114.png"
+          "Steemit articles"
+          32
+      , space
+      , logoLink "https://github.com/billstclair/kakuro-master"
+          "GitHub-Mark-32px.png"
+          "GitHub source code"
+          32
+      , space
+      , logoLink "http://elm-lang.org/"
+          "elm-logo-125x125.png"
+          "Elm inside"
+          28
+      ]
+ 
