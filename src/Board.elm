@@ -14,7 +14,7 @@ module Board
         ( Board
         , make, makeWithInitial, makeWithSpec, makeWithSpecInitial, makeWithAll
         , get, set, getRow, setRow
-        , kind
+        , kind, arrayFromNestedList
         )
 
 {-| Two-dimensional game board with integers as elements.
@@ -22,7 +22,7 @@ module Board
 @docs Board
 @docs make, makeWithInitial, makeWithSpec, makeWithSpecInitial, makeWithAll
 @docs get, set, getRow, setRow
-@docs kind
+@docs kind, arrayFromNestedList
 
 -}
 
@@ -152,3 +152,9 @@ setRow row rowArray board =
 kind : Board a -> Int
 kind =
     .cols
+
+{-| Make a board array from a list.
+-}
+arrayFromNestedList : List (List a) -> Array (Array a)
+arrayFromNestedList list =
+  Array.fromList <| List.map Array.fromList list

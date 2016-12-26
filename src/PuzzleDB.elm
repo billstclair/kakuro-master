@@ -11,6 +11,7 @@
 
 module PuzzleDB exposing ( boardKinds, boardsOfKind, numberOfBoardsOfKind
                          , getBoardOfKind, kindForSpec, findBoard
+                         , boardFromSpec
                          )
 
 import Puzzles

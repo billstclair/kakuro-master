@@ -18,6 +18,7 @@ type PClass
     = BoardCellClass
     | BoardLabelClass
     | ControlsClass
+    | HelpTextClass
 
 type PId
     = BoardId
@@ -66,6 +67,10 @@ rules =
         , ( "font-size", "50%" )
         , ( "text-align", "center" )
         , ( "border", "1px solid black" )
+        ]
+    , rule
+        [ Class HelpTextClass ]
+        [ ( "width", "20em" )
         ]
     ]
 

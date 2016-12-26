@@ -107,7 +107,7 @@ computeBoardSizes : Model -> BoardSizes
 computeBoardSizes model =
     let cellSize = computeCellSize model
         boardSize = boardFromCellSize model cellSize
-        cellFontSize = 5 * cellSize // 8
+        cellFontSize = 3 * cellSize // 4
         labelFontSize = 5 * cellSize // 12
         hintFontSize = cellSize // 3
         windowSize = getWindowSize model
@@ -153,8 +153,8 @@ insetRectForSelection rect =
 
 cellTextLocation : Rect -> ( Int, Int )
 cellTextLocation cellRect =
-    ( cellRect.x + (cellRect.w * 34 // 97)
-    , cellRect.y + (cellRect.h * 69 // 97)
+    ( cellRect.x + (cellRect.w * 30 // 97)
+    , cellRect.y + (cellRect.h * 72 // 97)
     )
 
 bottomLabelLocation : Rect -> ( Int, Int )

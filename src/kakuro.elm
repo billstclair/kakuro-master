@@ -35,7 +35,7 @@ import Random
 import Task
 import Debug exposing (log)
 import Html exposing ( Html, Attribute
-                     , div, p, h2, text
+                     , div, p, h2, h3, text
                      , table, tr, td, th
                      , input, button, a, img, span, fieldset, label
                      )
@@ -114,8 +114,8 @@ init maybeJson =
           Just m ->
             SharedTypes.savedModelToModel m
       , Cmd.batch
-          [ setTitle pageTitle
-          , windowSizeCmd
+          [ windowSizeCmd
+          , setTitle pageTitle
           , seedCmd
           ]
       )
@@ -494,8 +494,29 @@ timeTick time model =
                     }
       }
 
+processWindowSize : Model -> Window.Size -> ( Model, Cmd Msg)
+processWindowSize model size =
+    ( addBoardSizesToModel { model | windowSize = Just size }
+    , Cmd.none
+    )
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    case model.page of
+        MainPage -> updateMainPage msg model
+        _ -> case msg of
+                 ShowPage page ->
+                     ( { model | page = page }
+                     , Cmd.none
+                     )
+                 WindowSize size ->
+                     processWindowSize model size
+                 _ ->
+                     ( model
+                     , Cmd.none )
+
+updateMainPage : Msg -> Model -> ( Model, Cmd Msg)
+updateMainPage msg model =
     case msg of
         ShowPage page ->
             ( { model | page = page }
@@ -535,9 +556,7 @@ update msg model =
             , Cmd.none
             )
         WindowSize size ->
-            ( addBoardSizesToModel { model | windowSize = Just size }
-            , Cmd.none
-            )
+            processWindowSize model size
         Nop ->
             ( model, Cmd.none )
 
@@ -679,19 +698,83 @@ mainPageDiv model =
       , div [] [ RenderBoard.renderKeypad model ]
       ]
 
+ps : List String -> Html Msg
+ps strings =
+  div [ class HelpTextClass ]
+    <| List.map (\s -> p [] [text s]) strings
+
+hintsFromNestedList : List (List (List Int)) -> HintsBoard
+hintsFromNestedList list =
+    { rows = 3
+    , cols = 3
+    , defaultValue = []
+    , spec = Nothing
+    , index = Nothing
+    , array = Board.arrayFromNestedList list
+    }
+    
+makeGameState : IntBoard -> IntBoard -> HintsBoard -> GameState
+makeGameState board guesses hints =
+    let gs = RenderBoard.makeGameState board
+    in
+        { gs |
+          guesses = guesses
+        , hints = hints
+        }
+
+makeSavedModel : IntBoard -> IntBoard -> HintsBoard -> SavedModel
+makeSavedModel board guesses hints =
+    { kind = board.rows
+    , index = 1
+    , gencount = 1
+    , page = HelpPage
+    , gameState = makeGameState board guesses hints
+    , timestamp = 0
+    }
+
+helpBoard : IntBoard
+helpBoard = PuzzleDB.boardFromSpec 3 "310134021"
+
+helpGuesses : IntBoard
+helpGuesses = PuzzleDB.boardFromSpec 3 "000000000"
+
+helpHints : HintsBoard
+helpHints = hintsFromNestedList
+            [ [[1,3],[1,3],[]]
+            , [[1,3],[1,2,3],[3,4]]
+            , [[],[1,2],[1,2]]
+            ]
+
+helpSavedModel : SavedModel
+helpSavedModel =
+    makeSavedModel helpBoard helpGuesses helpHints
+
+helpWindowSize : Int -> Int -> Model -> Window.Size
+helpWindowSize num denom model =
+    let windowSize = case model.windowSize of
+                         Nothing -> { width = 256, height = 512 }
+                         Just size -> size
+        width = min windowSize.width windowSize.height
+        size = num * width // denom
+    in
+        { width = min size 300
+        , height = 2 * size }
+
+playButton : Html Msg
+playButton =
+    button
+      [ onClick <| ShowPage MainPage
+      , class ControlsClass
+      , title "Play the game."
+      ]
+      [ text "Play" ]
+    
 helpPageDiv: Model -> Html Msg
 helpPageDiv model =
     div []
       [ h2 [] [ text "Kakuro Dojo" ]
       , div []
-          [ p []
-            [ button
-                  [ onClick <| ShowPage MainPage
-                  , class ControlsClass
-                  , title "Play the game."
-                  ]
-                  [ text "Play" ]
-            ]
+          [ p [] [ playButton ]
           , p []
             [ text "Click to select. Arrows, WASD, or IJKL to move."
             , br
@@ -701,11 +784,22 @@ helpPageDiv model =
             , br
             , text "# toggles hint input."
             ]
+          , h3 [] [ text "Rules" ]
+          , ps
+             [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
+             , "If you repeat a number, or fill a row or column with numbers with an incorrect sum, the possibly wrong numbers will be highlighted in red."
+             , "When you tap '#' to enter hint input mode, you can enter multiple numbers that might be in a square, then use those to eliminate possibilities."
+             ]
           , p []
-              [ text "Rules: "
+              [ RenderBoard.renderHelp
+                    helpSavedModel <| helpWindowSize 1 2 model
+              ]
+          , p []
+              [ text "Also see: "
               , a [ href "https://en.wikipedia.org/wiki/Kakuro" ]
-                  [ text "en.wikipedia.org/wiki/Kakuro" ]
-            ]
+                [ text "en.wikipedia.org/wiki/Kakuro" ]
+              ]
+          , p [] [ playButton ]
           ]
       , footerDiv
       ]
@@ -731,4 +825,3 @@ footerDiv =
           "Elm inside"
           28
       ]
- 

@@ -10,9 +10,11 @@
 ----------------------------------------------------------------------
 
 
-module RenderBoard exposing (makeGameState, render, renderKeypad)
+module RenderBoard exposing ( makeGameState
+                            , render, renderHelp, renderKeypad
+                            , computeLabels)
 
-import SharedTypes exposing ( GameState, Model
+import SharedTypes exposing ( GameState, Model, SavedModel
                             , BoardSizes, Flags, IntBoard, BClassBoard
                             , Labels, LabelsBoard, Selection, Hints , HintsBoard
                             , Msg ( ClickCell, DownKey
@@ -24,6 +26,8 @@ import BoardSize
 import Board exposing (Board, get, set)
 import PuzzleDB
 import Entities exposing (nbsp, copyright)
+
+import Window
 import Events exposing (onClickWithId, onClickWithInt, svgOnClickWithId)
 import PlayHelpers exposing (isAllDone, computeFilledCellClasses, possibilities)
 import Array exposing (Array)
@@ -696,7 +700,15 @@ render model =
             br
         ]
 
-
+renderHelp : SavedModel -> Window.Size -> Html Msg
+renderHelp savedModel windowSize =
+    let m = SharedTypes.savedModelToModel savedModel
+        model = { m | windowSize = Just windowSize }
+    in
+        div []
+            [ Styles.Board.style
+            , renderSvgBoard model
+            ]
 
 --
 -- The push-button keypad
