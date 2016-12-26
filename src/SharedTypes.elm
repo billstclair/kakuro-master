@@ -30,7 +30,8 @@ import Window
 
 type Page
     = MainPage
-    | HelpPage    
+    | HelpPage
+    | TacticsPage
 
 -- This gets saved in the browser database.
 

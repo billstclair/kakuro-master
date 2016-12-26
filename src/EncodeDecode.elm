@@ -122,6 +122,7 @@ pageEncoder page =
     case page of
         MainPage -> JE.string "main"
         HelpPage -> JE.string "help"
+        TacticsPage -> JE.string "tactics"
 
 --
 -- Decoders
@@ -244,6 +245,7 @@ pageHelp page =
     case page of
         "main" -> JD.succeed MainPage
         "help" -> JD.succeed HelpPage
+        "tactics" -> JD.succeed TacticsPage
         _ -> JD.fail <| "Bad page name: " ++ page
 
 savedModel0Decoder : Decoder SavedModel0

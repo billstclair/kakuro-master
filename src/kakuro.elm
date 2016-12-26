@@ -35,12 +35,12 @@ import Random
 import Task
 import Debug exposing (log)
 import Html exposing ( Html, Attribute
-                     , div, p, h2, h3, text
+                     , div, p, h2, h3, text, blockquote
                      , table, tr, td, th
                      , input, button, a, img, span, fieldset, label
                      )
 import Html.Attributes exposing ( style, align, value, size
-                                , href, src, title, alt
+                                , href, target, src, title, alt
                                 , width, height
                                 , type_
                                 , name, checked
@@ -643,6 +643,7 @@ view model =
         , case model.page of
               MainPage -> mainPageDiv model
               HelpPage -> helpPageDiv model
+              TacticsPage -> tacticsPageDiv model
         ]
 
 mainPageDiv : Model -> Html Msg
@@ -698,10 +699,22 @@ mainPageDiv model =
       , div [] [ RenderBoard.renderKeypad model ]
       ]
 
+pFormat : String -> List (Html Msg)
+pFormat string =
+    case String.left 1 string of
+        "\t" ->
+            [ blockquote [] (pFormat <| String.dropLeft 1 string) ]
+        _ ->
+            String.split "\n" string
+                |> List.map text
+                |> List.intersperse br
+                |> (\x -> [ p [] x ])
+
 ps : List String -> Html Msg
 ps strings =
-  div [ class HelpTextClass ]
-    <| List.map (\s -> p [] [text s]) strings
+  List.map pFormat strings
+      |> List.concat
+      |> div [ class HelpTextClass ]
 
 hintsFromNestedList : List (List (List Int)) -> HintsBoard
 hintsFromNestedList list =
@@ -733,16 +746,16 @@ makeSavedModel board guesses hints =
     }
 
 helpBoard : IntBoard
-helpBoard = PuzzleDB.boardFromSpec 3 "310134021"
+helpBoard = PuzzleDB.boardFromSpec 3 "310143021"
 
 helpGuesses : IntBoard
 helpGuesses = PuzzleDB.boardFromSpec 3 "000000000"
 
 helpHints : HintsBoard
 helpHints = hintsFromNestedList
-            [ [[1,3],[1,3],[]]
-            , [[1,3],[1,2,3],[3,4]]
-            , [[],[1,2],[1,2]]
+            [ [[1,3],[1],[]]
+            , [[1,3],[1,2,4],[1,3]]
+            , [[],[1,2],[1]]
             ]
 
 helpSavedModel : SavedModel
@@ -773,44 +786,161 @@ playButton =
       ]
       [ text "Play" ]
     
+pageLink : Page -> String -> String -> Html Msg
+pageLink page linkText linkTitle =
+    a [ href "#"
+      , onClick <| ShowPage page
+      , title linkTitle
+      ]
+    [ text linkText ]
+
 helpPageDiv: Model -> Html Msg
 helpPageDiv model =
-    div []
-      [ h2 [] [ text "Kakuro Dojo" ]
-      , div []
-          [ p [] [ playButton ]
-          , p []
-            [ text "Click to select. Arrows, WASD, or IJKL to move."
-            , br
-            , text "1-9 to enter number. 0 or <space> to erase."
-            , br
-            , text "* toggles row/col possibility display."
-            , br
-            , text "# toggles hint input."
+    let windowSize = helpWindowSize 1 2 model
+    in
+        div []
+            [ h2 [] [ text "Kakuro Dojo" ]
+            , div []
+                [ p []
+                    [ playButton
+                    , br , br
+                    , pageLink TacticsPage "Tactics" "Show the Tactics page."
+                    ]
+                , p []
+                    [ text "Click to select. Arrows, WASD, or IJKL to move."
+                    , br
+                    , text "1-9 to enter number. 0 or <space> to erase."
+                    , br
+                    , text "* toggles row/col possibility display."
+                    , br
+                    , text "# toggles hint input."
+                    ]
+                , h3 [] [ text "Rules" ]
+                , ps
+                     [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
+                     , "If you repeat a number, or fill a row or column with numbers with an incorrect sum, the possibly wrong numbers will be highlighted in red."
+                     , "When you tap '#' to enter hint input mode, you can enter multiple numbers that might be in a square, then use those to eliminate possibilities."
+                     ]
+                , p []
+                    [ RenderBoard.renderHelp helpSavedModel windowSize ]
+                , p []
+                    [ RenderBoard.renderHelp helpSolvedSavedModel windowSize ]
+                , p []
+                    [ text "Also see: "
+                    , a [ href "https://en.wikipedia.org/wiki/Kakuro" 
+                        , target "_blank"
+                        ]
+                        [ text "en.wikipedia.org/wiki/Kakuro" ]
+                    ]
+                , p []
+                    [ pageLink TacticsPage "Tactics" "Show the Tactics page."
+                    , br , br
+                    , playButton
+                    ]
+                ]
+            , footerDiv
             ]
-          , h3 [] [ text "Rules" ]
-          , ps
-             [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
-             , "If you repeat a number, or fill a row or column with numbers with an incorrect sum, the possibly wrong numbers will be highlighted in red."
-             , "When you tap '#' to enter hint input mode, you can enter multiple numbers that might be in a square, then use those to eliminate possibilities."
-             ]
-          , p []
-              [ RenderBoard.renderHelp
-                    helpSavedModel <| helpWindowSize 1 2 model
-              ]
-          , p []
-              [ RenderBoard.renderHelp
-                    helpSolvedSavedModel <| helpWindowSize 1 2 model
-              ]
-          , p []
-              [ text "Also see: "
-              , a [ href "https://en.wikipedia.org/wiki/Kakuro" ]
-                [ text "en.wikipedia.org/wiki/Kakuro" ]
-              ]
-          , p [] [ playButton ]
-          ]
-      , footerDiv
-      ]
+
+tacticsGuesses2 : IntBoard
+tacticsGuesses2 = PuzzleDB.boardFromSpec 3 "010000001"
+
+tacticsHints2 : HintsBoard
+tacticsHints2 =
+    hintsFromNestedList
+    [ [[3],[],[]]
+    , [[1,3],[2,4],[3]]
+    , [[],[2],[]]
+    ]
+    
+tacticsModel2 : SavedModel
+tacticsModel2 =
+    makeSavedModel helpBoard tacticsGuesses2 tacticsHints2
+
+tacticsGuesses3 : IntBoard
+tacticsGuesses3 = PuzzleDB.boardFromSpec 3 "310003021"
+
+tacticsHints3 : HintsBoard
+tacticsHints3 =
+    hintsFromNestedList
+    [ [[],[],[]]
+    , [[1],[4],[]]
+    , [[],[],[]]
+    ]
+    
+tacticsModel3 : SavedModel
+tacticsModel3 =
+    makeSavedModel helpBoard tacticsGuesses3 tacticsHints3
+
+tacticsGuesses4 : IntBoard
+tacticsGuesses4 = PuzzleDB.boardFromSpec 3 "310143021"
+
+tacticsModel4 : SavedModel
+tacticsModel4 =
+    makeSavedModel helpBoard tacticsGuesses4 tacticsHints3
+
+tacticsPageDiv: Model -> Html Msg
+tacticsPageDiv model =
+    let windowSize = helpWindowSize 1 2 model
+    in
+        div []
+            [ div []
+                  [ h2 [] [ text "Kakuro Dojo" ]
+                  , div []
+                      [ p []
+                            [ playButton
+                            , br , br
+                            , pageLink HelpPage "Help" "Show the Help page."
+                            ]
+                      , h3 [] [ text "Tactics" ]
+                      , ps
+                           [ "You won't get very far by simply guessing numbers. It helps to use the hints, which are toggled by typing or tapping '#'. You will also learn to recognize clues which have a small number of possible solutions."
+                           , "In the following, M numbers that add to N is writtten as N/M. So two numbers that add to 3 is 3/2, and 3 numbers that add to 7 is 7/3. To show the combinations of M numbers that can add to N, start with 'N/M, add an equal sign ('='), then list the combinations. So '3/2 = 12' means that the only combination of 2 numbers that adds to 3 is 1 and 2."
+                           , "Here are the common simple sums of two numbers:"
+                           , "3/2 = 12\n4/2 = 13\n16/2 = 79\n17/2 = 89"
+                           , "The common simple sums of three numbers:"
+                           , "6/3 = 123\n7/3 = 124\n23/3 = 689\n24/3 = 789"
+                           , "And the common simple sums of four numbers:"
+                           , "10/4 = 1234\n11/4 = 1235\n29/4 = 5789\n30/4 = 6789"
+                           , "Finally, it's sometimes useful to know the sums of two numbers with two possibilities:"
+                           , "5/2 = 14 or 23\n6/2 = 15 or 24\n14/2 = 59 or 68\n15/2 = 69 or 78"
+                           ]
+                      , p [] [ playButton ]
+                      , ps
+                           ["To use this to solve a puzzle, first fill in the possibilities for the simple sums of two or three numbers, intersecting the lists where a row and column cross each other. Here's the example from the 'Help' page, with that done, using the fact, shown in the 'row' possibilities for the 8/3 row that '8/3 = 125 134'."
+                           ]
+                      , p []
+                          [ RenderBoard.renderHelp helpSavedModel windowSize ]
+                      , ps
+                          [ "Next, replace the cells with only one hint number with a real guess, and eliminate that hint number from the other cells in its row and column:"
+                          ]
+                      , p []
+                          [ RenderBoard.renderHelp tacticsModel2 windowSize ]
+                      , ps
+                          [ "For this simple example, just iterate until done: "
+                          ]
+                      , p []
+                          [ RenderBoard.renderHelp tacticsModel3 windowSize ]
+                      , p []
+                          [ RenderBoard.renderHelp tacticsModel4 windowSize ]
+                      , p [] [ playButton ]
+                      , ps
+                          [ "A real example has more complicated sums, which you can't fill in right away, but if you use the possibilities display, you can usually figure out what to do. For example, here's 6x6 board number 1, which the simple
+                      , p []
+                          [ text "Also see: "
+                          , a [ href "http://www.kakuro.com/howtoplay.php"
+                              , target "_blank"
+                              ]
+                              [ text "kakuro.com: How to Play" ]
+                          ]
+                      , p []
+                          [ pageLink HelpPage "Help" "Show the Help page."
+                          , br , br
+                          , playButton
+                          ]
+                      ]
+                  ]
+            , footerDiv
+            ]
 
 footerDiv : Html Msg
 footerDiv =
