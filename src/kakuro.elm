@@ -924,7 +924,8 @@ tacticsPageDiv model =
                           [ RenderBoard.renderHelp tacticsModel4 windowSize ]
                       , p [] [ playButton ]
                       , ps
-                          [ "A real example has more complicated sums, which you can't fill in right away, but if you use the possibilities display, you can usually figure out what to do. For example, here's 6x6 board number 1, which the simple
+                          [ "A real example has more complicated sums, which you can't fill in right away, but if you use the possibilities display, you can usually figure out what to do. For example, here's 6x6 board number 1, with the simple sum hints filled in."
+                          ]
                       , p []
                           [ text "Also see: "
                           , a [ href "http://www.kakuro.com/howtoplay.php"
