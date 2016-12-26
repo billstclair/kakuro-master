@@ -749,6 +749,10 @@ helpSavedModel : SavedModel
 helpSavedModel =
     makeSavedModel helpBoard helpGuesses helpHints
 
+helpSolvedSavedModel : SavedModel
+helpSolvedSavedModel =
+    makeSavedModel helpBoard helpBoard helpHints
+
 helpWindowSize : Int -> Int -> Model -> Window.Size
 helpWindowSize num denom model =
     let windowSize = case model.windowSize of
@@ -793,6 +797,10 @@ helpPageDiv model =
           , p []
               [ RenderBoard.renderHelp
                     helpSavedModel <| helpWindowSize 1 2 model
+              ]
+          , p []
+              [ RenderBoard.renderHelp
+                    helpSolvedSavedModel <| helpWindowSize 1 2 model
               ]
           , p []
               [ text "Also see: "
