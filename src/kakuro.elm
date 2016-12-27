@@ -810,14 +810,9 @@ helpPageDiv model =
                     , br , br
                     , pageLink TacticsPage "Tactics" "Show the Tactics page."
                     ]
-                , p []
-                    [ text "Click to select. Arrows, WASD, or IJKL to move."
-                    , br
-                    , text "1-9 to enter number. 0 or <space> to erase."
-                    , br
-                    , text "* toggles row/col possibility display."
-                    , br
-                    , text "# toggles hint input."
+                , h3 [] [ text "Help" ]
+                , ps
+                    [ "Click to select. Arrows, WASD, or IJKL to move.\n1-9 to enter number. 0 or <space> to erase.\n* toggles row/col possibility display.\n# toggles hint input."
                     ]
                 , h3 [] [ text "Rules" ]
                 , ps
@@ -904,10 +899,29 @@ board2Model1 =
 
 board2Guesses2 : IntBoard
 board2Guesses2 =
-    PuzzleDB.boardFromSpec 6 "290000/120000/001700/000000/010083/085071"
+    PuzzleDB.boardFromSpec 6 "290000/120000/000000/000000/010083/085071"
 
 board2Hints2 : HintsBoard
 board2Hints2 =
+    hintsFromNestedList
+        [ [[],[],[],[5,6],[1,2],[]]
+        , [[],[],[3,4],[3,4,5],[4,5],[]]
+        , [[],[],[1,2,3],[5,6,7],[],[]]
+        , [[],[],[3,4],[8,9],[],[]]
+        , [[],[],[2,3,4],[],[],[]]
+        , [[],[],[],[],[],[]]
+        ]
+    
+board2Model2 : SavedModel
+board2Model2 =
+    makeSavedModel board2 board2Guesses2 board2Hints2
+
+board2Guesses3 : IntBoard
+board2Guesses3 =
+    PuzzleDB.boardFromSpec 6 "290000/120000/001700/000000/010083/085071"
+
+board2Hints3 : HintsBoard
+board2Hints3 =
     hintsFromNestedList
         [ [[],[],[],[5,6],[1,2],[]]
         , [[],[],[3,4],[3,4,5],[4,5],[]]
@@ -917,9 +931,31 @@ board2Hints2 =
         , [[],[],[],[],[],[]]
         ]
     
-board2Model2 : SavedModel
-board2Model2 =
-    makeSavedModel board2 board2Guesses2 board2Hints2
+board2Model3 : SavedModel
+board2Model3 =
+    makeSavedModel board2 board2Guesses3 board2Hints3
+
+board2Guesses4 : IntBoard
+board2Guesses4 =
+    PuzzleDB.boardFromSpec 6 "290000/120000/001700/000800/012983/085071"
+
+board2Hints4 : HintsBoard
+board2Hints4 = board2Hints3
+    
+board2Model4 : SavedModel
+board2Model4 =
+    makeSavedModel board2 board2Guesses4 board2Hints4
+
+board2Guesses5 : IntBoard
+board2Guesses5 =
+    PuzzleDB.boardFromSpec 6 "290610/123450/001700/004800/012983/085071"
+
+board2Hints5 : HintsBoard
+board2Hints5 = board2Hints4
+    
+board2Model5 : SavedModel
+board2Model5 =
+    makeSavedModel board2 board2Guesses5 board2Hints5
 
 tacticsPageDiv: Model -> Html Msg
 tacticsPageDiv model =
@@ -975,8 +1011,17 @@ tacticsPageDiv model =
                           ]
                       , renderHelp board2Model2 bigWindowSize
                       , ps
-                          [ "There is a single blank cell in the '23/5' row near the bottom. (*** continue here ***)"
+                          [ "The left cell of the '8/2' row in the middle of the board is the only cell in its '15/5' column containing a 1, so it must be 1:"
                           ]
+                      , renderHelp board2Model3 bigWindowSize
+                      , ps
+                          [ "There is a single blank cell in the '23/5' row near the bottom. We could proceed by noticing that the 2 in the '234' cell to its left is the only 2 in its '15/5' column, but I'm going to talk a little first about how to fill in a single blank cell. Add up the minimum possibilities in its row and column, subtract each from its total, and take the maximum, that's max(23-(1+2+8+3), 34-(5+3+7+8)) = max(9, 11) = 11. Add up the maximum possibilities in its row and column, subtract each from its total, and take the minimum, that's min(23-(1+4+8+3), 34-(6+5+7+9)) = max(7, 7) = 7. So the value in that empty cell needs to be between 7 and 11, i.e. 7, 8, or 9. Since 7 is already in its column, and 8 is in its row, it must be 9."
+                          ]
+                      , renderHelp board2Model4 bigWindowSize
+                      , ps
+                          [ "The rest can be filled in directly from the possibility row/col display:"
+                          ]
+                      , renderHelp board2Model5 bigWindowSize
                       , p []
                           [ text "Also see: "
                           , a [ href "http://www.kakuro.com/howtoplay.php"
