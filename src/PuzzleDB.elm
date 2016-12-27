@@ -20,6 +20,7 @@ import String
 import Char
 import Array
 import List.Extra as LE
+import String.Extra as SE
 
 digits : List Char
 digits =
@@ -49,7 +50,9 @@ fillBoardFromSpec row kind specTail board =
 
 boardFromSpec : Int -> String -> Board Int
 boardFromSpec kind spec =
-    fillBoardFromSpec 0 kind spec (Board.makeWithSpec kind kind 0 (Just spec))
+    fillBoardFromSpec 0 kind (SE.replace "/" "" spec)
+        <| Board.makeWithSpec kind kind 0 (Just spec)
+
 
 comparableForSpec : ( Int, Int, Int, Int, String ) -> ( Int, Int, Int, Int )
 comparableForSpec ( k, v, b, n, s ) =

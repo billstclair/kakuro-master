@@ -772,9 +772,9 @@ helpWindowSize num denom model =
                          Nothing -> { width = 256, height = 512 }
                          Just size -> size
         width = min windowSize.width windowSize.height
-        size = num * width // denom
+        size = num * (min width 600) // denom
     in
-        { width = min size 300
+        { width = size
         , height = 2 * size }
 
 playButton : Html Msg
@@ -793,6 +793,10 @@ pageLink page linkText linkTitle =
       , title linkTitle
       ]
     [ text linkText ]
+
+renderHelp : SavedModel -> Window.Size -> Html Msg
+renderHelp model size =
+    p [] [ RenderBoard.renderHelp model size ]
 
 helpPageDiv: Model -> Html Msg
 helpPageDiv model =
@@ -821,10 +825,8 @@ helpPageDiv model =
                      , "If you repeat a number, or fill a row or column with numbers with an incorrect sum, the possibly wrong numbers will be highlighted in red."
                      , "When you tap '#' to enter hint input mode, you can enter multiple numbers that might be in a square, then use those to eliminate possibilities."
                      ]
-                , p []
-                    [ RenderBoard.renderHelp helpSavedModel windowSize ]
-                , p []
-                    [ RenderBoard.renderHelp helpSolvedSavedModel windowSize ]
+                , renderHelp helpSavedModel windowSize
+                , renderHelp helpSolvedSavedModel windowSize
                 , p []
                     [ text "Also see: "
                     , a [ href "https://en.wikipedia.org/wiki/Kakuro" 
@@ -878,9 +880,51 @@ tacticsModel4 : SavedModel
 tacticsModel4 =
     makeSavedModel helpBoard tacticsGuesses4 tacticsHints3
 
+board2 : IntBoard
+board2 = PuzzleDB.boardFromSpec 6 "290610/123450/001700/004800/012983/085071"
+
+board2Guesses : IntBoard
+board2Guesses =
+    PuzzleDB.boardFromSpec 6 "000000/000000/000000/000000/000000/000000"
+
+board2Hints1 : HintsBoard
+board2Hints1 =
+    hintsFromNestedList
+        [ [[1,2],[9],[],[2,3,5,6],[1,2,4,5],[]]
+        , [[1,2],[2],[1,2,3,4,5],[1,2,3,4,5],[1,2,4,5],[]]
+        , [[],[],[1,2,3,5],[3,5,6,7],[],[]]
+        , [[],[],[3,4,5],[7,8,9],[],[]]
+        , [[],[1],[1,2,3,4,5],[],[8],[1,3]]
+        , [[],[8,9],[4,5],[],[5,7],[1,3]]
+        ]
+
+board2Model1 : SavedModel
+board2Model1 =
+    makeSavedModel board2 board2Guesses board2Hints1
+
+board2Guesses2 : IntBoard
+board2Guesses2 =
+    PuzzleDB.boardFromSpec 6 "290000/120000/001700/000000/010083/085071"
+
+board2Hints2 : HintsBoard
+board2Hints2 =
+    hintsFromNestedList
+        [ [[],[],[],[5,6],[1,2],[]]
+        , [[],[],[3,4],[3,4,5],[4,5],[]]
+        , [[],[],[],[],[],[]]
+        , [[],[],[3,4],[8,9],[],[]]
+        , [[],[],[2,3,4],[],[],[]]
+        , [[],[],[],[],[],[]]
+        ]
+    
+board2Model2 : SavedModel
+board2Model2 =
+    makeSavedModel board2 board2Guesses2 board2Hints2
+
 tacticsPageDiv: Model -> Html Msg
 tacticsPageDiv model =
     let windowSize = helpWindowSize 1 2 model
+        bigWindowSize = helpWindowSize 3 4 model
     in
         div []
             [ div []
@@ -908,23 +952,30 @@ tacticsPageDiv model =
                       , ps
                            ["To use this to solve a puzzle, first fill in the possibilities for the simple sums of two or three numbers, intersecting the lists where a row and column cross each other. Here's the example from the 'Help' page, with that done, using the fact, shown in the 'row' possibilities for the 8/3 row that '8/3 = 125 134'."
                            ]
-                      , p []
-                          [ RenderBoard.renderHelp helpSavedModel windowSize ]
+                      , renderHelp helpSavedModel windowSize
                       , ps
                           [ "Next, replace the cells with only one hint number with a real guess, and eliminate that hint number from the other cells in its row and column:"
                           ]
-                      , p []
-                          [ RenderBoard.renderHelp tacticsModel2 windowSize ]
+                      , renderHelp tacticsModel2 windowSize
                       , ps
                           [ "For this simple example, just iterate until done: "
                           ]
-                      , p []
-                          [ RenderBoard.renderHelp tacticsModel3 windowSize ]
-                      , p []
-                          [ RenderBoard.renderHelp tacticsModel4 windowSize ]
+                      , renderHelp tacticsModel3 windowSize
+                      , renderHelp tacticsModel4 windowSize
                       , p [] [ playButton ]
                       , ps
-                          [ "A real example has more complicated sums, which you can't fill in right away, but if you use the possibilities display, you can usually figure out what to do. For example, here's 6x6 board number 1, with the simple sum hints filled in."
+                          [ "A real example has more complicated sums, which you can't fill in right away, but if you use the possibilities display, you can often figure out what to do. For example, below is 6x6 board number 2, with the simple sum hints filled in, and using '15/5 = 12345'."
+                          , "There are a few things to notice about that board."
+                          , "The right cell of the 11/2 row in the upper-left-hand corner contains only '9', since 11 minus 1 is 10, which doesn't work. This means that the left cell can only contain '2', not '12' as is allowed by 3/2 = 12'. Similarly for the top cell of the 9/2 column in the lower-left-hand corner, and the top cell of the 15/2 column in the lower-right-hand corner."
+                          , "The '15/5' column in the middle of the board does not have '12345' as guesses for all of its cells. That's because 4 is not a valid guess for '8/2', being half of 8, the minimum value for '12/2' is 3, and the minimum value for '13/2' is 4. Also the right-most cell of the '15/5' row near the top is missing a 3, since that is half of 6. If you know the numbers that can go in one cell of a 2-cell sum, the other cell's numbers are easy to compute, by subtracting each known number from the sum."
+                          ]
+                      , renderHelp board2Model1 bigWindowSize
+                      , ps
+                          [ "Filling in the numbers with only one possibility, noticing that 1 is required for the '15/2' column in the center of the board, and it appears only in the '8/2' row, and removing the filled-in numbers from the possibilities in their rows and columns, gives:"
+                          ]
+                      , renderHelp board2Model2 bigWindowSize
+                      , ps
+                          [ "There is a single blank cell in the '23/5' row near the bottom. (*** continue here ***)"
                           ]
                       , p []
                           [ text "Also see: "
