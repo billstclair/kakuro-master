@@ -14,6 +14,7 @@ port module Kakuro exposing (..)
 import SharedTypes exposing ( SavedModel, Model, GameState
                             , Msg, Msg(..), Page(..)
                             , IntBoard, HintsBoard, Selection, Flags
+                            , MaybeHelpModelDict(..)
                             )
 import Styles.Page exposing (id, class, PId(..), PClass(..))
 import Board exposing (Board)
@@ -24,11 +25,13 @@ import DebuggingRender
 import RenderBoard
 import EncodeDecode exposing ( encodeGameState, encodeSavedModel
                              , decodeGameState, decodeSavedModel)
+import HelpBoards exposing ( helpBoards )
 
 import Array exposing (Array)
 import Char
 import List
 import List.Extra as LE
+import Dict
 import String
 import Time exposing (Time, second)
 import Random
@@ -112,7 +115,9 @@ init maybeJson =
       ( case savedModel of
           Nothing -> model
           Just m ->
-            SharedTypes.savedModelToModel m
+            let res = SharedTypes.savedModelToModel m
+            in
+                { res | helpModelDict = Javole helpBoards }
       , Cmd.batch
           [ windowSizeCmd
           , setTitle pageTitle
@@ -142,6 +147,7 @@ model =
         , awaitingCommand = Nothing
         , message = Nothing
         , shifted = False
+        , helpModelDict = Javole helpBoards
         }
 
 -- UPDATE
@@ -155,26 +161,47 @@ charToDigit default char =
         else
             default
 
-maybeCharToInt : Int -> Maybe Char -> Int
-maybeCharToInt default mstr =
-    case mstr of
-        Nothing -> default
-        Just char ->
-            charToDigit default char
+toInt : Maybe String -> Int
+toInt s =
+    case s of
+        Nothing -> -1
+        Just string ->
+            case String.toInt string of
+                Ok int -> int
+                Err _ -> -1
 
+updateSelection : Model -> Int -> Int -> Model
+updateSelection model row col =
+    let gameState = model.gameState
+    in
+        { model
+            | gameState =
+              { gameState | selection = Just ( row, col ) }
+        }
+            
 updateSelectedCell : String -> Model -> Model
 updateSelectedCell idStr model =
-    let chars = String.toList idStr
-        row = maybeCharToInt -1 <| List.head chars
-        col = maybeCharToInt -1 <| List.head <| List.drop 2 chars
+    let elts = String.split "," (log "idStr" idStr)
+        name = case List.head elts of
+                   Nothing -> ""
+                   Just n -> n
+        row = toInt <| List.head <| List.drop 1 elts
+        col = toInt <| List.head <| List.drop 2 elts
     in
         if row >= 0 && col >= 0 then
-            let gameState = model.gameState
-            in
-                { model
-                    | gameState =
-                        { gameState | selection = Just ( row, col ) }
-                }
+            if name == "" then
+                updateSelection model row col
+            else
+                case model.helpModelDict of
+                    Nicht -> model
+                    Javole dict ->
+                        case Dict.get name dict of
+                            Nothing -> model
+                            Just helpModel ->
+                                let m = updateSelection helpModel row col
+                                    d = Dict.insert name m dict
+                                in
+                                    { model | helpModelDict = Javole d }
         else
             model
 
@@ -504,16 +531,22 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case model.page of
         MainPage -> updateMainPage msg model
-        _ -> case msg of
-                 ShowPage page ->
-                     ( { model | page = page }
-                     , Cmd.none
-                     )
-                 WindowSize size ->
-                     processWindowSize model size
-                 _ ->
-                     ( model
-                     , Cmd.none )
+        _ -> updateHelpPage msg model
+
+updateHelpPage : Msg -> Model -> ( Model, Cmd Msg)
+updateHelpPage msg model =
+    case msg of
+        ShowPage page ->
+            ( { model | page = page }
+            , Cmd.none
+            )
+        ClickCell id ->
+            ( updateSelectedCell id model, Cmd.none )
+        WindowSize size ->
+            processWindowSize model size
+        _ ->
+            ( model
+            , Cmd.none )
 
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg)
 updateMainPage msg model =
@@ -716,56 +749,6 @@ ps strings =
       |> List.concat
       |> div [ class HelpTextClass ]
 
-hintsFromNestedList : List (List (List Int)) -> HintsBoard
-hintsFromNestedList list =
-    { rows = 3
-    , cols = 3
-    , defaultValue = []
-    , spec = Nothing
-    , index = Nothing
-    , array = Board.arrayFromNestedList list
-    }
-    
-makeGameState : IntBoard -> IntBoard -> HintsBoard -> GameState
-makeGameState board guesses hints =
-    let gs = RenderBoard.makeGameState board
-    in
-        { gs |
-          guesses = guesses
-        , hints = hints
-        }
-
-makeSavedModel : IntBoard -> IntBoard -> HintsBoard -> SavedModel
-makeSavedModel board guesses hints =
-    { kind = board.rows
-    , index = 1
-    , gencount = 1
-    , page = HelpPage
-    , gameState = makeGameState board guesses hints
-    , timestamp = 0
-    }
-
-helpBoard : IntBoard
-helpBoard = PuzzleDB.boardFromSpec 3 "310143021"
-
-helpGuesses : IntBoard
-helpGuesses = PuzzleDB.boardFromSpec 3 "000000000"
-
-helpHints : HintsBoard
-helpHints = hintsFromNestedList
-            [ [[1,3],[1],[]]
-            , [[1,3],[1,2,4],[1,3]]
-            , [[],[1,2],[1]]
-            ]
-
-helpSavedModel : SavedModel
-helpSavedModel =
-    makeSavedModel helpBoard helpGuesses helpHints
-
-helpSolvedSavedModel : SavedModel
-helpSolvedSavedModel =
-    makeSavedModel helpBoard helpBoard helpHints
-
 helpWindowSize : Int -> Int -> Model -> Window.Size
 helpWindowSize num denom model =
     let windowSize = case model.windowSize of
@@ -794,9 +777,20 @@ pageLink page linkText linkTitle =
       ]
     [ text linkText ]
 
-renderHelp : SavedModel -> Window.Size -> Html Msg
-renderHelp model size =
-    p [] [ RenderBoard.renderHelp model size ]
+renderHelp : String -> Model -> Window.Size -> Html Msg
+renderHelp name model size =
+    p []
+      [
+       case model.helpModelDict of
+           Nicht ->
+             text "No help model dict"
+           Javole dict ->
+             case Dict.get name dict of
+                 Nothing ->
+                   text <| "No help model named \"" ++ name ++ "\""
+                 Just helpModel ->
+                    RenderBoard.renderHelp name helpModel size
+      ]
 
 helpPageDiv: Model -> Html Msg
 helpPageDiv model =
@@ -819,9 +813,10 @@ helpPageDiv model =
                      [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
                      , "If you repeat a number, or fill a row or column with numbers with an incorrect sum, the possibly wrong numbers will be highlighted in red."
                      , "When you tap '#' to enter hint input mode, you can enter multiple numbers that might be in a square, then use those to eliminate possibilities."
+                     , "(The boards below are \"live\". If you click/tap a cell, the row and column possibilities will display below the board.)"
                      ]
-                , renderHelp helpSavedModel windowSize
-                , renderHelp helpSolvedSavedModel windowSize
+                , renderHelp "help1" model windowSize
+                , renderHelp "help2" model windowSize
                 , p []
                     [ text "Also see: "
                     , a [ href "https://en.wikipedia.org/wiki/Kakuro" 
@@ -837,125 +832,6 @@ helpPageDiv model =
                 ]
             , footerDiv
             ]
-
-tacticsGuesses2 : IntBoard
-tacticsGuesses2 = PuzzleDB.boardFromSpec 3 "010000001"
-
-tacticsHints2 : HintsBoard
-tacticsHints2 =
-    hintsFromNestedList
-    [ [[3],[],[]]
-    , [[1,3],[2,4],[3]]
-    , [[],[2],[]]
-    ]
-    
-tacticsModel2 : SavedModel
-tacticsModel2 =
-    makeSavedModel helpBoard tacticsGuesses2 tacticsHints2
-
-tacticsGuesses3 : IntBoard
-tacticsGuesses3 = PuzzleDB.boardFromSpec 3 "310003021"
-
-tacticsHints3 : HintsBoard
-tacticsHints3 =
-    hintsFromNestedList
-    [ [[],[],[]]
-    , [[1],[4],[]]
-    , [[],[],[]]
-    ]
-    
-tacticsModel3 : SavedModel
-tacticsModel3 =
-    makeSavedModel helpBoard tacticsGuesses3 tacticsHints3
-
-tacticsGuesses4 : IntBoard
-tacticsGuesses4 = PuzzleDB.boardFromSpec 3 "310143021"
-
-tacticsModel4 : SavedModel
-tacticsModel4 =
-    makeSavedModel helpBoard tacticsGuesses4 tacticsHints3
-
-board2 : IntBoard
-board2 = PuzzleDB.boardFromSpec 6 "290610/123450/001700/004800/012983/085071"
-
-board2Guesses : IntBoard
-board2Guesses =
-    PuzzleDB.boardFromSpec 6 "000000/000000/000000/000000/000000/000000"
-
-board2Hints1 : HintsBoard
-board2Hints1 =
-    hintsFromNestedList
-        [ [[1,2],[9],[],[2,3,5,6],[1,2,4,5],[]]
-        , [[1,2],[2],[1,2,3,4,5],[1,2,3,4,5],[1,2,4,5],[]]
-        , [[],[],[1,2,3,5],[3,5,6,7],[],[]]
-        , [[],[],[3,4,5],[7,8,9],[],[]]
-        , [[],[1],[1,2,3,4,5],[],[8],[1,3]]
-        , [[],[8,9],[4,5],[],[5,7],[1,3]]
-        ]
-
-board2Model1 : SavedModel
-board2Model1 =
-    makeSavedModel board2 board2Guesses board2Hints1
-
-board2Guesses2 : IntBoard
-board2Guesses2 =
-    PuzzleDB.boardFromSpec 6 "290000/120000/000000/000000/010083/085071"
-
-board2Hints2 : HintsBoard
-board2Hints2 =
-    hintsFromNestedList
-        [ [[],[],[],[5,6],[1,2],[]]
-        , [[],[],[3,4],[3,4,5],[4,5],[]]
-        , [[],[],[1,2,3],[5,6,7],[],[]]
-        , [[],[],[3,4],[8,9],[],[]]
-        , [[],[],[2,3,4],[],[],[]]
-        , [[],[],[],[],[],[]]
-        ]
-    
-board2Model2 : SavedModel
-board2Model2 =
-    makeSavedModel board2 board2Guesses2 board2Hints2
-
-board2Guesses3 : IntBoard
-board2Guesses3 =
-    PuzzleDB.boardFromSpec 6 "290000/120000/001700/000000/010083/085071"
-
-board2Hints3 : HintsBoard
-board2Hints3 =
-    hintsFromNestedList
-        [ [[],[],[],[5,6],[1,2],[]]
-        , [[],[],[3,4],[3,4,5],[4,5],[]]
-        , [[],[],[],[],[],[]]
-        , [[],[],[3,4],[8,9],[],[]]
-        , [[],[],[2,3,4],[],[],[]]
-        , [[],[],[],[],[],[]]
-        ]
-    
-board2Model3 : SavedModel
-board2Model3 =
-    makeSavedModel board2 board2Guesses3 board2Hints3
-
-board2Guesses4 : IntBoard
-board2Guesses4 =
-    PuzzleDB.boardFromSpec 6 "290000/120000/001700/000800/012983/085071"
-
-board2Hints4 : HintsBoard
-board2Hints4 = board2Hints3
-    
-board2Model4 : SavedModel
-board2Model4 =
-    makeSavedModel board2 board2Guesses4 board2Hints4
-
-board2Guesses5 : IntBoard
-board2Guesses5 =
-    PuzzleDB.boardFromSpec 6 "290610/123450/001700/004800/012983/085071"
-
-board2Hints5 : HintsBoard
-board2Hints5 = board2Hints4
-    
-board2Model5 : SavedModel
-board2Model5 =
-    makeSavedModel board2 board2Guesses5 board2Hints5
 
 tacticsPageDiv: Model -> Html Msg
 tacticsPageDiv model =
@@ -986,18 +862,19 @@ tacticsPageDiv model =
                            ]
                       , p [] [ playButton ]
                       , ps
-                           ["To use this to solve a puzzle, first fill in the possibilities for the simple sums of two or three numbers, intersecting the lists where a row and column cross each other. Here's the example from the 'Help' page, with that done, using the fact, shown in the 'row' possibilities for the 8/3 row that '8/3 = 125 134'."
+                           [ "To use this to solve a puzzle, first fill in the possibilities for the simple sums of two or three numbers, intersecting the lists where a row and column cross each other. Here's the example from the 'Help' page, with that done, using the fact, shown in the 'row' possibilities for the 8/3 row that '8/3 = 125 134'."
+                           , "(The boards below are \"live\". If you click/tap a cell, the row and column possibilities will display below the board.)"
                            ]
-                      , renderHelp helpSavedModel windowSize
+                      , renderHelp "help1" model windowSize
                       , ps
                           [ "Next, replace the cells with only one hint number with a real guess, and eliminate that hint number from the other cells in its row and column:"
                           ]
-                      , renderHelp tacticsModel2 windowSize
+                      , renderHelp "tactics2" model windowSize
                       , ps
                           [ "For this simple example, just iterate until done: "
                           ]
-                      , renderHelp tacticsModel3 windowSize
-                      , renderHelp tacticsModel4 windowSize
+                      , renderHelp "tactics3" model windowSize
+                      , renderHelp "tactics4" model windowSize
                       , p [] [ playButton ]
                       , ps
                           [ "A real example has more complicated sums, which you can't fill in right away, but if you use the possibilities display, you can often figure out what to do. For example, below is 6x6 board number 2, with the simple sum hints filled in, and using '15/5 = 12345'."
@@ -1005,23 +882,23 @@ tacticsPageDiv model =
                           , "The right cell of the 11/2 row in the upper-left-hand corner contains only '9', since 11 minus 1 is 10, which doesn't work. This means that the left cell can only contain '2', not '12' as is allowed by 3/2 = 12'. Similarly for the top cell of the 9/2 column in the lower-left-hand corner, and the top cell of the 15/2 column in the lower-right-hand corner."
                           , "The '15/5' column in the middle of the board does not have '12345' as guesses for all of its cells. That's because 4 is not a valid guess for '8/2', being half of 8, the minimum value for '12/2' is 3, and the minimum value for '13/2' is 4. Also the right-most cell of the '15/5' row near the top is missing a 3, since that is half of 6. If you know the numbers that can go in one cell of a 2-cell sum, the other cell's numbers are easy to compute, by subtracting each known number from the sum."
                           ]
-                      , renderHelp board2Model1 bigWindowSize
+                      , renderHelp "board2Model1" model bigWindowSize
                       , ps
                           [ "Filling in the numbers with only one possibility, noticing that 1 is required for the '15/2' column in the center of the board, and it appears only in the '8/2' row, and removing the filled-in numbers from the possibilities in their rows and columns, gives:"
                           ]
-                      , renderHelp board2Model2 bigWindowSize
+                      , renderHelp "board2Model2" model bigWindowSize
                       , ps
                           [ "The left cell of the '8/2' row in the middle of the board is the only cell in its '15/5' column containing a 1, so it must be 1:"
                           ]
-                      , renderHelp board2Model3 bigWindowSize
+                      , renderHelp "board2Model3" model bigWindowSize
                       , ps
                           [ "There is a single blank cell in the '23/5' row near the bottom. We could proceed by noticing that the 2 in the '234' cell to its left is the only 2 in its '15/5' column, but I'm going to talk a little first about how to fill in a single blank cell. Add up the minimum possibilities in its row and column, subtract each from its total, and take the maximum, that's max(23-(1+2+8+3), 34-(5+3+7+8)) = max(9, 11) = 11. Add up the maximum possibilities in its row and column, subtract each from its total, and take the minimum, that's min(23-(1+4+8+3), 34-(6+5+7+9)) = max(7, 7) = 7. So the value in that empty cell needs to be between 7 and 11, i.e. 7, 8, or 9. Since 7 is already in its column, and 8 is in its row, it must be 9."
                           ]
-                      , renderHelp board2Model4 bigWindowSize
+                      , renderHelp "board2Model4" model bigWindowSize
                       , ps
                           [ "The rest can be filled in directly from the possibility row/col display:"
                           ]
-                      , renderHelp board2Model5 bigWindowSize
+                      , renderHelp "board2Model5" model bigWindowSize
                       , p []
                           [ text "Also see: "
                           , a [ href "http://www.kakuro.com/howtoplay.php"

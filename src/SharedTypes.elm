@@ -17,6 +17,7 @@ module SharedTypes exposing ( SavedModel, ModelTimes, Model
                             , Selection, GameStateTimes, GameState, Flags, Page(..)
                             , IntBoard, BClassMatrix, BClassBoard
                             , Labels, LabelsBoard, Hints, HintsBoard
+                            , HelpModelDict, MaybeHelpModelDict(..)
                             )
 
 import SimpleMatrix exposing (Matrix)
@@ -27,6 +28,7 @@ import Random
 import Time exposing (Time, second)
 import Keyboard
 import Window
+import Dict exposing (Dict)
 
 type Page
     = MainPage
@@ -78,6 +80,7 @@ type alias Model =
     , awaitingCommand : Maybe String
     , message : Maybe String
     , shifted : Bool
+    , helpModelDict : MaybeHelpModelDict
     }
 
 modelToSavedModel : Model -> SavedModel
@@ -104,6 +107,7 @@ savedModelToModel savedModel =
     , awaitingCommand = Nothing
     , message = Nothing
     , shifted = False
+    , helpModelDict = Nicht
     }
 
 type Msg
@@ -172,3 +176,10 @@ type alias GameState =
     , selection : Maybe Selection
     , times: GameStateTimes
     }
+
+type alias HelpModelDict =
+    Dict String Model
+
+type MaybeHelpModelDict
+    = Nicht
+    | Javole HelpModelDict

@@ -63,7 +63,8 @@ import Svg.Attributes
 
 
 type alias RenderState =
-    { board : IntBoard
+    { name: String
+    , board : IntBoard
     , labels : LabelsBoard
     , allDone : Bool
     , guesses : IntBoard
@@ -76,9 +77,10 @@ type alias RenderState =
     }
 
 
-makeRenderState : GameState -> BClassBoard -> Bool -> RenderState
-makeRenderState state cellClasses allDone =
-    { board = state.board
+makeRenderState : String -> GameState -> BClassBoard -> Bool -> RenderState
+makeRenderState name state cellClasses allDone =
+    { name = name
+    , board = state.board
     , labels = state.labels
     , guesses = state.guesses
     , hints = state.hints
@@ -96,9 +98,9 @@ br =
     Html.br [] []
 
 
-cellId : Int -> Int -> Attribute m
-cellId row col =
-    id ((toString row) ++ "," ++ (toString col))
+cellId : String -> Int -> Int -> Attribute m
+cellId name row col =
+    id (name ++ "," ++ (toString row) ++ "," ++ (toString col))
 
 
 emptyLabels : Labels
@@ -447,7 +449,7 @@ renderSvgCell row col sizes state =
                             , y (toString cr.y)
                             , width (toString cr.w)
                             , height (toString cr.h)
-                            , cellId brow bcol
+                            , cellId state.name brow bcol
                             , svgOnClickWithId ClickCell
                             ]
                             []
@@ -528,8 +530,8 @@ getBoardSizes model =
             bs
 
 
-renderSvgBoard : Model -> Html Msg
-renderSvgBoard model =
+renderSvgBoard : String -> Model -> Html Msg
+renderSvgBoard name model =
     let
         sizes =
             getBoardSizes model
@@ -547,7 +549,7 @@ renderSvgBoard model =
             isAllDone state.board state.guesses
 
         state2 =
-            makeRenderState state cellClasses allDone
+            makeRenderState name state cellClasses allDone
     in
         svg [ width size, height size ]
             ((rect [ svgClass "SvgCell SvgCellColor", width size, height size ] [])
@@ -684,30 +686,38 @@ colHelperText model =
     helperText ( 1, 0 ) ( -1, 0 ) Tuple.first model.gameState
 
 
+renderPossibilities : Model -> Html Msg
+renderPossibilities model =
+    if model.gameState.flags.showPossibilities then
+        div [ class Helper ]
+            [ text <| "row: " ++ (rowHelperText model)
+            , br
+            , text <| "col: " ++ (colHelperText model)
+            , br
+            ]
+    else
+        br
+
 render : Model -> Html Msg
 render model =
     div []
         [ Styles.Board.style
-        , renderSvgBoard model
-        , if model.gameState.flags.showPossibilities then
-            div [ class Helper ]
-                [ text <| "row: " ++ (rowHelperText model)
-                , br
-                , text <| "col: " ++ (colHelperText model)
-                , br
-                ]
-          else
-            br
+        , renderSvgBoard "" model
+        , renderPossibilities model
         ]
 
-renderHelp : SavedModel -> Window.Size -> Html Msg
-renderHelp savedModel windowSize =
-    let m = SharedTypes.savedModelToModel savedModel
-        model = { m | windowSize = Just windowSize }
+renderHelp : String -> Model -> Window.Size -> Html Msg
+renderHelp name model windowSize =
+    let m = { model | windowSize = Just windowSize }
     in
         div []
             [ Styles.Board.style
-            , renderSvgBoard model
+            , renderSvgBoard name m
+            , case model.gameState.selection of
+                  Nothing ->
+                      br
+                  Just _ ->
+                      renderPossibilities m
             ]
 
 --
