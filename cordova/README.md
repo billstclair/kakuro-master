@@ -6,10 +6,6 @@ Currently, iOS is the only supported platform, but adding Android should be very
 
 Do once:
 
-```
-
-```
-
 1. `cd .../`
 2. `git clone git@github.com:billstclair/kakuro-master.git`
 3. `npm install -g cordova`
