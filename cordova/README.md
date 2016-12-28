@@ -6,17 +6,18 @@ Currently, iOS is the only supported platform, but adding Android should be very
 
 Do once:
 
-{{{
-cd .../
-git clone git@github.com:billstclair/kakuro-master.git
-}}}
+```
 
-1. `npm install -g cordova`
-2. `npm install -g ios-deploy1`
-3. `cd .../kakuro-master/cordova`
-4. `cordova add platform ios`
-5. `cordova requirements` and do whatever it tells you to complete.
-6. `cordova run ios --list` -- Do whenever you want to see the emulated device list
+```
+
+1. `cd .../`
+2. `git clone git@github.com:billstclair/kakuro-master.git`
+3. `npm install -g cordova`
+4. `npm install -g ios-deploy1`
+5. `cd .../kakuro-master/cordova`
+6. `cordova add platform ios`
+7. `cordova requirements` and do whatever it tells you to complete.
+8. `cordova run ios --list` -- Do whenever you want to see the emulated device list
 
 After that, you can test changes with:
 
