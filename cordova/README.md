@@ -9,7 +9,7 @@ Do once:
 1. `cd .../`
 2. `git clone git@github.com:billstclair/kakuro-master.git`
 3. `npm install -g cordova`
-4. `npm install -g ios-deploy1`
+4. `npm install -g ios-deploy`
 5. `cd .../kakuro-master/cordova`
 6. `cordova add platform ios`
 7. `cordova requirements`   # Do whatever it tells you to complete.
