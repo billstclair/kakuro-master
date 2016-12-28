@@ -15,3 +15,11 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 7. Wrap the whole thing in iOS and Android apps, likely with [Apache Cordova](https://cordova.apache.org/), [Adobe PhoneGap](http://phonegap.com/), or [Ionic](http://ionicframework.com/). [See [Native Apps Are Doomed](https://medium.com/javascript-scene/native-apps-are-doomed-ac397148a2c0#.48qr70u0a)]
 
 8. Profit!
+
+9. Add user-settable styles, allowing selection of colors.
+
+10. Add iCloud and Android persistence of state.
+
+11. Add my initial idea, trial points. Some of the advanced 6x6 and 8x8 boards will be easier to solve with this.
+
+12. Profit more!
