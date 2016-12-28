@@ -20,4 +20,6 @@ Then you can aim your browser at file:///.../kakuro-master/site/index.html.
 
 I didn't bother to write Windows scripts, nor will the symbolic link from `src/images` to `site/images` work on Windows. Use Linux or macOS.
 
+See the readme in the [cordova](cordova/) directory for building the app for iOS and Android devices.
+
 Articles at <a href='https://steemit.com/created/kakuro-master'>steemit.com/created/kakuro-master</a>.
