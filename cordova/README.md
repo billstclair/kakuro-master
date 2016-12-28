@@ -12,14 +12,14 @@ Do once:
 4. `npm install -g ios-deploy1`
 5. `cd .../kakuro-master/cordova`
 6. `cordova add platform ios`
-7. `cordova requirements` and do whatever it tells you to complete.
-8. `cordova run ios --list` -- Do whenever you want to see the emulated device list
+7. `cordova requirements`   # Do whatever it tells you to complete.
+8. `cordova run ios --list` # Do whenever you want to see the emulated device list
 
 After that, you can test changes with:
 
 1. `cd .../kakuro-master`
-2. `bin/build-site` (I haven't updated this yet for Cordova)
+2. `bin/build-site`  # (I haven't updated this yet for Cordova)
 3. `cd cordova`
-4. `cordova run ios --emulator --target=iPad-Air-2` (`--emulator` is the default. `--target` defaults to `iPhone-SE`)
+4. `cordova run ios --emulator --target=iPad-Air-2`  # (`--emulator` is the default. `--target` defaults to `iPhone-SE`)
 
 
