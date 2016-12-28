@@ -70,7 +70,8 @@ rules =
         ]
     , rule
         [ Class HelpTextClass ]
-        [ ( "width", "20em" )
+        [ ( "width", "80%" )
+        , ( "max-width", "40em" )
         ]
     ]
 
