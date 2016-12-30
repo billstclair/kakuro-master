@@ -3,3 +3,11 @@
 # Compile the application into site/index.html
 
 elm-make src/kakuro.elm --output site/kakuro.js
+
+# For the Cordova app wrapper
+rsync -av site/kakuro.js cordova/www/
+cd site/js
+rsync -av kakuroPorts.js sha256.js ../../cordova/www/js/
+cd ../images
+rsync -av GitHub-Mark-32px.png elm-logo-125x125.png steemit-icon-114x114.png ../../cordova/www/images
+
