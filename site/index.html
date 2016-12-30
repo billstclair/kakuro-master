@@ -37,6 +37,13 @@ document.documentElement.addEventListener('touchstart', function (event) {
   }
 }, false);
 
+var app = {
+  confirm: function(query, callback) {
+    var answer = window.confirm(query);
+    callback(answer);
+  }
+}
+
 kakuroPorts.init();
 
 </script>

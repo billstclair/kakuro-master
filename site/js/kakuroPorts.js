@@ -60,8 +60,9 @@ var kakuroPorts = {};
     });
 
     kakuro.ports.confirmDialog.subscribe(function(query) {
-      var answer = window.confirm(query);
-      kakuro.ports.confirmAnswer.send([query, answer]);
+      app.confirm(query, function(answer) {
+        kakuro.ports.confirmAnswer.send([query, answer]);
+      });
     });
   }
 

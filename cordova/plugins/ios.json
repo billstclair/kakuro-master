@@ -9,6 +9,9 @@
     "installed_plugins": {
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "com.kakuro-dojo.kakuro"
+        },
+        "cordova-plugin-dialogs": {
+            "PACKAGE_NAME": "com.kakuro-dojo.kakuro"
         }
     },
     "dependent_plugins": {}

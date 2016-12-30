@@ -42,6 +42,12 @@ var app = {
 
         console.log('Received Event: ' + id);
       */
+    },
+
+    confirm: function(query, callback) {
+      navigator.notification.confirm(query, function(idx) {
+        callback(idx == 1);
+      });
     }
 };
 
