@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# The default run script for testing in the emulator
+
+cordova run ios --emulator --target=iPad-Air-2

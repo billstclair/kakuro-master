@@ -27,11 +27,13 @@ var app = {
     // Bind any cordova events here. Common events are:
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
-        this.receivedEvent('deviceready');
+        this.receivedDeviceReady('deviceready');
     },
 
     // Update DOM on a Received Event
-    receivedEvent: function(id) {
+    receivedDeviceReady: function(id) {
+        StatusBar.hide();
+        alert("Status bar hidden.");
         var parentElement = document.getElementById(id);
       /*
         var listeningElement = parentElement.querySelector('.listening');
