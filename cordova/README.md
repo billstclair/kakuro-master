@@ -12,6 +12,8 @@ Do once:
 4. `npm install -g ios-deploy`
 5. `cd .../kakuro-master/cordova`
 6. `cordova add platform ios`
+7. `cordova plugin add cordova-plugin-dialogs` 
+8. `cordova plugin add cordova-plugin-statusbar` 
 7. `cordova requirements`   # Do whatever it tells you to complete.
 8. `cordova run ios --list` # Do whenever you want to see the emulated device list
 
