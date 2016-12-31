@@ -40,8 +40,4 @@
         <icon height="167" src="res/ios/icon-83.5@2x.png" width="167" />
     </platform>
     <engine name="ios" spec="~4.3.1" />
-    <feature name="StatusBar">
-        <param name="ios-package" onload="true" value="CDVStatusBar" />
-    </feature>
-    <preference name="StatusBarOverlaysWebView" value="true" />
 </widget>
