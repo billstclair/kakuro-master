@@ -32,8 +32,6 @@ var app = {
 
     // Update DOM on a Received Event
     receivedDeviceReady: function(id) {
-        StatusBar.hide();
-        alert("Status bar hidden.");
         var parentElement = document.getElementById(id);
       /*
         var listeningElement = parentElement.querySelector('.listening');
@@ -50,6 +48,10 @@ var app = {
       navigator.notification.confirm(query, function(idx) {
         callback(idx == 1);
       });
+    },
+
+    isCordova: function() {
+      return true;
     }
 };
 

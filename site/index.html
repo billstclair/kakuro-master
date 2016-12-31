@@ -41,6 +41,10 @@ var app = {
   confirm: function(query, callback) {
     var answer = window.confirm(query);
     callback(answer);
+  },
+
+  isCordova: function() {
+    return false;
   }
 }
 

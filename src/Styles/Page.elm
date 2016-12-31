@@ -38,7 +38,7 @@ rule selectors descriptor =
 rules =
     [ rule
         [ Id BoardId ]
-        [ ( "font-family", "\"Lucida Console\", Monaco, monospace" )
+        [ ( "font-family", "'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif" )
         , ( "font-size", "18pt" )
         , ( "padding", "2px" )
         , ( "border", "1px solid black" )

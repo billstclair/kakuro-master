@@ -52,7 +52,7 @@ import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
 import Window
 
-main : Program (Maybe String) Model Msg
+main : Program (Bool, Maybe String) Model Msg
 main =
     Html.programWithFlags
         { init = init
@@ -102,9 +102,10 @@ seedCmd : Cmd Msg
 seedCmd =
     Task.perform (\x -> Seed x) Time.now
 
-init : Maybe String -> ( Model, Cmd Msg )
-init maybeJson =
-    let savedModel = case maybeJson of
+init : (Bool, Maybe String) -> ( Model, Cmd Msg )
+init state =
+    let (isCordova, maybeJson) = state
+        savedModel = case maybeJson of
                        Nothing -> Nothing
                        Just json ->
                            case decodeSavedModel json of
@@ -113,11 +114,14 @@ init maybeJson =
                                  Just savedModel
     in
       ( case savedModel of
-          Nothing -> model
+          Nothing -> { model | isCordova = isCordova }
           Just m ->
             let res = SharedTypes.savedModelToModel m
             in
-                { res | helpModelDict = Javole helpBoards }
+                { res
+                    | helpModelDict = Javole helpBoards
+                    , isCordova = isCordova
+                }
       , Cmd.batch
           [ windowSizeCmd
           , setTitle pageTitle
@@ -148,6 +152,7 @@ model =
         , message = Nothing
         , shifted = False
         , helpModelDict = Javole helpBoards
+        , isCordova = False
         }
 
 -- UPDATE
@@ -681,7 +686,11 @@ view model =
 
 mainPageDiv : Model -> Html Msg
 mainPageDiv model =
-    div []
+    div [ style [ ("margin-top"
+                  , (toString <| BoardSize.cordovaTopPad model) ++ "px"
+                  )
+                ]
+        ]
       [ div [ id TopInputId ]
           [ button
                 [ onClick <| ShowPage HelpPage
@@ -919,7 +928,11 @@ tacticsPageDiv model =
 footerDiv : Html Msg
 footerDiv =
     div [ id FooterId ]
-      [ text (copyright ++ " 2016 Bill St. Clair ")
+      [ text "Play online at "
+      , a [ href "https://kakuro-dojo.com/" ]
+          [ text "kakuro-dojo.com" ]
+      , br
+      , text (copyright ++ " 2016 Bill St. Clair ")
       , mailLink "billstclair@gmail.com"
       , br
       , logoLink "https://steemit.com/created/kakuro-master"

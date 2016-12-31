@@ -32,7 +32,7 @@ var kakuroPorts = {};
 
     //log("storedState: " + storedState + "\n")
 
-    var kakuro = Elm.Kakuro.fullscreen(storedState);
+    var kakuro = Elm.Kakuro.fullscreen([app.isCordova(), storedState]);
     kakuroPorts.kakuro = kakuro
 
     kakuro.ports.setStorage.subscribe(function(json) {

@@ -81,6 +81,7 @@ type alias Model =
     , message : Maybe String
     , shifted : Bool
     , helpModelDict : MaybeHelpModelDict
+    , isCordova : Bool
     }
 
 modelToSavedModel : Model -> SavedModel
@@ -108,6 +109,7 @@ savedModelToModel savedModel =
     , message = Nothing
     , shifted = False
     , helpModelDict = Nicht
+    , isCordova = False
     }
 
 type Msg

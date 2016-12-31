@@ -20,6 +20,7 @@ module BoardSize
         , rightLabelLocation
         , labelBackgroundRect
         , hintTextLocation
+        , cordovaTopPad
         )
 
 import SharedTypes exposing (Model, BoardSizes)
@@ -85,7 +86,7 @@ computeCellSize model =
     let windowSize = getWindowSize model
         rows = model.kind + 1
         h = windowSize.height
-        maxSize = h - nonBoardSize - (min maxKeypadSize <| minKeypadSize h)
+        maxSize = h - (nonBoardSize model) - (min maxKeypadSize <| minKeypadSize h)
         total = min (windowSize.width - 10) maxSize
         size = (total - 2 * (cellBorder + whiteSpace)) // rows
     in
@@ -95,8 +96,16 @@ boardFromCellSize : Model -> Int -> Int
 boardFromCellSize model cellSize =
     (cellSize * (model.kind + 1)) + (cellBorder + whiteSpace)
 
-nonBoardSize : Int
-nonBoardSize = 120
+cordovaTopPad : Model -> Int
+cordovaTopPad model =
+    if model.isCordova then
+        25
+    else
+        0
+
+nonBoardSize : Model -> Int
+nonBoardSize model =
+    120 + (cordovaTopPad model)
 
 computeBoardSize : Model -> Int
 computeBoardSize model =
@@ -112,7 +121,7 @@ computeBoardSizes model =
         hintFontSize = cellSize // 3
         windowSize = getWindowSize model
         h = windowSize.height
-        keypadSize = h - boardSize - nonBoardSize
+        keypadSize = h - boardSize - (nonBoardSize model)
     in
         { boardSize = boardSize
         , cellSize = cellSize

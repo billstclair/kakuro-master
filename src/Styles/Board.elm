@@ -72,8 +72,8 @@ rules =
         ]
     , rule
         [ Class Table ]
-        [ ( "font-family", "\"Lucida Console\", Monaco, monospace" )
-        , ( "border", "1px solid black" )
+        [ -- ( "font-family", "\"Lucida Console\", Monaco, monospace" )
+          ( "border", "1px solid black" )
         ]
     , rule
         [ Class KeypadTd ]
@@ -102,6 +102,7 @@ rules =
     , rule
         [ Class Helper ]
         [ ( "font-size", "10pt" )
+        --, ( "font-weight", "bold")
         ]
     , rule
         [ Class Error ]
@@ -180,7 +181,9 @@ rules =
         ]
     , rule
         [ Class SvgKeypadText ]
-        [ ( "font-family", "\"Lucida Console\", Monaco, monospace" ) ]
+        [ -- ( "font-family", "\"Lucida Console\", Monaco, monospace" )
+          ( "font-weight", "bold" )
+        ]
     , rule
         [ Class SvgKeypadColor ]
         [ ( "fill", "#ffffff" ) ]
