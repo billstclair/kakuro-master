@@ -815,7 +815,10 @@ helpPageDiv model =
                     ]
                 , h3 [] [ text "Help" ]
                 , ps
-                    [ "Click to select. Arrows, WASD, or IJKL to move.\n1-9 to enter number. 0 or <space> to erase.\n* toggles row/col possibility display.\n# toggles hint input."
+                    [ if model.isCordova then
+                          "Tap to select.\nArrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                      else
+                          "Click/Tap to select.\nArrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
                     ]
                 , h3 [] [ text "Rules" ]
                 , ps
