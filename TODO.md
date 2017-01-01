@@ -7,17 +7,16 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 5. Write Rules. [**done**]
 6. Write Tutorial, with screen shots showing the solution of an easy and harder puzzle. [**done**]
 7. Wrap the whole thing in an iOS app, likely with [Apache Cordova](https://cordova.apache.org/), [Adobe PhoneGap](http://phonegap.com/), or [Ionic](http://ionicframework.com/). [See [Native Apps Are Doomed](https://medium.com/javascript-scene/native-apps-are-doomed-ac397148a2c0#.48qr70u0a)]
-71. "?" button -> link on second line.
-72. "X" button offers "Clear All", with confirmation
-73. "Board Number" becomes link to dialog to type it.
-74. Remember current board for each of 6x6, 8x8, and 10x10.
-75. Apache Cordova logo link at bottom of help pages.
-76. "Credits" page.
-77. App Store screen shots and text.
-8. Profit!
-
-9. Wrap in Android app and add to Google Play App Store.
-10. Add user-settable styles, allowing selection of colors.
-11. Add iCloud and Android persistence of state.
-12. Add my initial idea, trial points. Some of the advanced 6x6 and 8x8 boards will be easier to solve with this.
-13. Profit more!
+  1. "?" button -> link on second line.
+  2. "X" button offers "Clear All", with confirmation
+  3. "Board Number" becomes link to dialog to type it.
+  4. Remember current board for each of 6x6, 8x8, and 10x10.
+  5. Apache Cordova logo link at bottom of help pages.
+  6. "Credits" page.
+  7. App Store screen shots and text.
+  8. Profit!
+8. Wrap in Android app and add to Google Play App Store.
+9. Add user-settable styles, allowing selection of colors.
+10. Add iCloud and Android persistence of state.
+11. Add my initial idea, trial points. Some of the advanced 6x6 and 8x8 boards will be easier to solve with this.
+12. Profit more!
