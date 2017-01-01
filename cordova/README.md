@@ -25,4 +25,4 @@ After that, you can test changes with:
 3. `cd cordova`
 4. `cordova run ios --emulator --target=iPad-Air-2`  # (`--emulator` is the default. `--target` defaults to `iPhone-SE`)
 
-
+Then, you can open `cordova/platforms/ios/Kakuro Dojo.xcodeproj` in XCode, and load it onto your devices.
