@@ -12,8 +12,9 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
   3. "Board Number" becomes link to dialog to type it.
   4. Remember current board for each of 6x6, 8x8, and 10x10.
   5. Apache Cordova logo link at bottom of help pages.
-  6. "Credits" page.
-  7. App Store screen shots and text.
+  6. Fix app icon on switch apps screen (double-tab home button).
+  7. "Credits" page.
+  8. App Store screen shots and text.
 8. Profit!
 9. Wrap in Android app and add to Google Play App Store.
 10. Profit more!
