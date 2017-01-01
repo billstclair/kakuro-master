@@ -126,6 +126,7 @@ type Msg
     | ToggleShowPossibilities
     | ReceiveGame (Maybe String)
     | AnswerConfirmed String Bool
+    | MultiAnswerConfirmed String Int
     | WindowSize Window.Size
     | ShowPage Page
     | Nop

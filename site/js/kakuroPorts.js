@@ -64,6 +64,15 @@ var kakuroPorts = {};
         kakuro.ports.confirmAnswer.send([query, answer]);
       });
     });
+
+    kakuro.ports.multiConfirmDialog.subscribe(function(mtr) {
+      var message = mtr[0];
+      var title = mtr[1];
+      var responses = mtr[2];
+      app.multiConfirm(message, title, responses, function(answer) {
+        kakuro.ports.multiConfirmAnswer.send([message, answer]);
+      });
+    });
   }
 
 })();

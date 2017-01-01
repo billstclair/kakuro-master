@@ -31,7 +31,7 @@ import Array exposing (Array)
 import Char
 import List
 import List.Extra as LE
-import Dict
+import Dict exposing (Dict)
 import String
 import Time exposing (Time, second)
 import Random
@@ -74,6 +74,13 @@ port setTitle : String -> Cmd msg
 port confirmDialog : String -> Cmd msg
 
 port confirmAnswer : ((String, Bool) -> msg) -> Sub msg
+
+-- message title responses
+-- (Only works in Cordova app)
+port multiConfirmDialog : (String, String, List String) -> Cmd msg
+
+-- (message, responseIndex)
+port multiConfirmAnswer : ((String, Int) -> msg) -> Sub msg
 
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 
@@ -553,7 +560,89 @@ updateHelpPage msg model =
             ( model
             , Cmd.none )
 
-updateMainPage : Msg -> Model -> ( Model, Cmd Msg)
+restartQuery : String
+restartQuery =
+    "Restart this puzzle?"
+
+processRestartQuery : Bool -> Model -> ( Model, Cmd Msg )
+processRestartQuery doit model =
+    ( if doit then
+          resetGameState model
+      else
+          model
+    , Cmd.none
+    )
+
+reallyResetAllQuery : String
+reallyResetAllQuery =
+    "Do you really want to clear all saved games?"
+
+processResetAllQuery : Bool -> Model -> ( Model, Cmd Msg )
+processResetAllQuery doit model =
+    if doit then
+        resetAllGameStates model
+    else
+        ( model, Cmd.none )
+
+answerProcessors : Dict String (Bool -> Model -> (Model, Cmd Msg))
+answerProcessors =
+    Dict.fromList
+        [ ( restartQuery, processRestartQuery )
+        , ( reallyResetAllQuery, processResetAllQuery )
+        ]
+
+doAnswerConfirmed : String -> Bool -> Model -> ( Model, Cmd Msg )
+doAnswerConfirmed question doit model =
+    case Dict.get question answerProcessors of
+        Nothing ->
+            ( model, Cmd.none )
+        Just processor ->
+            processor doit model
+
+multiRestartQuery : (String, String, List String)
+multiRestartQuery =
+    ( restartQuery, "Confirm", [ "Cancel", "Clear All", "OK" ] )
+
+-- TBD
+resetAllGameStates : Model -> ( Model, Cmd Msg )
+resetAllGameStates model =
+    ( model, Cmd.none )
+
+maybeResetAllGameStates : Model -> ( Model, Cmd Msg )
+maybeResetAllGameStates model =
+    ( model
+    , confirmDialog reallyResetAllQuery
+    )
+
+processMultiRestartQuery : Int -> Model -> ( Model, Cmd Msg )
+processMultiRestartQuery index model =
+    case index of
+        1 -> maybeResetAllGameStates model
+        2 -> processRestartQuery True model
+        _ -> ( model, Cmd.none )
+
+multiAnswerProcessors : Dict String (Int -> Model -> (Model, Cmd Msg))
+multiAnswerProcessors =
+    Dict.fromList
+        [ ( restartQuery, processMultiRestartQuery )
+        ]
+
+doMultiAnswerConfirmed : String -> Int -> Model -> ( Model, Cmd Msg )
+doMultiAnswerConfirmed question index model =
+    case Dict.get question multiAnswerProcessors of
+        Nothing ->
+            ( model, Cmd.none )
+        Just processor ->
+            processor index model
+
+restartDialog : Model -> Cmd Msg
+restartDialog model =
+    if model.isCordova then
+        multiConfirmDialog multiRestartQuery
+    else
+        confirmDialog restartQuery
+
+updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
     case msg of
         ShowPage page ->
@@ -565,7 +654,7 @@ updateMainPage msg model =
         Generate increment ->
             getBoard model.kind (model.index + increment) model
         Restart ->
-            ( model, confirmDialog "Restart this puzzle?" )
+            ( model, restartDialog model )
         Tick time ->
             ( timeTick time model, Cmd.none )
         Seed time ->
@@ -587,12 +676,9 @@ updateMainPage msg model =
         ReceiveGame maybeJson ->
             receiveGameJson maybeJson model
         AnswerConfirmed question doit ->
-            ( if doit then
-                (resetGameState model)
-              else
-                model
-            , Cmd.none
-            )
+            doAnswerConfirmed question doit model
+        MultiAnswerConfirmed question index ->
+            doMultiAnswerConfirmed question index model
         WindowSize size ->
             processWindowSize model size
         Nop ->
@@ -607,6 +693,12 @@ answerConfirmed answer =
     in
         AnswerConfirmed question doit
 
+multiAnswerConfirmed : ( String, Int ) -> Msg
+multiAnswerConfirmed answer =
+    let ( question, index ) = answer
+    in
+        MultiAnswerConfirmed question index
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     --Time.every second Tick
@@ -615,6 +707,7 @@ subscriptions model =
         , Keyboard.ups (UpKey)
         , Keyboard.presses (PressKey)
         , confirmAnswer answerConfirmed
+        , multiConfirmAnswer multiAnswerConfirmed
         , receiveGame (\maybeJson -> ReceiveGame maybeJson)
         , Window.resizes (\size -> WindowSize size)
         ]
@@ -692,13 +785,7 @@ mainPageDiv model =
                 ]
         ]
       [ div [ id TopInputId ]
-          [ button
-                [ onClick <| ShowPage HelpPage
-                , class ControlsClass
-                , title "Show the Help page."
-                ]
-                [ text "?" ]
-          , text " "
+          [ text " "
           , span []
                 [ radio "6" (model.kind == 6) (ChangeKind 6)
                 , radio "8" (model.kind == 8) (ChangeKind 8)
@@ -726,7 +813,13 @@ mainPageDiv model =
                 ]
                 [ text ">" ]
           , br
-          , text "Board Number: "
+          , a
+              [ href "#"
+              , onClick <| ShowPage HelpPage
+              , title "Show the Help page."
+              ]
+                [ text <| "Help" ]
+          , text " | Board Number: "
           , text
                 ((toString model.index)
                  ++ case model.message of

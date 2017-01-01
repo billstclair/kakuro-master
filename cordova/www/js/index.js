@@ -50,6 +50,14 @@ var app = {
       });
     },
 
+    multiConfirm: function(message, title, responses, callback) {
+      navigator.notification.confirm(message,
+                                     function(idx) {
+                                       callback(idx-1);
+                                     },
+                                     title, responses);
+    },
+
     isCordova: function() {
       return true;
     }
