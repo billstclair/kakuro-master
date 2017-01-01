@@ -21,7 +21,7 @@ Do once:
 After that, you can test changes with:
 
 1. `cd .../kakuro-master`
-2. `bin/build-site`  # (I haven't updated this yet for Cordova)
+2. `bin/build-site`
 3. `cd cordova`
 4. `cordova run ios --emulator --target=iPad-Air-2`  # (`--emulator` is the default. `--target` defaults to `iPhone-SE`)
 
