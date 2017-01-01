@@ -12,7 +12,7 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 
 6. Write Tutorial, with screen shots showing the solution of an easy and harder puzzle. [**done**]
 
-7. Wrap the whole thing in iOS and Android apps, likely with [Apache Cordova](https://cordova.apache.org/), [Adobe PhoneGap](http://phonegap.com/), or [Ionic](http://ionicframework.com/). [See [Native Apps Are Doomed](https://medium.com/javascript-scene/native-apps-are-doomed-ac397148a2c0#.48qr70u0a)]
+7. Wrap the whole thing in an iOS app, likely with [Apache Cordova](https://cordova.apache.org/), [Adobe PhoneGap](http://phonegap.com/), or [Ionic](http://ionicframework.com/). [See [Native Apps Are Doomed](https://medium.com/javascript-scene/native-apps-are-doomed-ac397148a2c0#.48qr70u0a)]
 
 71. "?" button -> link on second line.
 72. "X" button offers "Clear All", with confirmation
@@ -24,10 +24,12 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 
 8. Profit!
 
-9. Add user-settable styles, allowing selection of colors.
+9. Wrap in Android app and add to Google Play App Store.
 
-10. Add iCloud and Android persistence of state.
+10. Add user-settable styles, allowing selection of colors.
 
-11. Add my initial idea, trial points. Some of the advanced 6x6 and 8x8 boards will be easier to solve with this.
+11. Add iCloud and Android persistence of state.
 
-12. Profit more!
+12. Add my initial idea, trial points. Some of the advanced 6x6 and 8x8 boards will be easier to solve with this.
+
+13. Profit more!
