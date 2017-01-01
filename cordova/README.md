@@ -14,8 +14,9 @@ Do once:
 6. `cordova add platform ios`
 7. `cordova plugin add cordova-plugin-dialogs` 
 8. `cordova plugin add cordova-plugin-statusbar` 
-7. `cordova requirements`   # Do whatever it tells you to complete.
-8. `cordova run ios --list` # Do whenever you want to see the emulated device list
+9. `cordova plugin add cordova-plugin-splashscreen` 
+10. `cordova requirements`   # Do whatever it tells you to complete.
+11. `cordova run ios --list` # Do whenever you want to see the emulated device list
 
 After that, you can test changes with:
 

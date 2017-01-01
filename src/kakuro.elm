@@ -801,6 +801,13 @@ renderHelp name model size =
                     RenderBoard.renderHelp name helpModel size
       ]
 
+clickTap : Model -> String
+clickTap model =
+    if model.isCordova then
+        "tap"
+    else
+        "click/tap"
+
 helpPageDiv: Model -> Html Msg
 helpPageDiv model =
     let windowSize = helpWindowSize 1 2 model
@@ -825,7 +832,7 @@ helpPageDiv model =
                      [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
                      , "If you repeat a number, or fill a row or column with numbers with an incorrect sum, the possibly wrong numbers will be highlighted in red."
                      , "When you tap '#' to enter hint input mode, you can enter multiple numbers that might be in a square, then use those to eliminate possibilities."
-                     , "(The boards below are \"live\". If you click/tap a cell, the row and column possibilities will display below the board.)"
+                     , "(The boards below are \"live\". If you " ++ (clickTap model) ++ " a cell, the row and column possibilities will display below the board.)"
                      ]
                 , renderHelp "help1" model windowSize
                 , renderHelp "help2" model windowSize
@@ -875,7 +882,7 @@ tacticsPageDiv model =
                       , p [] [ playButton ]
                       , ps
                            [ "To use this to solve a puzzle, first fill in the possibilities for the simple sums of two or three numbers, intersecting the lists where a row and column cross each other. Here's the example from the 'Help' page, with that done, using the fact, shown in the 'row' possibilities for the 8/3 row that '8/3 = 125 134'."
-                           , "(The boards below are \"live\". If you click/tap a cell, the row and column possibilities will display below the board.)"
+                           , "(The boards below are \"live\". If you " ++ (clickTap model) ++ " a cell, the row and column possibilities will display below the board.)"
                            ]
                       , renderHelp "help1" model windowSize
                       , ps

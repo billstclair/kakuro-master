@@ -38,6 +38,12 @@
         <icon height="50" src="res/ios/icon-50.png" width="50" />
         <icon height="100" src="res/ios/icon-50@2x.png" width="100" />
         <icon height="167" src="res/ios/icon-83.5@2x.png" width="167" />
+        <splash src="res/screen/ios/Default@2x~universal~anyany.png" />
+        <splash src="res/screen/ios/Default@2x~universal~comany.png" />
+        <splash src="res/screen/ios/Default@2x~universal~comcom.png" />
+        <splash src="res/screen/ios/Default@3x~universal~anyany.png" />
+        <splash src="res/screen/ios/Default@3x~universal~anycom.png" />
+        <splash src="res/screen/ios/Default@3x~universal~comany.png" />
     </platform>
     <engine name="ios" spec="~4.3.1" />
 </widget>
