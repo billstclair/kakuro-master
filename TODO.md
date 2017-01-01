@@ -14,6 +14,14 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 
 7. Wrap the whole thing in iOS and Android apps, likely with [Apache Cordova](https://cordova.apache.org/), [Adobe PhoneGap](http://phonegap.com/), or [Ionic](http://ionicframework.com/). [See [Native Apps Are Doomed](https://medium.com/javascript-scene/native-apps-are-doomed-ac397148a2c0#.48qr70u0a)]
 
+71. "?" button -> link on second line.
+72. "X" button offers "Clear All", with confirmation
+73. "Board Number" becomes link to dialog to type it.
+74. Remember current board for each of 6x6, 8x8, and 10x10.
+75. Apache Cordova logo link at bottom of help pages.
+76. "Credits" page.
+77. App Store screen shots and text.
+
 8. Profit!
 
 9. Add user-settable styles, allowing selection of colors.
