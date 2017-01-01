@@ -14,9 +14,10 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
   5. Apache Cordova logo link at bottom of help pages.
   6. "Credits" page.
   7. App Store screen shots and text.
-  8. Profit!
-8. Wrap in Android app and add to Google Play App Store.
-9. Add user-settable styles, allowing selection of colors.
-10. Add iCloud and Android persistence of state.
-11. Add my initial idea, trial points. Some of the advanced 6x6 and 8x8 boards will be easier to solve with this.
-12. Profit more!
+8. Profit!
+9. Wrap in Android app and add to Google Play App Store.
+10. Profit more!
+11. Add user-settable styles, allowing selection of colors.
+12. Add iCloud and Android persistence of state.
+13. Add my initial idea, trial points. Some of the advanced 6x6 and 8x8 boards will be easier to solve with this.
+13. Profit even more!
