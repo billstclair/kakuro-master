@@ -40,6 +40,7 @@ type Page
 type alias SavedModel =
     { kind : Int
     , index : Int
+    , indices : List (Int, Int)
     , gencount : Int
     , gameState : GameState
     , page : Page
@@ -69,6 +70,7 @@ type alias Model =
     { -- on disk. Copied to and from SavedModel instance.
       kind : Int
     , index : Int
+    , indices : List (Int, Int)
     , gencount : Int
     , page : Page
     , gameState : GameState
@@ -88,6 +90,7 @@ modelToSavedModel : Model -> SavedModel
 modelToSavedModel model =
     { kind = model.kind
     , index = model.index
+    , indices = model.indices
     , gencount = model.gencount
     , gameState = model.gameState
     , page = model.page
@@ -98,6 +101,7 @@ savedModelToModel : SavedModel -> Model
 savedModelToModel savedModel =
     { kind = savedModel.kind
     , index = savedModel.index
+    , indices = savedModel.indices
     , gencount = savedModel.gencount
     , gameState = savedModel.gameState
     , page = savedModel.page

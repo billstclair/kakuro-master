@@ -10,7 +10,7 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
   1. "?" button -> link on second line. [**done**]
   2. "X" button offers "Clear All", with confirmation. [**done**]
   3. "Board Number" becomes link to dialog to type it. [**done**]
-  4. Remember current board for each of 6x6, 8x8, and 10x10.
+  4. Remember current board for each of 6x6, 8x8, and 10x10. [**done**]
   5. Apache Cordova logo link at bottom of help pages.
   6. Fix app icon on switch apps screen (double-tab home button).
   7. Force portrait orientation. [**done**]

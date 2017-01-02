@@ -43,6 +43,7 @@ makeSavedModel : IntBoard -> IntBoard -> HintsBoard -> SavedModel
 makeSavedModel board guesses hints =
     { kind = board.rows
     , index = 1
+    , indices = []
     , gencount = 1
     , page = HelpPage
     , gameState = makeGameState board guesses hints

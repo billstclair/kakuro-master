@@ -154,6 +154,7 @@ model =
     in
         { kind = initialKind
         , index = idx
+        , indices = [ (6,1), (8,1), (10,1) ]
         , gencount = 0
         , page = HelpPage
         , gameState = state
@@ -415,6 +416,19 @@ realBoardIndex board =
         Just index ->
             index
 
+indicesInsert : Int -> Int -> List (Int, Int) -> List (Int, Int)
+indicesInsert kind index indices =
+    Dict.toList <| Dict.insert kind index <| Dict.fromList indices
+
+newModelIndices : Int -> Model -> List (Int, Int)
+newModelIndices newKind model =
+    let indices = model.indices
+    in
+        if newKind == model.kind then
+            indices
+        else
+            indicesInsert model.kind model.index indices
+
 getBoard : Int -> Int -> Model -> ( Model, Cmd a )
 getBoard kind index model =
     let index_ =
@@ -434,6 +448,7 @@ getBoard kind index model =
                             | gameState = gameState
                             , index = idx
                             , kind = kind
+                            , indices = newModelIndices kind model
                         }
                     , Cmd.none
                     )
@@ -459,11 +474,13 @@ getBoardFromSpec : String -> Model -> Model
 getBoardFromSpec spec model =
     let board = PuzzleDB.findBoard spec
         gameState = RenderBoard.makeGameState board
+        kind = Board.kind board
         idx = realBoardIndex board
     in
         { model
-            | kind = Board.kind board
+            | kind = kind
             , index = idx
+            , indices = newModelIndices kind model
             , gencount = (model.gencount + 1)
             , gameState = gameState
         }
@@ -515,14 +532,17 @@ receiveGameJson maybeJson model =
             case decodeGameState json of
               Err _ -> newBoard model
               Ok gameState ->
-                  (addBoardSizesToModel
-                       { model
-                           | gameState = gameState
-                           , kind = Board.kind gameState.board
-                           , index = realBoardIndex gameState.board
-                       }
-                  , Cmd.none
-                  )
+                  let kind = Board.kind gameState.board
+                  in
+                      (addBoardSizesToModel
+                           { model
+                               | gameState = gameState
+                               , kind = kind
+                               , index = realBoardIndex gameState.board
+                               , indices = newModelIndices kind model
+                           }
+                      , Cmd.none
+                      )
 
 timeTick : Time -> Model -> Model
 timeTick time model =
@@ -688,6 +708,12 @@ getBoardIndex : Model -> ( Model, Cmd Msg )
 getBoardIndex model =
     ( model, promptDialog (boardIndexQuery, toString model.index) )
 
+getKindIndex : Int -> Model -> Int
+getKindIndex kind model =
+    case Dict.get kind (Dict.fromList model.indices) of
+        Nothing -> model.index
+        Just index -> index
+
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
     case msg of
@@ -696,7 +722,7 @@ updateMainPage msg model =
             , Cmd.none
             )
         ChangeKind kind ->
-            getBoard kind model.index model
+            getBoard kind (getKindIndex kind model) model
         Generate increment ->
             getBoard model.kind (model.index + increment) model
         NewBoardIndex indexStr ->
@@ -884,7 +910,7 @@ mainPageDiv model =
           , text " | Board Number: "
           , input [ value <| toString model.index
                   , type_ "number"
-                  , size 2
+                  , size 3
                   , onInput NewBoardIndex
                   , class ControlsClass
                   , style [ ("width", "2em") ]
