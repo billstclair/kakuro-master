@@ -37,7 +37,11 @@ var kakuroPorts = {};
 
     kakuro.ports.setStorage.subscribe(function(json) {
       //log("setStorage: " + json + "\n")
-      localStorage.setItem(storageName, json);
+      if (json === null) {
+        localStorage.clear();        // Bye,  bye, birdy.
+      } else {
+        localStorage.setItem(storageName, json);
+      }
     });
 
     kakuro.ports.setTitle.subscribe(function(title) {

@@ -61,7 +61,7 @@ main =
         , subscriptions = subscriptions
         }
 
-port setStorage : String -> Cmd a
+port setStorage : Maybe String -> Cmd a
 
 port saveGame : (String, String) -> Cmd msg
 
@@ -91,7 +91,7 @@ updateWithStorage msg model =
         json = encodeSavedModel savedModel
     in
         ( newModel
-        , Cmd.batch [ setStorage json
+        , Cmd.batch [ setStorage <| Just json
                     , cmds ]
         )
 
@@ -566,12 +566,17 @@ restartQuery =
 
 processRestartQuery : Bool -> Model -> ( Model, Cmd Msg )
 processRestartQuery doit model =
-    ( if doit then
-          resetGameState model
-      else
-          model
-    , Cmd.none
-    )
+    if doit then
+        let gameState = model.gameState
+        in
+            if (not model.isCordova) &&
+               (Board.isBoardEmpty gameState.guesses) &&
+               (Board.isBoardEmpty gameState.hints) then
+                maybeResetAllGameStates model
+            else
+                ( resetGameState model, Cmd.none )
+    else
+        ( model, Cmd.none )
 
 reallyResetAllQuery : String
 reallyResetAllQuery =
@@ -605,8 +610,14 @@ multiRestartQuery =
 
 -- TBD
 resetAllGameStates : Model -> ( Model, Cmd Msg )
-resetAllGameStates model =
-    ( model, Cmd.none )
+resetAllGameStates oldModel =
+    ( { model
+      | times = oldModel.times
+      , windowSize = oldModel.windowSize
+      , seed = oldModel.seed
+      , isCordova = oldModel.isCordova
+      }
+    , setStorage Nothing )
 
 maybeResetAllGameStates : Model -> ( Model, Cmd Msg )
 maybeResetAllGameStates model =

@@ -14,7 +14,7 @@ module Board
         ( Board
         , make, makeWithInitial, makeWithSpec, makeWithSpecInitial, makeWithAll
         , get, set, getRow, setRow
-        , kind, arrayFromNestedList
+        , kind, arrayFromNestedList, isBoardEmpty
         )
 
 {-| Two-dimensional game board with integers as elements.
@@ -22,7 +22,7 @@ module Board
 @docs Board
 @docs make, makeWithInitial, makeWithSpec, makeWithSpecInitial, makeWithAll
 @docs get, set, getRow, setRow
-@docs kind, arrayFromNestedList
+@docs kind, arrayFromNestedList, isBoardEmpty
 
 -}
 
@@ -158,3 +158,33 @@ kind =
 arrayFromNestedList : List (List a) -> Array (Array a)
 arrayFromNestedList list =
   Array.fromList <| List.map Array.fromList list
+
+areBoardColsEmpty : Int -> Int -> (Array a) -> a -> Bool
+areBoardColsEmpty colIdx cols array value =
+    if colIdx >= cols then
+        True
+    else case Array.get colIdx array of
+        Nothing -> False
+        Just v ->
+            if v == value then
+                areBoardColsEmpty (colIdx + 1) cols array value
+            else
+                False
+
+areBoardRowsEmpty : Int -> Int -> Int -> Array (Array a) -> a -> Bool
+areBoardRowsEmpty rowIdx rows cols array value =
+    if rowIdx >= rows then
+        True
+    else case Array.get rowIdx array of
+             Nothing -> False
+             Just a ->
+                 if areBoardColsEmpty 0 cols a value then
+                     areBoardRowsEmpty (rowIdx + 1) rows cols array value
+                 else
+                     False
+
+{-| True if every element of Board is its default value
+-}
+isBoardEmpty : Board a -> Bool
+isBoardEmpty board =
+    areBoardRowsEmpty 0 board.rows board.cols board.array board.defaultValue
