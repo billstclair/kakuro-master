@@ -127,8 +127,10 @@ type Msg
     | ReceiveGame (Maybe String)
     | AnswerConfirmed String Bool
     | MultiAnswerConfirmed String Int
+    | PromptAnswerConfirmed String String
     | WindowSize Window.Size
     | ShowPage Page
+    | GetBoardIndex
     | Nop
 
 type alias IntBoard =

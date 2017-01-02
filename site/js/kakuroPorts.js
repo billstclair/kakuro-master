@@ -77,6 +77,19 @@ var kakuroPorts = {};
         kakuro.ports.multiConfirmAnswer.send([message, answer]);
       });
     });
+
+    kakuro.ports.promptDialog.subscribe(function(qd) {
+      var question = qd[0];
+      var deflt = qd[1];
+      var answer = window.prompt(question, deflt);
+      if (!(answer === null)) {
+        kakuro.ports.promptAnswer.send([question, answer]);
+      }
+//      app.promptDialog(question, default, function(answer) {
+//        kakuro.ports.promptAnswer.send([question, answer]);
+//      });
+    });
+
   }
 
 })();

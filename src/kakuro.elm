@@ -75,12 +75,18 @@ port confirmDialog : String -> Cmd msg
 
 port confirmAnswer : ((String, Bool) -> msg) -> Sub msg
 
--- message title responses
+-- multiConfirmDialog (message title responses)
 -- (Only works in Cordova app)
 port multiConfirmDialog : (String, String, List String) -> Cmd msg
 
 -- (message, responseIndex)
 port multiConfirmAnswer : ((String, Int) -> msg) -> Sub msg
+
+-- promptDialog (question, default)
+port promptDialog : (String, String) -> Cmd msg
+
+-- (question, answer)
+port promptAnswer : ((String, String) -> msg) -> Sub msg
 
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 
@@ -653,6 +659,35 @@ restartDialog model =
     else
         confirmDialog restartQuery
 
+boardIndexQuery : String
+boardIndexQuery =
+    "Board Index"
+
+processBoardIndexQuery : String -> Model -> ( Model, Cmd Msg )
+processBoardIndexQuery idxString model =
+    case String.toInt idxString of
+        Err _ -> ( model, Cmd.none)
+        Ok idx ->
+            getBoard model.kind idx model
+
+promptProcessors : Dict String (String -> Model -> ( Model, Cmd Msg ))
+promptProcessors =
+    Dict.fromList
+        [ ( boardIndexQuery, processBoardIndexQuery )
+        ]
+
+doPromptAnswerConfirmed : String -> String -> Model -> ( Model, Cmd Msg )
+doPromptAnswerConfirmed question answer model =
+    case Dict.get question promptProcessors of
+        Nothing ->
+            ( model, Cmd.none )
+        Just processor ->
+            processor answer model
+
+getBoardIndex : Model -> ( Model, Cmd Msg )
+getBoardIndex model =
+    ( model, promptDialog (boardIndexQuery, toString model.index) )
+
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
     case msg of
@@ -690,8 +725,12 @@ updateMainPage msg model =
             doAnswerConfirmed question doit model
         MultiAnswerConfirmed question index ->
             doMultiAnswerConfirmed question index model
+        PromptAnswerConfirmed question answer ->
+            doPromptAnswerConfirmed question answer model
         WindowSize size ->
             processWindowSize model size
+        GetBoardIndex ->
+            getBoardIndex model
         Nop ->
             ( model, Cmd.none )
 
@@ -710,6 +749,12 @@ multiAnswerConfirmed answer =
     in
         MultiAnswerConfirmed question index
 
+promptAnswerConfirmed : (String, String) -> Msg
+promptAnswerConfirmed result =
+    let ( question, answer ) = result
+    in
+        PromptAnswerConfirmed question answer
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     --Time.every second Tick
@@ -719,6 +764,7 @@ subscriptions model =
         , Keyboard.presses (PressKey)
         , confirmAnswer answerConfirmed
         , multiConfirmAnswer multiAnswerConfirmed
+        , promptAnswer promptAnswerConfirmed
         , receiveGame (\maybeJson -> ReceiveGame maybeJson)
         , Window.resizes (\size -> WindowSize size)
         ]
@@ -831,12 +877,14 @@ mainPageDiv model =
               ]
                 [ text <| "Help" ]
           , text " | Board Number: "
-          , text
-                ((toString model.index)
-                 ++ case model.message of
+          , a [ href "#"
+              , onClick <| GetBoardIndex
+              , title "Type a board index."
+              ]
+                [ text <| toString model.index ]
+          , text <| case model.message of
                         Nothing -> ""
                         Just hash -> " (" ++ hash ++ ")"
-                )
           , br
           -- , text (" " ++ toString model.time)  -- Will eventually be timer
           -- , showValue model.seed               -- debugging

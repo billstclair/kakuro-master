@@ -23,4 +23,4 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 11. Add user-settable styles, allowing selection of colors.
 12. Add iCloud and Android persistence of state.
 13. Add my initial idea, trial points. Some of the advanced 6x6 and 8x8 boards will be easier to solve with this.
-13. Profit even more!
+14. Profit even more!
