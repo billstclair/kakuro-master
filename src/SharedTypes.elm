@@ -128,6 +128,7 @@ type Msg
     | AnswerConfirmed String Bool
     | MultiAnswerConfirmed String Int
     | PromptAnswerConfirmed String String
+    | NewBoardIndex String
     | WindowSize Window.Size
     | ShowPage Page
     | GetBoardIndex

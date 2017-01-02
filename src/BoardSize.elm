@@ -105,7 +105,7 @@ cordovaTopPad model =
 
 nonBoardSize : Model -> Int
 nonBoardSize model =
-    120 + (cordovaTopPad model)
+    130 + (cordovaTopPad model)
 
 computeBoardSize : Model -> Int
 computeBoardSize model =

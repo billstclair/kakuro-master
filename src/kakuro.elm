@@ -45,7 +45,7 @@ import Html exposing ( Html, Attribute
 import Html.Attributes exposing ( style, align, value, size
                                 , href, target, src, title, alt
                                 , width, height
-                                , type_
+                                , type_, size, placeholder
                                 , name, checked
         )
 import Html.Events exposing (onClick, onInput)
@@ -699,6 +699,11 @@ updateMainPage msg model =
             getBoard kind model.index model
         Generate increment ->
             getBoard model.kind (model.index + increment) model
+        NewBoardIndex indexStr ->
+            case String.toInt <| String.right 2 indexStr of
+                Err _ -> ( model, Cmd.none )
+                Ok index ->
+                    getBoard model.kind index model
         Restart ->
             ( model, restartDialog model )
         Tick time ->
@@ -877,11 +882,14 @@ mainPageDiv model =
               ]
                 [ text <| "Help" ]
           , text " | Board Number: "
-          , a [ href "#"
-              , onClick <| GetBoardIndex
-              , title "Type a board index."
-              ]
-                [ text <| toString model.index ]
+          , input [ value <| toString model.index
+                  , type_ "number"
+                  , size 2
+                  , onInput NewBoardIndex
+                  , class ControlsClass
+                  , style [ ("width", "2em") ]
+                  ]
+                []
           , text <| case model.message of
                         Nothing -> ""
                         Just hash -> " (" ++ hash ++ ")"
