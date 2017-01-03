@@ -1127,8 +1127,11 @@ footerDiv model =
       , a [ href "https://kakuro-dojo.com/" ]
           [ text "kakuro-dojo.com" ]
       , br
-      , text (copyright ++ " 2016 Bill St. Clair ")
-      , mailLink "billstclair@gmail.com"
+      , text (copyright ++ " 2016-2017 ")
+      , a [ href "https://GibGoyGames.com/" ]
+          [ text "Gib Goy Games" ]
+      , space
+      , mailLink "GibGoyGames@gmail.com"
       , br
       , logoLink "https://steemit.com/created/kakuro-master"
           "steemit-icon-114x114.png"
