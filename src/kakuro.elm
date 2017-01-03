@@ -1235,8 +1235,6 @@ creditsPageDiv model =
                   , ps
                         [ "[Kakuro Dojo] was written by Bill St. Clair, the proprietor of [Gib Goy Games]. I fell in love with Kakuro and wanted some features I couldn't find elsewhere. Then I discovered [Elm], and it became a labor of love. I hope you enjoy it as much as I've enjoyed making and playing it."
                         , "[Kakuro Dojo] is written primarily in the [Elm] programming language. Elm is a pure functional language, similar to [Haskell], which compiles into [JavaScript], and has a very nice programming model. If an Elm program compiles, it will almost certainly never encounter an unexpected run-time error. Thank you to Evan Czaplicki, and the Elm community, for creating my favorite programming language (and that's a big compliment from this old [Lisp] weenie)."
-                        , "[FastClick] is a [JavaScript] library to eliminate a 300ms delay introduced by mobile web browsers. It is copyright The Financial Times Limited and distributed under the MIT License."
-                        , "[js-sha256] is a [JavaScript] library that computes the SHA256 cryptographic hash of a string. It is copyright Yi-Cyuan Chen and distributed under the MIT License."
                         ]
                   , ( if model.isCordova then
                           ps [ "[Apache Cordova] is a system that makes it very easy to distribute a web app as an App Store app. It is copyright The Apache Software Foundation and distributed under the Apache License, Version 2.0."
@@ -1244,6 +1242,10 @@ creditsPageDiv model =
                       else
                           text ""
                     )
+                  , ps
+                        [ "[FastClick] is a [JavaScript] library to eliminate a 300ms delay introduced by mobile web browsers. It is copyright The Financial Times Limited and distributed under the MIT License."
+                        , "[js-sha256] is a [JavaScript] library that computes the SHA256 cryptographic hash of a string. It is copyright Yi-Cyuan Chen and distributed under the MIT License."
+                        ]
                   , p []
                       [ pageLink HelpPage "Help" "Show the Help page."
                       , space
