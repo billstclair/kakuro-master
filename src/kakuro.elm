@@ -841,12 +841,11 @@ space =
 
 radio : String -> Bool -> msg -> Html msg
 radio value isChecked msg =
-    span []
+    span [ onClick msg]
         [ input
             [ type_ "radio"
             , name "board-size"
             , checked isChecked
-            , onClick msg
             ]
             []
         , text value
