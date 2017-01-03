@@ -1,1 +1,10 @@
 platforms/
+www/kakuro.js
+www/js/kakuroPorts.js
+www/js/sha256.js
+www/js/fastclick.min.js
+www/images/GitHub-Mark-32px.png
+www/images/elm-logo-125x125.png
+www/images/cordova-logo-84x81.png
+www/images/steemit-icon-114x114.png
+plugins/cordova-plugin-*
