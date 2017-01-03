@@ -1034,7 +1034,7 @@ helpPageDiv model =
                     , playButton
                     ]
                 ]
-            , footerDiv
+            , footerDiv model
             ]
 
 tacticsPageDiv: Model -> Html Msg
@@ -1117,11 +1117,11 @@ tacticsPageDiv model =
                           ]
                       ]
                   ]
-            , footerDiv
+            , footerDiv model
             ]
 
-footerDiv : Html Msg
-footerDiv =
+footerDiv : Model -> Html Msg
+footerDiv model =
     div [ id FooterId ]
       [ text "Play online at "
       , a [ href "https://kakuro-dojo.com/" ]
@@ -1139,6 +1139,17 @@ footerDiv =
           "GitHub-Mark-32px.png"
           "GitHub source code"
           32
+      , span []
+          (if model.isCordova then
+               [ space
+               , logoLink "https://cordova.apache.org/"
+                   "cordova-logo-84x81.png"
+                   "App Made with Cordova"
+                   32
+               ]
+           else
+               []
+          )
       , space
       , logoLink "http://elm-lang.org/"
           "elm-logo-125x125.png"
