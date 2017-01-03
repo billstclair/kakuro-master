@@ -862,6 +862,7 @@ view model =
               MainPage -> mainPageDiv model
               HelpPage -> helpPageDiv model
               TacticsPage -> tacticsPageDiv model
+              CreditsPage -> creditsPageDiv model
         ]
 
 mainPageDiv : Model -> Html Msg
@@ -926,6 +927,95 @@ mainPageDiv model =
       , div [] [ RenderBoard.renderKeypad model ]
       ]
 
+linkDict : Dict String String
+linkDict =
+    Dict.fromList
+        [ ( "Kakuro Dojo", "https://kakuro-dojo.com/" )
+        , ( "Gib Goy Games", "https://GibGoyGames.com/" )
+        , ( "Elm", "http://elm-lang.org/" )
+        , ( "Haskell", "https://www.haskell.org/" )
+        , ( "Lisp", "https://en.wikipedia.org/wiki/Lisp_(programming_language)" )
+        , ( "Apache Cordova", "https://cordova.apache.org/" )
+        , ( "FastClick", "https://ftlabs.github.io/fastclick/" )
+        , ( "js-sha256", "https://github.com/emn178/js-sha256" )
+        , ( "JavaScript", "https://en.wikipedia.org/wiki/JavaScript" )
+        ]
+
+lookupLink : String -> Maybe String
+lookupLink linkText =
+    Dict.get linkText linkDict
+
+convertOneLink : String -> String -> (List (Html Msg), String)
+convertOneLink prefix linkPlus =
+    let lp = String.split "]" linkPlus
+        joinem = (\() ->
+                   ( [ text prefix, text "[" ]
+                   , linkPlus
+                   )
+                 )
+    in
+        case List.tail lp of
+            Nothing -> joinem()
+            Just tail ->
+                let linkText = listHead lp ""
+                in
+                    case lookupLink linkText of
+                        Nothing -> joinem()
+                        Just link ->
+                            ( [ text prefix
+                             , a [ href link ]
+                                  [ text linkText ]
+                              ]
+                            , String.join "]" tail
+                            )
+
+convertLinksLoop : String -> String -> List String -> List (List (Html Msg)) -> List (Html Msg)
+convertLinksLoop prefix linkPlus tail res =
+    let (html, nextPrefix) = convertOneLink prefix linkPlus
+        res2 = html :: res
+    in
+        case List.head tail of
+            Nothing ->
+                List.append
+                    (List.concat (List.reverse res2))
+                    [ text nextPrefix ]
+            Just nextLinkPlus ->
+                convertLinksLoop
+                    nextPrefix
+                    nextLinkPlus
+                    (listTail tail)
+                    res2
+
+listTail : List a -> List a
+listTail list =
+    case List.tail list of
+        Nothing -> []
+        Just tail -> tail
+
+listHead : List a -> a -> a
+listHead list default =
+    case List.head list of
+        Nothing -> default
+        Just x -> x
+
+convertLinks : String -> Html Msg
+convertLinks string =
+    let segs = String.split "[" string
+    in
+        case List.tail segs of
+            Nothing -> text string
+            Just tail ->
+                case List.head tail of
+                    Nothing -> text string --nothing after "["
+                    Just tail1 ->
+                        span []
+                            ( convertLinksLoop
+                                  (listHead segs "")
+                                  tail1
+                                  (listTail tail)
+                                  []
+                            )
+
 pFormat : String -> List (Html Msg)
 pFormat string =
     case String.left 1 string of
@@ -933,7 +1023,7 @@ pFormat string =
             [ blockquote [] (pFormat <| String.dropLeft 1 string) ]
         _ ->
             String.split "\n" string
-                |> List.map text
+                |> List.map convertLinks
                 |> List.intersperse br
                 |> (\x -> [ p [] x ])
 
@@ -1004,6 +1094,8 @@ helpPageDiv model =
                     [ playButton
                     , br , br
                     , pageLink TacticsPage "Tactics" "Show the Tactics page."
+                    , space
+                    , pageLink CreditsPage "Credits" "Show the Credits page."
                     ]
                 , h3 [] [ text "Help" ]
                 , ps
@@ -1030,6 +1122,8 @@ helpPageDiv model =
                     ]
                 , p []
                     [ pageLink TacticsPage "Tactics" "Show the Tactics page."
+                    , space
+                    , pageLink CreditsPage "Credits" "Show the Credits page."
                     , br , br
                     , playButton
                     ]
@@ -1050,6 +1144,8 @@ tacticsPageDiv model =
                             [ playButton
                             , br , br
                             , pageLink HelpPage "Help" "Show the Help page."
+                            , space
+                            , pageLink CreditsPage "Credits" "Show the Credits page."
                             ]
                       , h3 [] [ text "Tactics" ]
                       , ps
@@ -1112,6 +1208,8 @@ tacticsPageDiv model =
                           ]
                       , p []
                           [ pageLink HelpPage "Help" "Show the Help page."
+                          , space
+                          , pageLink CreditsPage "Credits" "Show the Credits page."
                           , br , br
                           , playButton
                           ]
@@ -1119,6 +1217,44 @@ tacticsPageDiv model =
                   ]
             , footerDiv model
             ]
+
+creditsPageDiv: Model -> Html Msg
+creditsPageDiv model =
+    div []
+        [ div []
+              [ h2 [] [ text "Kakuro Dojo" ]
+              , div []
+                  [ p []
+                        [ playButton
+                        , br , br
+                        , pageLink HelpPage "Help" "Show the Help page."
+                        , space
+                        , pageLink TacticsPage "Tactics" "Show the Tactics page."
+                        ]
+                  , h3 [] [ text "Credits" ]
+                  , ps
+                        [ "[Kakuro Dojo] was written by Bill St. Clair, the proprietor of [Gib Goy Games]. I fell in love with Kakuro and wanted some features I couldn't find elsewhere. Then I discovered [Elm], and it became a labor of love. I hope you enjoy it as much as I've enjoyed making and playing it."
+                        , "[Kakuro Dojo] is written primarily in the [Elm] programming language. Elm is a pure functional language, similar to [Haskell], which compiles into [JavaScript], and has a very nice programming model. If an Elm program compiles, it will almost certainly never encounter an unexpected run-time error. Thank you to Evan Czaplicki, and the Elm community, for creating my favorite programming language (and that's a big compliment from this old [Lisp] weenie)."
+                        , "[FastClick] is a [JavaScript] library to eliminate a 300ms delay introduced by mobile web browsers. It is copyright The Financial Times Limited and distributed under the MIT License."
+                        , "[js-sha256] is a [JavaScript] library that computes the SHA256 cryptographic hash of a string. It is copyright Yi-Cyuan Chen and distributed under the MIT License."
+                        ]
+                  , ( if model.isCordova then
+                          ps [ "[Apache Cordova] is a system that makes it very easy to distribute a web app as an App Store app. It is copyright The Apache Software Foundation and distributed under the Apache License, Version 2.0."
+                             ]
+                      else
+                          text ""
+                    )
+                  , p []
+                      [ pageLink HelpPage "Help" "Show the Help page."
+                      , space
+                      , pageLink TacticsPage "Tactics" "Show the Tactics page."
+                      , br , br
+                      , playButton
+                      ]
+                  ]
+              ]
+        , footerDiv model
+        ]
 
 footerDiv : Model -> Html Msg
 footerDiv model =

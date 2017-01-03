@@ -34,6 +34,7 @@ type Page
     = MainPage
     | HelpPage
     | TacticsPage
+    | CreditsPage
 
 -- This gets saved in the browser database.
 

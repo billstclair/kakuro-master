@@ -14,8 +14,8 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
   5. Apache Cordova logo link at bottom of help pages. [**done**]
   6. Fix app icon on switch apps screen (double-tab home button). [**done**]
   7. Force portrait orientation. [**done**]
-  8. Link to GibGoyGames.com with GibGoyGames@gmail.com email. 
-  9. "Credits" page.
+  8. Link to GibGoyGames.com with GibGoyGames@gmail.com email. [**done**]
+  9. "Credits" page. [**done**]
   10. Eraser icon instead of blank square on keypad.
   11. App Store screen shots and text.
   12. Consider offering it for free with five layouts for each size (or just for the 6x6 size), and adding the rest as a $1.00 in-app purchase. See [Alex Disler's article](https://alexdisler.com/2016/02/29/in-app-purchases-ionic-cordova/) about his Cordova plugin.
