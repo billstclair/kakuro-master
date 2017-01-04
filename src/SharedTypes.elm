@@ -85,6 +85,7 @@ type alias Model =
     , shifted : Bool
     , helpModelDict : MaybeHelpModelDict
     , isCordova : Bool
+    , properties : Dict String String
     }
 
 modelToSavedModel : Model -> SavedModel
@@ -115,6 +116,7 @@ savedModelToModel savedModel =
     , shifted = False
     , helpModelDict = Nicht
     , isCordova = False
+    , properties = Dict.fromList []
     }
 
 type Msg

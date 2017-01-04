@@ -14,9 +14,13 @@ var kakuroPorts = {};
 (function () {
 
   var storageName = 'kakuro-dojo';
+  var propertiesName = 'kakuro-properties';
 
   kakuroPorts.init = init;
   kakuroPorts.storageName = storageName;
+  kakuroPorts.propertiesName = propertiesName;
+  kakuroPorts.setProperty = setProperty;
+  kakuroPorts.getProperty = getProperty;
 
   function specHash(spec) {
     var hash = sha256(spec);      // Defined in sha256.js
@@ -27,13 +31,44 @@ var kakuroPorts = {};
     console.log(x+"\n");
   }
 
+  function getProperties() {
+    var json = localStorage.getItem(propertiesName);
+    return json ? JSON.parse(json) : {};
+  }
+
+  function setProperties(properties) {
+    localStorage.setItem(propertiesName, JSON.stringify(properties));
+  }
+
+  // This isn't used by the Elm code, but is useful for debugging
+  // in the JavaScript console.
+  function getProperty(property) {
+    var props = getProperties();
+    return props[property];
+  }
+
+  function setProperty(property, value) {
+    var props = getProperties();
+    if (value == null) {
+      delete props[property];
+    } else {
+      props[property] = value;
+    }
+    setProperties(props);
+  }
+
   function init() {
     var storedState = localStorage.getItem(storageName);
 
     //log("storedState: " + storedState + "\n")
 
-    var kakuro = Elm.Kakuro.fullscreen([app.isCordova(), storedState]);
-    kakuroPorts.kakuro = kakuro
+    var alist = [];
+    var properties = getProperties()
+    for (key in properties) {
+      alist.push([key, properties[key]]);
+    }
+    var kakuro = Elm.Kakuro.fullscreen([app.isCordova(), alist, storedState]);
+    kakuroPorts.kakuro = kakuro;
 
     kakuro.ports.setStorage.subscribe(function(json) {
       //log("setStorage: " + json + "\n")
@@ -61,6 +96,10 @@ var kakuroPorts = {};
       var json = localStorage.getItem(hash);
       //log ("Restored: " + hash + " from: " + spec + " as: " + json);
       kakuro.ports.receiveGame.send(json);
+    });
+
+    kakuro.ports.setProperty.subscribe(function(property, value) {
+      setProperty(property, value)
     });
 
     kakuro.ports.confirmDialog.subscribe(function(query) {

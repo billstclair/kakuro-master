@@ -52,7 +52,7 @@ import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
 import Window
 
-main : Program (Bool, Maybe String) Model Msg
+main : Program (Bool, List (String, String), Maybe String) Model Msg
 main =
     Html.programWithFlags
         { init = init
@@ -66,13 +66,16 @@ port setStorage : Maybe String -> Cmd a
 port saveGame : (String, String) -> Cmd msg
 
 port requestGame : String -> Cmd msg
-
 port receiveGame : (Maybe String -> msg) -> Sub msg
+
+-- getProperty is intentionally missing.
+-- The properties are all cached in the Model.
+-- Writes have to go to both, but reads can come from the Model.
+port setProperty : (String, Maybe String) -> Cmd msg
 
 port setTitle : String -> Cmd msg
 
 port confirmDialog : String -> Cmd msg
-
 port confirmAnswer : ((String, Bool) -> msg) -> Sub msg
 
 -- multiConfirmDialog (message title responses)
@@ -115,9 +118,9 @@ seedCmd : Cmd Msg
 seedCmd =
     Task.perform (\x -> Seed x) Time.now
 
-init : (Bool, Maybe String) -> ( Model, Cmd Msg )
+init : (Bool, List (String, String), Maybe String) -> ( Model, Cmd Msg )
 init state =
-    let (isCordova, maybeJson) = state
+    let (isCordova, properties, maybeJson) = state
         savedModel = case maybeJson of
                        Nothing -> Nothing
                        Just json ->
@@ -125,15 +128,20 @@ init state =
                              Err _ -> Nothing
                              Ok savedModel ->
                                  Just savedModel
+        propertiesDict = Dict.fromList (log "properties" properties)
     in
       ( case savedModel of
-          Nothing -> { model | isCordova = isCordova }
+          Nothing -> { model
+                         | isCordova = isCordova
+                         , properties = propertiesDict
+                     }
           Just m ->
             let res = SharedTypes.savedModelToModel m
             in
                 { res
                     | helpModelDict = Javole helpBoards
                     , isCordova = isCordova
+                    , properties = propertiesDict
                 }
       , Cmd.batch
           [ windowSizeCmd
@@ -167,6 +175,7 @@ model =
         , shifted = False
         , helpModelDict = Javole helpBoards
         , isCordova = False
+        , properties = Dict.fromList []
         }
 
 -- UPDATE
@@ -935,6 +944,7 @@ linkDict =
         , ( "Elm", "http://elm-lang.org/" )
         , ( "Haskell", "https://www.haskell.org/" )
         , ( "Lisp", "https://en.wikipedia.org/wiki/Lisp_(programming_language)" )
+        , ( "hacker" , "http://www.catb.org/hacker-emblem/" )
         , ( "Apache Cordova", "https://cordova.apache.org/" )
         , ( "FastClick", "https://ftlabs.github.io/fastclick/" )
         , ( "js-sha256", "https://github.com/emn178/js-sha256" )
@@ -1234,7 +1244,7 @@ creditsPageDiv model =
                   , h3 [] [ text "Credits" ]
                   , ps
                         [ "[Kakuro Dojo] was written by Bill St. Clair, the proprietor of [Gib Goy Games]. I fell in love with Kakuro and wanted some features I couldn't find elsewhere. Then I discovered [Elm], and it became a labor of love. I hope you enjoy it as much as I've enjoyed making and playing it."
-                        , "[Kakuro Dojo] is written primarily in the [Elm] programming language. Elm is a pure functional language, similar to [Haskell], which compiles into [JavaScript], and has a very nice programming model. If an Elm program compiles, it will almost certainly never encounter an unexpected run-time error. Thank you to Evan Czaplicki, and the Elm community, for creating my favorite programming language (and that's a big compliment from this old [Lisp] weenie)."
+                        , "[Kakuro Dojo] is written primarily in the [Elm] programming language. Elm is a pure functional language, similar to [Haskell], which compiles into [JavaScript], and has a very nice programming model. If an Elm program compiles, it will almost certainly never encounter an unexpected run-time error. Thank you to Evan Czaplicki, and the Elm community, for creating my favorite programming language (and that's a big compliment from this old [Lisp] [hacker])."
                         ]
                   , ( if model.isCordova then
                           ps [ "[Apache Cordova] is a system that makes it very easy to distribute a web app as an App Store app. It is copyright The Apache Software Foundation and distributed under the Apache License, Version 2.0."
