@@ -50,6 +50,18 @@ var app = {
 
   isCordova: function() {
     return false;
+  },
+
+  iapGetProducts: function(pids, callback) {
+    callback("Only Cordova supports in-app purchases.");
+  },
+
+  iapBuy: function(pid, callback) {
+    callback("Only Cordova supports in-app purchases.");
+  },
+
+  iapRestorePurchases: function(callback) {
+    callback("Only Cordova supports in-app purchases.");
   }
 }
 

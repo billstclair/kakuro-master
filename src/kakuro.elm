@@ -15,6 +15,7 @@ import SharedTypes exposing ( SavedModel, Model, GameState
                             , Msg, Msg(..), Page(..)
                             , IntBoard, HintsBoard, Selection, Flags
                             , MaybeHelpModelDict(..)
+                            , IapProduct, IapPurchase
                             )
 import Styles.Page exposing (id, class, PId(..), PClass(..))
 import Board exposing (Board)
@@ -91,6 +92,20 @@ port promptDialog : (String, String) -> Cmd msg
 -- (question, answer)
 port promptAnswer : ((String, String) -> msg) -> Sub msg
 
+-- productIds
+port iapGetProducts : List String -> Cmd msg
+-- (products, error)
+port iapProducts : ((Maybe (List IapProduct), Maybe String) -> msg) -> Sub msg
+
+-- productId
+port iapBuy : String -> Cmd msg
+-- (productId, transactionId, error)
+port iapBuyResponse : ((String, Maybe String, Maybe String) -> msg) -> Sub msg
+
+port iapRestorePurchases : () -> Cmd msg
+-- (purchases, error)
+port iapPurchases : ((Maybe (List IapPurchase), Maybe String) -> msg) -> Sub msg
+
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
@@ -128,7 +143,7 @@ init state =
                              Err _ -> Nothing
                              Ok savedModel ->
                                  Just savedModel
-        propertiesDict = Dict.fromList (log "properties" properties)
+        propertiesDict = Dict.fromList properties
     in
       ( case savedModel of
           Nothing -> { model

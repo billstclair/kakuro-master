@@ -129,6 +129,37 @@ var kakuroPorts = {};
 //      });
     });
 
+    kakuro.ports.iapGetProducts.subscribe(function(pids) {
+      app.iapGetProducts(pids, function(res) {
+        res =  (typeof(res) == 'string') ? [null, res] : [res, null]
+        kakuro.ports.iapProducts.send(res);
+      });
+    });
+
+    kakuro.ports.iapBuy.subscribe(function(pid) {
+      app.iapBuy(pid, function(res) {
+        res = (typeof(res) == 'string') ?
+          [pid, null, res] :
+          [pid, res.transactionId, null];
+        kakuro.ports.iapBuyResponse.send(res);
+      });
+    });
+
+    kakuro.ports.iapRestorePurchases.subscribe(function() {
+      app.iapRestorePurchases(function(res) {
+        if (typeof(res) == 'string') {
+            res = [null, res];
+        } else {
+          // Must match IapPurchase in SharedTypes.elm
+          res = [{productId: res.productId,
+                  transactionId: res.transactionId,
+                  data: res.data},
+                 null]
+        }
+        kakuro.ports.iapPurchases.send(res);
+      });
+    });
+
   }
 
 })();

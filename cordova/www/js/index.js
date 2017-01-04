@@ -60,7 +60,29 @@ var app = {
 
     isCordova: function() {
       return true;
-    }
+    },
+
+  iapGetProducts: function(pids, callback) {
+    inAppPurchase
+      .getProducts(pids)
+      .then(callback)
+      .catch(callback);
+  },
+
+  iapBuy: function(pid, callback) {
+    inAppPurchase
+      .buy(pid)
+      .then(callback)
+      .catch(callback);
+  },
+
+  iapRestorePurchases: function(callback) {
+    inAppPurchase
+      .restorePurchases()
+      .then(callback)
+      .catch(callback);
+  }
+
 };
 
 // https://github.com/ftlabs/fastclick/blob/master/README.md

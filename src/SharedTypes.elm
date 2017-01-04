@@ -18,6 +18,7 @@ module SharedTypes exposing ( SavedModel, ModelTimes, Model
                             , IntBoard, BClassMatrix, BClassBoard
                             , Labels, LabelsBoard, Hints, HintsBoard
                             , HelpModelDict, MaybeHelpModelDict(..)
+                            , IapProduct, IapPurchase
                             )
 
 import SimpleMatrix exposing (Matrix)
@@ -196,3 +197,16 @@ type alias HelpModelDict =
 type MaybeHelpModelDict
     = Nicht
     | Javole HelpModelDict
+
+type alias IapProduct =
+    { productId : String
+    , title : String
+    , description : String
+    , price : String
+    }
+
+type alias IapPurchase =
+    { productId : String
+    , transactionId : String
+    , date : Int
+    }
