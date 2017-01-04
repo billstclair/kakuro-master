@@ -606,7 +606,7 @@ processRestartQuery doit model =
 
 reallyResetAllQuery : String
 reallyResetAllQuery =
-    "Do you really want to clear all saved games?"
+    "Are you sure you want to clear all saved puzzles?"
 
 processResetAllQuery : Bool -> Model -> ( Model, Cmd Msg )
 processResetAllQuery doit model =
@@ -632,7 +632,7 @@ doAnswerConfirmed question doit model =
 
 multiRestartQuery : (String, String, List String)
 multiRestartQuery =
-    ( restartQuery, "Confirm", [ "Cancel", "Clear All", "OK" ] )
+    ( restartQuery, "Confirm", [ "Cancel", "Clear All Saved Puzzles", "Restart This Puzzle" ] )
 
 -- TBD
 resetAllGameStates : Model -> ( Model, Cmd Msg )

@@ -29,4 +29,4 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
 
 Nits:
 
-1. Would be nice to use the fixed "keyboard" for typing the board number.
+1. Would be nice to use the fixed "keyboard" for typing the board number. Could do this by using SVG to draw the "Board Number" box. See [site/svgBoardIndex.html](site/svgBoardIndex.html).

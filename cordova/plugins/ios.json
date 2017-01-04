@@ -7,14 +7,17 @@
         "files": {}
     },
     "installed_plugins": {
-        "cordova-plugin-whitelist": {
-            "PACKAGE_NAME": "com.kakuro-dojo.kakuro"
-        },
         "cordova-plugin-dialogs": {
-            "PACKAGE_NAME": "com.kakuro-dojo.kakuro"
+            "PACKAGE_NAME": "com.gibgoygames.kakuro"
+        },
+        "cordova-plugin-inapppurchase": {
+            "PACKAGE_NAME": "com.gibgoygames.kakuro"
         },
         "cordova-plugin-splashscreen": {
-            "PACKAGE_NAME": "com.kakuro-dojo.kakuro"
+            "PACKAGE_NAME": "com.gibgoygames.kakuro"
+        },
+        "cordova-plugin-whitelist": {
+            "PACKAGE_NAME": "com.gibgoygames.kakuro"
         }
     },
     "dependent_plugins": {}

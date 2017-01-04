@@ -11,12 +11,9 @@ Do once:
 3. `npm install -g cordova`
 4. `npm install -g ios-deploy`
 5. `cd .../kakuro-master/cordova`
-6. `cordova add platform ios`
-7. `cordova plugin add cordova-plugin-dialogs` 
-8. `cordova plugin add cordova-plugin-statusbar` 
-9. `cordova plugin add cordova-plugin-splashscreen` 
-10. `cordova requirements`   # Do whatever it tells you to complete.
-11. `cordova run ios --list` # Do whenever you want to see the emulated device list
+6. `./configure`            # Add platforms and plugins
+7. `cordova requirements`   # Do whatever it tells you to complete.
+8. `cordova run ios --list` # Do whenever you want to see the emulated device list
 
 After that, you can test changes with:
 
@@ -24,5 +21,6 @@ After that, you can test changes with:
 2. `bin/build-site`
 3. `cd cordova`
 4. `cordova run ios --emulator --target=iPad-Air-2`  # (`--emulator` is the default. `--target` defaults to `iPhone-SE`)
+5. `./run` is a script for the `cordova run...` command above.
 
 Then, you can open `cordova/platforms/ios/Kakuro Dojo.xcodeproj` in XCode, and load it onto your devices.

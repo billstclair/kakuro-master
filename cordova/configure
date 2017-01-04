@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Add platforms and plugins for Cordova development.
+# Run this once, after cloning the repository
+
+cordova platform add ios
+cordova plugin add cordova-plugin-dialogs
+cordova plugin add cordova-plugin-splashscreen
+cordova plugin add cordova-plugin-inapppurchase
