@@ -131,7 +131,21 @@ var kakuroPorts = {};
 
     kakuro.ports.iapGetProducts.subscribe(function(pids) {
       app.iapGetProducts(pids, function(res) {
-        res =  (typeof(res) == 'string') ? [null, res] : [res, null]
+        if (typeof(res) == 'string') {
+            res =  [null, res];
+        } else {
+          var prods = [];
+          // Not really necessary, but avoids conversion-to-Elm runtime error,
+          // if return value isn't the correct shape.
+          for (prod in res) {
+            prod = res[prod];
+            prods.push({ productId: prod.productId || "",
+                         title: prod.title || "",
+                         description: prod.description || "",
+                         price: prod.price || "" })
+          }
+          res = [prods, null]
+        }
         kakuro.ports.iapProducts.send(res);
       });
     });
@@ -151,9 +165,9 @@ var kakuroPorts = {};
             res = [null, res];
         } else {
           // Must match IapPurchase in SharedTypes.elm
-          res = [{productId: res.productId,
-                  transactionId: res.transactionId,
-                  data: res.data},
+          res = [{ productId: res.productId || "",
+                   transactionId: res.transactionId || "",
+                   date: res.date || 0 },
                  null]
         }
         kakuro.ports.iapPurchases.send(res);

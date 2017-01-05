@@ -135,6 +135,7 @@ pageEncoder page =
         HelpPage -> JE.string "help"
         TacticsPage -> JE.string "tactics"
         CreditsPage -> JE.string "credits"
+        IapPage -> JE.string "purchases"
 
 --
 -- Decoders
@@ -276,6 +277,7 @@ pageHelp page =
         "help" -> JD.succeed HelpPage
         "tactics" -> JD.succeed TacticsPage
         "credits" -> JD.succeed CreditsPage
+        "purchases" -> JD.succeed IapPage
         _ -> JD.fail <| "Bad page name: " ++ page
 
 savedModel0Decoder : Decoder SavedModel0

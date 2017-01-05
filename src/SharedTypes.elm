@@ -36,6 +36,7 @@ type Page
     | HelpPage
     | TacticsPage
     | CreditsPage
+    | IapPage
 
 -- This gets saved in the browser database.
 
@@ -87,6 +88,7 @@ type alias Model =
     , helpModelDict : MaybeHelpModelDict
     , isCordova : Bool
     , properties : Dict String String
+    , iapProducts: Maybe (Maybe (List IapProduct), Maybe String)
     }
 
 modelToSavedModel : Model -> SavedModel
@@ -118,6 +120,7 @@ savedModelToModel savedModel =
     , helpModelDict = Nicht
     , isCordova = False
     , properties = Dict.fromList []
+    , iapProducts = Nothing
     }
 
 type Msg
@@ -136,6 +139,8 @@ type Msg
     | AnswerConfirmed String Bool
     | MultiAnswerConfirmed String Int
     | PromptAnswerConfirmed String String
+    | IapProducts (Maybe (List IapProduct), Maybe String)
+    | ReloadIapProducts
     | NewBoardIndex String
     | WindowSize Window.Size
     | ShowPage Page

@@ -144,24 +144,27 @@ init state =
                              Ok savedModel ->
                                  Just savedModel
         propertiesDict = Dict.fromList properties
+        m = case savedModel of
+                Nothing -> { model
+                               | isCordova = isCordova
+                               , properties = propertiesDict
+                           }
+                Just m ->
+                    let res = SharedTypes.savedModelToModel m
+                    in
+                        { res
+                            | helpModelDict = Javole helpBoards
+                            , isCordova = isCordova
+                            , properties = propertiesDict
+                        }
     in
-      ( case savedModel of
-          Nothing -> { model
-                         | isCordova = isCordova
-                         , properties = propertiesDict
-                     }
-          Just m ->
-            let res = SharedTypes.savedModelToModel m
-            in
-                { res
-                    | helpModelDict = Javole helpBoards
-                    , isCordova = isCordova
-                    , properties = propertiesDict
-                }
+      ( m
       , Cmd.batch
           [ windowSizeCmd
           , setTitle pageTitle
           , seedCmd
+          -- Have to wait until receivedDeviceReady in cordova/www/js/index.js
+          --, maybeFetchProducts m.page m
           ]
       )
 
@@ -191,6 +194,7 @@ model =
         , helpModelDict = Javole helpBoards
         , isCordova = False
         , properties = Dict.fromList []
+        , iapProducts = Nothing
         }
 
 -- UPDATE
@@ -595,17 +599,38 @@ update msg model =
         MainPage -> updateMainPage msg model
         _ -> updateHelpPage msg model
 
+-- This must match the App Store setup
+iapProductIds : List String
+iapProductIds =
+    [ "puzzles2"
+    ]
+
+maybeFetchProducts : Page -> Model -> Cmd Msg
+maybeFetchProducts page model =
+    if page == IapPage && model.iapProducts == Nothing then
+        iapGetProducts iapProductIds
+    else
+        Cmd.none
+
 updateHelpPage : Msg -> Model -> ( Model, Cmd Msg)
 updateHelpPage msg model =
     case msg of
         ShowPage page ->
             ( { model | page = page }
-            , Cmd.none
+            , maybeFetchProducts page model
+            )
+        ReloadIapProducts ->
+            ( { model | iapProducts = Nothing }
+            , iapGetProducts iapProductIds
             )
         ClickCell id ->
             ( updateSelectedCell id model, Cmd.none )
         WindowSize size ->
             processWindowSize model size
+        IapProducts products ->
+            ( { model | iapProducts = Just products }
+            , Cmd.none
+            )
         _ ->
             ( model
             , Cmd.none )
@@ -666,6 +691,7 @@ resetAllGameStates oldModel =
       , windowSize = oldModel.windowSize
       , seed = oldModel.seed
       , isCordova = oldModel.isCordova
+      , iapProducts = oldModel.iapProducts
       }
     , setStorage Nothing )
 
@@ -743,8 +769,10 @@ updateMainPage msg model =
     case msg of
         ShowPage page ->
             ( { model | page = page }
-            , Cmd.none
+            , maybeFetchProducts page model
             )
+        ReloadIapProducts ->
+            ( model, Cmd.none )
         ChangeKind kind ->
             getBoard kind (getKindIndex kind model) model
         Generate increment ->
@@ -782,6 +810,10 @@ updateMainPage msg model =
             doMultiAnswerConfirmed question index model
         PromptAnswerConfirmed question answer ->
             doPromptAnswerConfirmed question answer model
+        IapProducts products ->
+            ( { model | iapProducts = Just products }
+            , Cmd.none
+            )
         WindowSize size ->
             processWindowSize model size
         GetBoardIndex ->
@@ -821,6 +853,7 @@ subscriptions model =
         , multiConfirmAnswer multiAnswerConfirmed
         , promptAnswer promptAnswerConfirmed
         , receiveGame (\maybeJson -> ReceiveGame maybeJson)
+        , iapProducts (\products -> IapProducts products)
         , Window.resizes (\size -> WindowSize size)
         ]
 
@@ -887,6 +920,7 @@ view model =
               HelpPage -> helpPageDiv model
               TacticsPage -> tacticsPageDiv model
               CreditsPage -> creditsPageDiv model
+              IapPage -> iapPageDiv model
         ]
 
 mainPageDiv : Model -> Html Msg
@@ -1108,52 +1142,80 @@ clickTap model =
     else
         "click/tap"
 
-helpPageDiv: Model -> Html Msg
-helpPageDiv model =
-    let windowSize = helpWindowSize 1 2 model
+type alias PageSpec =
+    (String, Page, String)
+
+textPageSpecs : List PageSpec
+textPageSpecs =
+    [ ( "Help", HelpPage, "Show the Help page.")
+    , ( "Tactics", TacticsPage, "Show the Tactics page.")
+    , ( "Credits", CreditsPage, "Show the Credits page.")
+    , ( "Purchases", IapPage, "Show the Purchases page.")
+    ]
+
+pageLinksLoop : String -> List PageSpec -> List (Html Msg) -> List (Html Msg)
+pageLinksLoop pageTitle specsTail res =
+    case specsTail of
+        [] ->
+            List.intersperse space <| List.reverse res
+        head :: tail ->
+            let (title, page, description) = head
+            in
+                if title /= pageTitle then
+                    pageLinksLoop
+                        pageTitle tail
+                            <| (pageLink page title description) :: res
+                else
+                    pageLinksLoop pageTitle tail res
+
+textPageDiv: String -> List (Html Msg) -> Html Msg
+textPageDiv pageTitle body =
+    let pageLinks = pageLinksLoop pageTitle textPageSpecs []
     in
         div []
             [ h2 [] [ text "Kakuro Dojo" ]
             , div []
-                [ p []
-                    [ playButton
-                    , br , br
-                    , pageLink TacticsPage "Tactics" "Show the Tactics page."
-                    , space
-                    , pageLink CreditsPage "Credits" "Show the Credits page."
-                    ]
-                , h3 [] [ text "Help" ]
-                , ps
-                    [ if model.isCordova then
-                          "Tap to select.\nArrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
-                      else
-                          "Click/Tap to select.\nArrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
-                    ]
-                , h3 [] [ text "Rules" ]
-                , ps
-                     [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
-                     , "If you repeat a number, or fill a row or column with numbers with an incorrect sum, the possibly wrong numbers will be highlighted in red."
-                     , "When you tap '#' to enter hint input mode, you can enter multiple numbers that might be in a square, then use those to eliminate possibilities."
-                     , "(The boards below are \"live\". If you " ++ (clickTap model) ++ " a cell, the row and column possibilities will display below the board.)"
-                     ]
-                , renderHelp "help1" model windowSize
-                , renderHelp "help2" model windowSize
-                , p []
-                    [ text "Also see: "
-                    , a [ href "https://en.wikipedia.org/wiki/Kakuro" 
-                        , target "_blank"
-                        ]
-                        [ text "en.wikipedia.org/wiki/Kakuro" ]
-                    ]
-                , p []
-                    [ pageLink TacticsPage "Tactics" "Show the Tactics page."
-                    , space
-                    , pageLink CreditsPage "Credits" "Show the Credits page."
-                    , br , br
-                    , playButton
-                    ]
-                ]
+                ( List.append
+                      [ p []
+                            <| List.append [ playButton , br , br ] pageLinks
+                      , h3 [] [ text pageTitle ]
+                      ]
+                      <| List.append body
+                      [ p []
+                            ( List.append
+                                  pageLinks
+                                  [ br , br , playButton ]
+                            )
+                      ]
+                )
             , footerDiv model
+            ]
+                
+helpPageDiv: Model -> Html Msg
+helpPageDiv model =
+    let windowSize = helpWindowSize 1 2 model
+    in
+        textPageDiv "Help" <|
+            [ ps [ if model.isCordova then
+                       "Tap to select.\nArrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                   else
+                       "Click/Tap to select.\nArrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                 ]
+            , h3 [] [ text "Rules" ]
+            , ps [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
+                 , "If you repeat a number, or fill a row or column with numbers with an incorrect sum, the possibly wrong numbers will be highlighted in red."
+                 , "When you tap '#' to enter hint input mode, you can enter multiple numbers that might be in a square, then use those to eliminate possibilities."
+                 , "(The boards below are \"live\". If you " ++ (clickTap model) ++ " a cell, the row and column possibilities will display below the board.)"
+                 ]
+            , renderHelp "help1" model windowSize
+            , renderHelp "help2" model windowSize
+            , p []
+                [ text "Also see: "
+                , a [ href "https://en.wikipedia.org/wiki/Kakuro" 
+                    , target "_blank"
+                    ]
+                      [ text "en.wikipedia.org/wiki/Kakuro" ]
+                ]
             ]
 
 tacticsPageDiv: Model -> Html Msg
@@ -1161,126 +1223,99 @@ tacticsPageDiv model =
     let windowSize = helpWindowSize 1 2 model
         bigWindowSize = helpWindowSize 3 4 model
     in
-        div []
-            [ div []
-                  [ h2 [] [ text "Kakuro Dojo" ]
-                  , div []
-                      [ p []
-                            [ playButton
-                            , br , br
-                            , pageLink HelpPage "Help" "Show the Help page."
-                            , space
-                            , pageLink CreditsPage "Credits" "Show the Credits page."
-                            ]
-                      , h3 [] [ text "Tactics" ]
-                      , ps
-                           [ "You won't get very far by simply guessing numbers. It helps to use the hints, which are toggled by typing or tapping '#'. You will also learn to recognize clues which have a small number of possible solutions."
-                           , "In the following, M numbers that add to N is writtten as N/M. So two numbers that add to 3 is 3/2, and 3 numbers that add to 7 is 7/3. To show the combinations of M numbers that can add to N, start with 'N/M, add an equal sign ('='), then list the combinations. So '3/2 = 12' means that the only combination of 2 numbers that adds to 3 is 1 and 2."
-                           , "Here are the common simple sums of two numbers:"
-                           , "3/2 = 12\n4/2 = 13\n16/2 = 79\n17/2 = 89"
-                           , "The common simple sums of three numbers:"
-                           , "6/3 = 123\n7/3 = 124\n23/3 = 689\n24/3 = 789"
-                           , "And the common simple sums of four numbers:"
-                           , "10/4 = 1234\n11/4 = 1235\n29/4 = 5789\n30/4 = 6789"
-                           , "Finally, it's sometimes useful to know the sums of two numbers with two possibilities:"
-                           , "5/2 = 14 or 23\n6/2 = 15 or 24\n14/2 = 59 or 68\n15/2 = 69 or 78"
-                           ]
-                      , p [] [ playButton ]
-                      , ps
-                           [ "To use this to solve a puzzle, first fill in the possibilities for the simple sums of two or three numbers, intersecting the lists where a row and column cross each other. Here's the example from the 'Help' page, with that done, using the fact, shown in the 'row' possibilities for the 8/3 row that '8/3 = 125 134'."
-                           , "(The boards below are \"live\". If you " ++ (clickTap model) ++ " a cell, the row and column possibilities will display below the board.)"
-                           ]
-                      , renderHelp "help1" model windowSize
-                      , ps
-                          [ "Next, replace the cells with only one hint number with a real guess, and eliminate that hint number from the other cells in its row and column:"
-                          ]
-                      , renderHelp "tactics2" model windowSize
-                      , ps
-                          [ "For this simple example, just iterate until done: "
-                          ]
-                      , renderHelp "tactics3" model windowSize
-                      , renderHelp "tactics4" model windowSize
-                      , p [] [ playButton ]
-                      , ps
-                          [ "A real example has more complicated sums, which you can't fill in right away, but if you use the possibilities display, you can often figure out what to do. For example, below is 6x6 board number 2, with the simple sum hints filled in, and using '15/5 = 12345'."
-                          , "There are a few things to notice about that board."
-                          , "The right cell of the 11/2 row in the upper-left-hand corner contains only '9', since 11 minus 1 is 10, which doesn't work. This means that the left cell can only contain '2', not '12' as is allowed by 3/2 = 12'. Similarly for the top cell of the 9/2 column in the lower-left-hand corner, and the top cell of the 15/2 column in the lower-right-hand corner."
-                          , "The '15/5' column in the middle of the board does not have '12345' as guesses for all of its cells. That's because 4 is not a valid guess for '8/2', being half of 8, the minimum value for '12/2' is 3, and the minimum value for '13/2' is 4. Also the right-most cell of the '15/5' row near the top is missing a 3, since that is half of 6. If you know the numbers that can go in one cell of a 2-cell sum, the other cell's numbers are easy to compute, by subtracting each known number from the sum."
-                          ]
-                      , renderHelp "board2Model1" model bigWindowSize
-                      , ps
-                          [ "Filling in the numbers with only one possibility, noticing that 1 is required for the '15/2' column in the center of the board, and it appears only in the '8/2' row, and removing the filled-in numbers from the possibilities in their rows and columns, gives:"
-                          ]
-                      , renderHelp "board2Model2" model bigWindowSize
-                      , ps
-                          [ "The left cell of the '8/2' row in the middle of the board is the only cell in its '15/5' column containing a 1, so it must be 1:"
-                          ]
-                      , renderHelp "board2Model3" model bigWindowSize
-                      , ps
-                          [ "There is a single blank cell in the '23/5' row near the bottom. We could proceed by noticing that the 2 in the '234' cell to its left is the only 2 in its '15/5' column, but I'm going to talk a little first about how to fill in a single blank cell. Add up the minimum possibilities in its row and column, subtract each from its total, and take the maximum, that's max(23-(1+2+8+3), 34-(5+3+7+8)) = max(9, 11) = 11. Add up the maximum possibilities in its row and column, subtract each from its total, and take the minimum, that's min(23-(1+4+8+3), 34-(6+5+7+9)) = max(7, 7) = 7. So the value in that empty cell needs to be between 7 and 11, i.e. 7, 8, or 9. Since 7 is already in its column, and 8 is in its row, it must be 9."
-                          ]
-                      , renderHelp "board2Model4" model bigWindowSize
-                      , ps
-                          [ "The rest can be filled in directly from the possibility row/col display:"
-                          ]
-                      , renderHelp "board2Model5" model bigWindowSize
-                      , p []
-                          [ text "Also see: "
-                          , a [ href "http://www.kakuro.com/howtoplay.php"
-                              , target "_blank"
-                              ]
-                              [ text "kakuro.com: How to Play" ]
-                          ]
-                      , p []
-                          [ pageLink HelpPage "Help" "Show the Help page."
-                          , space
-                          , pageLink CreditsPage "Credits" "Show the Credits page."
-                          , br , br
-                          , playButton
-                          ]
-                      ]
+        textPageDiv "Tactics" <|
+            [ ps [ "You won't get very far by simply guessing numbers. It helps to use the hints, which are toggled by typing or tapping '#'. You will also learn to recognize clues which have a small number of possible solutions."
+                 , "In the following, M numbers that add to N is writtten as N/M. So two numbers that add to 3 is 3/2, and 3 numbers that add to 7 is 7/3. To show the combinations of M numbers that can add to N, start with 'N/M, add an equal sign ('='), then list the combinations. So '3/2 = 12' means that the only combination of 2 numbers that adds to 3 is 1 and 2."
+                 , "Here are the common simple sums of two numbers:"
+                 , "3/2 = 12\n4/2 = 13\n16/2 = 79\n17/2 = 89"
+                 , "The common simple sums of three numbers:"
+                 , "6/3 = 123\n7/3 = 124\n23/3 = 689\n24/3 = 789"
+                 , "And the common simple sums of four numbers:"
+                 , "10/4 = 1234\n11/4 = 1235\n29/4 = 5789\n30/4 = 6789"
+                 , "Finally, it's sometimes useful to know the sums of two numbers with two possibilities:"
+                 , "5/2 = 14 or 23\n6/2 = 15 or 24\n14/2 = 59 or 68\n15/2 = 69 or 78"
+                 ]
+            , p [] [ playButton ]
+            , ps [ "To use this to solve a puzzle, first fill in the possibilities for the simple sums of two or three numbers, intersecting the lists where a row and column cross each other. Here's the example from the 'Help' page, with that done, using the fact, shown in the 'row' possibilities for the 8/3 row that '8/3 = 125 134'."
+                 , "(The boards below are \"live\". If you " ++ (clickTap model) ++ " a cell, the row and column possibilities will display below the board.)"
+                 ]
+            , renderHelp "help1" model windowSize
+            , ps [ "Next, replace the cells with only one hint number with a real guess, and eliminate that hint number from the other cells in its row and column:"
+                 ]
+            , renderHelp "tactics2" model windowSize
+            , ps [ "For this simple example, just iterate until done: "
+                 ]
+            , renderHelp "tactics3" model windowSize
+            , renderHelp "tactics4" model windowSize
+            , p [] [ playButton ]
+            , ps [ "A real example has more complicated sums, which you can't fill in right away, but if you use the possibilities display, you can often figure out what to do. For example, below is 6x6 board number 2, with the simple sum hints filled in, and using '15/5 = 12345'."
+                 , "There are a few things to notice about that board."
+                 , "The right cell of the 11/2 row in the upper-left-hand corner contains only '9', since 11 minus 1 is 10, which doesn't work. This means that the left cell can only contain '2', not '12' as is allowed by 3/2 = 12'. Similarly for the top cell of the 9/2 column in the lower-left-hand corner, and the top cell of the 15/2 column in the lower-right-hand corner."
+                 , "The '15/5' column in the middle of the board does not have '12345' as guesses for all of its cells. That's because 4 is not a valid guess for '8/2', being half of 8, the minimum value for '12/2' is 3, and the minimum value for '13/2' is 4. Also the right-most cell of the '15/5' row near the top is missing a 3, since that is half of 6. If you know the numbers that can go in one cell of a 2-cell sum, the other cell's numbers are easy to compute, by subtracting each known number from the sum."
+                 ]
+            , renderHelp "board2Model1" model bigWindowSize
+            , ps [ "Filling in the numbers with only one possibility, noticing that 1 is required for the '15/2' column in the center of the board, and it appears only in the '8/2' row, and removing the filled-in numbers from the possibilities in their rows and columns, gives:"
+                 ]
+            , renderHelp "board2Model2" model bigWindowSize
+            , ps [ "The left cell of the '8/2' row in the middle of the board is the only cell in its '15/5' column containing a 1, so it must be 1:"
+                 ]
+            , renderHelp "board2Model3" model bigWindowSize
+            , ps [ "There is a single blank cell in the '23/5' row near the bottom. We could proceed by noticing that the 2 in the '234' cell to its left is the only 2 in its '15/5' column, but I'm going to talk a little first about how to fill in a single blank cell. Add up the minimum possibilities in its row and column, subtract each from its total, and take the maximum, that's max(23-(1+2+8+3), 34-(5+3+7+8)) = max(9, 11) = 11. Add up the maximum possibilities in its row and column, subtract each from its total, and take the minimum, that's min(23-(1+4+8+3), 34-(6+5+7+9)) = max(7, 7) = 7. So the value in that empty cell needs to be between 7 and 11, i.e. 7, 8, or 9. Since 7 is already in its column, and 8 is in its row, it must be 9."
+                 ]
+            , renderHelp "board2Model4" model bigWindowSize
+            , ps
+                  [ "The rest can be filled in directly from the possibility row/col display:"
                   ]
-            , footerDiv model
+            , renderHelp "board2Model5" model bigWindowSize
+            , p []
+                [ text "Also see: "
+                , a [ href "http://www.kakuro.com/howtoplay.php"
+                    , target "_blank"
+                    ]
+                      [ text "kakuro.com: How to Play" ]
+                ]
             ]
 
 creditsPageDiv: Model -> Html Msg
 creditsPageDiv model =
-    div []
-        [ div []
-              [ h2 [] [ text "Kakuro Dojo" ]
-              , div []
-                  [ p []
-                        [ playButton
-                        , br , br
-                        , pageLink HelpPage "Help" "Show the Help page."
-                        , space
-                        , pageLink TacticsPage "Tactics" "Show the Tactics page."
-                        ]
-                  , h3 [] [ text "Credits" ]
-                  , ps
-                        [ "[Kakuro Dojo] was written by Bill St. Clair, the proprietor of [Gib Goy Games]. I fell in love with Kakuro and wanted some features I couldn't find elsewhere. Then I discovered [Elm], and it became a labor of love. I hope you enjoy it as much as I've enjoyed making and playing it."
-                        , "[Kakuro Dojo] is written primarily in the [Elm] programming language. Elm is a pure functional language, similar to [Haskell], which compiles into [JavaScript], and has a very nice programming model. If an Elm program compiles, it will almost certainly never encounter an unexpected run-time error. Thank you to Evan Czaplicki, and the Elm community, for creating my favorite programming language (and that's a big compliment from this old [Lisp] [hacker])."
-                        ]
-                  , ( if model.isCordova then
-                          ps [ "[Apache Cordova] is a system that makes it very easy to distribute a web app as an App Store app. It is copyright The Apache Software Foundation and distributed under the Apache License, Version 2.0."
-                             ]
-                      else
-                          text ""
-                    )
-                  , ps
-                        [ "[FastClick] is a [JavaScript] library to eliminate a 300ms delay introduced by mobile web browsers. It is copyright The Financial Times Limited and distributed under the MIT License."
-                        , "[js-sha256] is a [JavaScript] library that computes the SHA256 cryptographic hash of a string. It is copyright Yi-Cyuan Chen and distributed under the MIT License."
-                        ]
-                  , p []
-                      [ pageLink HelpPage "Help" "Show the Help page."
-                      , space
-                      , pageLink TacticsPage "Tactics" "Show the Tactics page."
-                      , br , br
-                      , playButton
-                      ]
+    textPageDiv "Credits"
+        [ ps [ "[Kakuro Dojo] was written by Bill St. Clair, the proprietor of [Gib Goy Games]. I fell in love with Kakuro and wanted some features I couldn't find elsewhere. Then I discovered [Elm], and it became a labor of love. I hope you enjoy it as much as I've enjoyed making and playing it."
+             , "[Kakuro Dojo] is written primarily in the [Elm] programming language. Elm is a pure functional language, similar to [Haskell], which compiles into [JavaScript], and has a very nice programming model. If an Elm program compiles, it will almost certainly never encounter an unexpected run-time error. Thank you to Evan Czaplicki, and the Elm community, for creating my favorite programming language (and that's a big compliment from this old [Lisp] [hacker])."
+             ]
+        , ( if model.isCordova then
+                ps [ "[Apache Cordova] is a system that makes it very easy to distribute a web app as an App Store app. It is copyright The Apache Software Foundation and distributed under the Apache License, Version 2.0."
+                   ]
+            else
+                text ""
+          )
+        , ps [ "[FastClick] is a [JavaScript] library to eliminate a 300ms delay introduced by mobile web browsers. It is copyright The Financial Times Limited and distributed under the MIT License."
+             , "[js-sha256] is a [JavaScript] library that computes the SHA256 cryptographic hash of a string. It is copyright Yi-Cyuan Chen and distributed under the MIT License."
+             ]
+        ]
+
+iapPageDiv: Model -> Html Msg
+iapPageDiv model =
+    textPageDiv "Purchases"
+        [ p []
+            [ case model.iapProducts of
+                  Nothing -> text "Fetching products..."
+                  Just (prods, error) ->
+                    case error of
+                        Just msg ->
+                          text <| "Error loading products: " ++ msg
+                        Nothing ->
+                          case prods of
+                              Nothing -> text "Cant happen: No error or products."
+                              Just prods ->
+                                text <| toString prods
+            ]
+        , p []
+            [ button
+                  [ onClick ReloadIapProducts
+                  , class ControlsClass
                   ]
-              ]
-        , footerDiv model
+                  [ text "Reload Products" ]
+            ]
         ]
 
 footerDiv : Model -> Html Msg
