@@ -53,15 +53,33 @@ var app = {
   },
 
   iapGetProducts: function(pids, callback) {
-    callback("Only Cordova supports in-app purchases.");
+    var fakes = [];
+    for (var pid in pids) {
+      pid = pids[pid];
+      var fake = { productId: pid,
+                   title: "A fake product.",
+                   description: "A fake description.",
+                   price: "$0.99",
+                   garbage: "foo"
+                 }
+      fakes.push(fake);
+    }
+    callback(fakes);
   },
 
   iapBuy: function(pid, callback) {
-    callback("Only Cordova supports in-app purchases.");
+    var fake = { transactionId: "12345",
+                 garbage: "foo"
+               }
+    callback(fake);
   },
 
   iapRestorePurchases: function(callback) {
-    callback("Only Cordova supports in-app purchases.");
+    var purchase = { productId: "puzzles2",
+                     transactionId: "12345",
+                     date: 1483702426499
+                   };
+    callback([purchase]);
   }
 }
 

@@ -137,7 +137,7 @@ var kakuroPorts = {};
           var prods = [];
           // Not really necessary, but avoids conversion-to-Elm runtime error,
           // if return value isn't the correct shape.
-          for (prod in res) {
+          for (var prod in res) {
             prod = res[prod];
             prods.push({ productId: prod.productId || "",
                          title: prod.title || "",
@@ -165,10 +165,16 @@ var kakuroPorts = {};
             res = [null, res];
         } else {
           // Must match IapPurchase in SharedTypes.elm
-          res = [{ productId: res.productId || "",
-                   transactionId: res.transactionId || "",
-                   date: res.date || 0 },
-                 null]
+          var purchases = [];
+          for (var purchase in res) {
+            purchase = res[purchase];
+            purchase = { productId: res.productId || "",
+                         transactionId: res.transactionId || "",
+                         date: res.date || 0
+                       };
+            purchases.push(purchase);
+          }
+          res = [purchases, null];
         }
         kakuro.ports.iapPurchases.send(res);
       });

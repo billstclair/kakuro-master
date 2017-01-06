@@ -144,21 +144,21 @@ init state =
                              Ok savedModel ->
                                  Just savedModel
         propertiesDict = Dict.fromList properties
-        m = case savedModel of
-                Nothing -> { model
-                               | isCordova = isCordova
-                               , properties = propertiesDict
-                           }
-                Just m ->
-                    let res = SharedTypes.savedModelToModel m
-                    in
-                        { res
-                            | helpModelDict = Javole helpBoards
-                            , isCordova = isCordova
-                            , properties = propertiesDict
-                        }
+        mod = case savedModel of
+                  Nothing -> { model
+                                 | isCordova = isCordova
+                                 , properties = propertiesDict
+                             }
+                  Just m ->
+                      let res = SharedTypes.savedModelToModel m
+                      in
+                          { res
+                              | helpModelDict = Javole helpBoards
+                              , isCordova = isCordova
+                              , properties = propertiesDict
+                          }
     in
-      ( m
+      ( mod
       , Cmd.batch
           [ windowSizeCmd
           , setTitle pageTitle
