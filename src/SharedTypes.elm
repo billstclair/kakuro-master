@@ -18,7 +18,7 @@ module SharedTypes exposing ( SavedModel, ModelTimes, Model
                             , IntBoard, BClassMatrix, BClassBoard
                             , Labels, LabelsBoard, Hints, HintsBoard
                             , HelpModelDict, MaybeHelpModelDict(..)
-                            , IapProduct, IapPurchase
+                            , IapProduct, IapPurchase, IapState
                             )
 
 import SimpleMatrix exposing (Matrix)
@@ -214,4 +214,12 @@ type alias IapPurchase =
     { productId : String
     , transactionId : String
     , date : Int
+    }
+
+-- A list of these is stored as JSON on the "kakuro-iap" property.
+-- There is currently only one, with a productId of "puzzles2".
+-- See EncodeDecode.
+type alias IapState =
+    { product : IapProduct
+    , purchase : IapPurchase
     }

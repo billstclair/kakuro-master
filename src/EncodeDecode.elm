@@ -10,12 +10,14 @@
 ----------------------------------------------------------------------
 
 module EncodeDecode exposing ( encodeGameState, encodeSavedModel
-                             , decodeGameState, decodeSavedModel)
+                             , decodeGameState, decodeSavedModel
+                             , encodeIapStates, decodeIapStates)
 
 import SharedTypes exposing ( Labels, Hints, Flags, Selection
                             , IntBoard, LabelsBoard, HintsBoard
                             , GameStateTimes
                             , GameState, Page(..), SavedModel
+                            , IapState, IapProduct, IapPurchase
                             )
 import Board exposing (Board)
 
@@ -669,3 +671,72 @@ decodeGameState json =
 decodeSavedModel : String -> Result String SavedModel
 decodeSavedModel json =
     decodeVersionedJson json savedModelConverterDict
+
+---
+--- In-App Purchase state
+--- Not yet versioned. Will add as necessary.
+---
+
+-- Encoders
+
+iapProductEncoder : IapProduct -> Value
+iapProductEncoder product =
+    JE.object [ ("productId", JE.string product.productId)
+              , ("title", JE.string product.title)
+              , ("description", JE.string product.description)
+              , ("price", JE.string product.price)
+              ]
+
+iapPurchaseEncoder : IapPurchase -> Value
+iapPurchaseEncoder purchase =
+    JE.object [ ("productId", JE.string purchase.productId)
+              , ("transactionId", JE.string purchase.transactionId)
+              , ("date", JE.int purchase.date)
+              ]
+
+iapStateEncoder : IapState -> Value
+iapStateEncoder state =
+    JE.object [ ("product", iapProductEncoder state.product)
+              , ("purchase", iapPurchaseEncoder state.purchase)
+              ]
+
+iapStatesEncoder : List IapState -> Value
+iapStatesEncoder states =
+    JE.list <| List.map iapStateEncoder states
+
+-- decoders
+
+iapProductDecoder : Decoder IapProduct
+iapProductDecoder =
+    JD.map4 IapProduct
+        (JD.field "productId" JD.string)
+        (JD.field "title" JD.string)
+        (JD.field "description" JD.string)
+        (JD.field "price" JD.string)
+
+iapPurchaseDecoder : Decoder IapPurchase
+iapPurchaseDecoder =
+    JD.map3 IapPurchase
+        (JD.field "productId" JD.string)
+        (JD.field "transactionId" JD.string)
+        (JD.field "date" JD.int)
+
+iapStateDecoder : Decoder IapState
+iapStateDecoder =
+    JD.map2 IapState
+        (JD.field "product" iapProductDecoder)
+        (JD.field "purchase" iapPurchaseDecoder)
+
+iapStatesDecoder : Decoder (List IapState)
+iapStatesDecoder =
+    JD.list iapStateDecoder
+
+-- API
+
+encodeIapStates : List IapState -> String
+encodeIapStates state =
+    JE.encode 0 <| iapStatesEncoder state
+
+decodeIapStates : String -> Result String (List IapState)
+decodeIapStates json =
+    JD.decodeString iapStatesDecoder json
