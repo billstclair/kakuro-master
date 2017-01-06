@@ -86,9 +86,10 @@ type alias Model =
     , message : Maybe String
     , shifted : Bool
     , helpModelDict : MaybeHelpModelDict
-    , isCordova : Bool
-    , properties : Dict String String
-    , iapProducts: Maybe (Maybe (List IapProduct), Maybe String)
+    , isCordova : Bool                --true if we're running in a Cordova app
+    , properties : Dict String String         --raw properties at startup
+    , iapState : Maybe (Dict String IapState) --from storage
+    , iapProducts: Maybe (Maybe (List IapProduct), Maybe String) --from iap call
     }
 
 modelToSavedModel : Model -> SavedModel
@@ -120,6 +121,7 @@ savedModelToModel savedModel =
     , helpModelDict = Nicht
     , isCordova = False
     , properties = Dict.fromList []
+    , iapState = Nothing
     , iapProducts = Nothing
     }
 

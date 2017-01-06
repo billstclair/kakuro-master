@@ -15,7 +15,7 @@ import SharedTypes exposing ( SavedModel, Model, GameState
                             , Msg, Msg(..), Page(..)
                             , IntBoard, HintsBoard, Selection, Flags
                             , MaybeHelpModelDict(..)
-                            , IapProduct, IapPurchase
+                            , IapProduct, IapPurchase, IapState
                             )
 import Styles.Page exposing (id, class, PId(..), PClass(..))
 import Board exposing (Board)
@@ -25,7 +25,9 @@ import BoardSize
 import DebuggingRender
 import RenderBoard
 import EncodeDecode exposing ( encodeGameState, encodeSavedModel
-                             , decodeGameState, decodeSavedModel)
+                             , decodeGameState, decodeSavedModel
+                             , encodeIapStates, decodeIapStates
+                             )
 import HelpBoards exposing ( helpBoards )
 
 import Array exposing (Array)
@@ -133,6 +135,39 @@ seedCmd : Cmd Msg
 seedCmd =
     Task.perform (\x -> Seed x) Time.now
 
+iapStatePropertyName : String
+iapStatePropertyName =
+    "iapStates"
+
+propertiesToIapState : Dict String String -> Result String (Maybe (Dict String IapState))
+propertiesToIapState properties =
+    case Dict.get iapStatePropertyName properties of
+        Nothing -> Ok Nothing
+        Just json ->
+            case decodeIapStates json of
+                Err msg ->
+                    Err msg
+                Ok states ->
+                    List.map (\x -> (x.product.productId, x)) states
+                        |> Dict.fromList
+                        |> Just
+                        |> Ok
+
+updateIapState : IapState -> Model -> (Model, Cmd Msg)
+updateIapState state model =
+    let productId = state.product.productId
+        dict = case model.iapState of
+                   Nothing -> Dict.empty
+                   Just d -> d
+        dict2 = Dict.insert productId state dict
+        json = encodeIapStates
+                 <| List.map (\(_, state) -> state)
+                 <| Dict.toList dict2
+    in
+        ( { model | iapState = Just dict2 }
+          , setProperty (iapStatePropertyName, Just json)
+        )
+
 init : (Bool, List (String, String), Maybe String) -> ( Model, Cmd Msg )
 init state =
     let (isCordova, properties, maybeJson) = state
@@ -144,10 +179,17 @@ init state =
                              Ok savedModel ->
                                  Just savedModel
         propertiesDict = Dict.fromList properties
+        iapRes = propertiesToIapState propertiesDict
+        (iapState, message) =
+            case iapRes of
+                Err msg -> (Nothing, Just msg)
+                Ok state -> (state, Nothing)
         mod = case savedModel of
                   Nothing -> { model
                                  | isCordova = isCordova
                                  , properties = propertiesDict
+                                 , iapState = iapState
+                                 , message = message
                              }
                   Just m ->
                       let res = SharedTypes.savedModelToModel m
@@ -156,6 +198,8 @@ init state =
                               | helpModelDict = Javole helpBoards
                               , isCordova = isCordova
                               , properties = propertiesDict
+                              , iapState = iapState
+                              , message = message
                           }
     in
       ( mod
@@ -194,6 +238,7 @@ model =
         , helpModelDict = Javole helpBoards
         , isCordova = False
         , properties = Dict.fromList []
+        , iapState = Nothing
         , iapProducts = Nothing
         }
 
@@ -223,12 +268,15 @@ updateSelection model row col =
     in
         { model
             | gameState =
-              { gameState | selection = Just ( row, col ) }
+              { gameState
+                  | selection = Just ( row, col )
+              }
+            , message = Nothing
         }
             
 updateSelectedCell : String -> Model -> Model
 updateSelectedCell idStr model =
-    let elts = String.split "," (log "idStr" idStr)
+    let elts = String.split "," idStr
         name = case List.head elts of
                    Nothing -> ""
                    Just n -> n
@@ -322,6 +370,7 @@ moveSelection direction model =
                         { gameState
                             | selection = newSelection
                         }
+                    , message = Nothing
                 }
 
 movementKeyDirections : List ( Char, Direction )
@@ -607,7 +656,10 @@ iapProductIds =
 
 maybeFetchProducts : Page -> Model -> Cmd Msg
 maybeFetchProducts page model =
-    if page == IapPage && model.iapProducts == Nothing then
+    if page == IapPage
+        && model.iapProducts == Nothing
+        && model.iapState == Nothing
+    then
         iapGetProducts iapProductIds
     else
         Cmd.none
@@ -1168,15 +1220,18 @@ pageLinksLoop pageTitle specsTail res =
                 else
                     pageLinksLoop pageTitle tail res
 
-textPageDiv: String -> List (Html Msg) -> Html Msg
-textPageDiv pageTitle body =
+textPageDiv: String -> Model-> List (Html Msg) -> Html Msg
+textPageDiv pageTitle model body =
     let pageLinks = pageLinksLoop pageTitle textPageSpecs []
     in
         div []
             [ h2 [] [ text "Kakuro Dojo" ]
             , div []
                 ( List.append
-                      [ p []
+                      [ text <| case model.message of
+                                    Nothing -> ""
+                                    Just hash -> "(" ++ hash ++ ")"
+                      , p []
                             <| List.append [ playButton , br , br ] pageLinks
                       , h3 [] [ text pageTitle ]
                       ]
@@ -1195,7 +1250,7 @@ helpPageDiv: Model -> Html Msg
 helpPageDiv model =
     let windowSize = helpWindowSize 1 2 model
     in
-        textPageDiv "Help" <|
+        textPageDiv "Help" model <|
             [ ps [ if model.isCordova then
                        "Tap to select.\nArrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
                    else
@@ -1223,7 +1278,7 @@ tacticsPageDiv model =
     let windowSize = helpWindowSize 1 2 model
         bigWindowSize = helpWindowSize 3 4 model
     in
-        textPageDiv "Tactics" <|
+        textPageDiv "Tactics" model <|
             [ ps [ "You won't get very far by simply guessing numbers. It helps to use the hints, which are toggled by typing or tapping '#'. You will also learn to recognize clues which have a small number of possible solutions."
                  , "In the following, M numbers that add to N is writtten as N/M. So two numbers that add to 3 is 3/2, and 3 numbers that add to 7 is 7/3. To show the combinations of M numbers that can add to N, start with 'N/M, add an equal sign ('='), then list the combinations. So '3/2 = 12' means that the only combination of 2 numbers that adds to 3 is 1 and 2."
                  , "Here are the common simple sums of two numbers:"
@@ -1278,7 +1333,7 @@ tacticsPageDiv model =
 
 creditsPageDiv: Model -> Html Msg
 creditsPageDiv model =
-    textPageDiv "Credits"
+    textPageDiv "Credits" model
         [ ps [ "[Kakuro Dojo] was written by Bill St. Clair, the proprietor of [Gib Goy Games]. I fell in love with Kakuro and wanted some features I couldn't find elsewhere. Then I discovered [Elm], and it became a labor of love. I hope you enjoy it as much as I've enjoyed making and playing it."
              , "[Kakuro Dojo] is written primarily in the [Elm] programming language. Elm is a pure functional language, similar to [Haskell], which compiles into [JavaScript], and has a very nice programming model. If an Elm program compiles, it will almost certainly never encounter an unexpected run-time error. Thank you to Evan Czaplicki, and the Elm community, for creating my favorite programming language (and that's a big compliment from this old [Lisp] [hacker])."
              ]
@@ -1295,7 +1350,7 @@ creditsPageDiv model =
 
 iapPageDiv: Model -> Html Msg
 iapPageDiv model =
-    textPageDiv "Purchases"
+    textPageDiv "Purchases" model
         [ p []
             [ case model.iapProducts of
                   Nothing -> text "Fetching products..."
