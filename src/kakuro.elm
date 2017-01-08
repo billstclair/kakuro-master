@@ -1348,9 +1348,44 @@ creditsPageDiv model =
              ]
         ]
 
+mergePurchasesIntoProducts : List (String, IapState) -> List IapProduct -> List IapProduct
+mergePurchasesIntoProducts purchases products =
+    case purchases of
+        [] -> products
+        (productId, state) :: tail ->
+            case LE.find (\x -> productId == x.productId) products of
+                Nothing -> mergePurchasesIntoProducts
+                             tail <| state.product :: products
+                Just _ -> mergePurchasesIntoProducts tail products
+
+getIapState : Model -> (List IapProduct, Dict String IapPurchase, Maybe String)
+getIapState model =
+    let stateDict = case model.iapState of
+                        Nothing -> Dict.empty
+                        Just d -> d
+        (products, error) = case model.iapProducts of
+                                Nothing -> ([], Nothing)
+                                Just mps ->
+                                    case mps of
+                                        (Nothing, err) ->
+                                            case err of
+                                                Nothing -> ([], Just "No products found.")
+                                                x -> ([], x)
+                                        (Just ps, _) -> (ps, Nothing)
+        purchaseDict = Dict.toList stateDict
+                     |> List.map (\x -> (Tuple.first x
+                                        , (.purchase) <| Tuple.second x))
+                     |> Dict.fromList
+    in
+        (mergePurchasesIntoProducts (Dict.toList stateDict) products
+        , purchaseDict
+        , error)
+
 iapPageDiv: Model -> Html Msg
 iapPageDiv model =
-    textPageDiv "Purchases" model
+    let (products, purchaseDict, error) = getIapState model
+    in
+        textPageDiv "Purchases" model
         [ p []
             [ case model.iapProducts of
                   Nothing -> text "Fetching products..."
