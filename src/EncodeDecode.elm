@@ -691,7 +691,7 @@ iapPurchaseEncoder : IapPurchase -> Value
 iapPurchaseEncoder purchase =
     JE.object [ ("productId", JE.string purchase.productId)
               , ("transactionId", JE.string purchase.transactionId)
-              , ("date", JE.int purchase.date)
+              , ("date", JE.float purchase.date)
               ]
 
 iapStateEncoder : IapState -> Value
@@ -719,7 +719,7 @@ iapPurchaseDecoder =
     JD.map3 IapPurchase
         (JD.field "productId" JD.string)
         (JD.field "transactionId" JD.string)
-        (JD.field "date" JD.int)
+        (JD.field "date" JD.float)
 
 iapStateDecoder : Decoder IapState
 iapStateDecoder =

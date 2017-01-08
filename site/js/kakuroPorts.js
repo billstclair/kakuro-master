@@ -98,8 +98,8 @@ var kakuroPorts = {};
       kakuro.ports.receiveGame.send(json);
     });
 
-    kakuro.ports.setProperty.subscribe(function(property, value) {
-      setProperty(property, value)
+    kakuro.ports.setProperty.subscribe(function(pv) {
+      setProperty(pv[0], pv[1])
     });
 
     kakuro.ports.confirmDialog.subscribe(function(query) {

@@ -54,6 +54,7 @@ import Html.Attributes exposing ( style, align, value, size
 import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
 import Window
+import Date
 
 main : Program (Bool, List (String, String), Maybe String) Model Msg
 main =
@@ -623,13 +624,20 @@ receiveGameJson maybeJson model =
 
 timeTick : Time -> Model -> Model
 timeTick time model =
-    let gameState = model.gameState
-        gameStateTimes = gameState.times
-        times = model.times
+    let times = model.times
     in
       { model |
         times = { times | timestamp = time }
-      , gameState = { gameState |
+      }
+
+timePlayTick : Time -> Model -> Model
+timePlayTick time model =
+    let model2 = timeTick time model
+        gameState = model2.gameState
+        gameStateTimes = gameState.times
+    in
+      { model2 |
+        gameState = { gameState |
                       times = { gameStateTimes |
                                 elapsed = gameStateTimes.elapsed + 1
                               }
@@ -664,6 +672,44 @@ maybeFetchProducts page model =
     else
         Cmd.none
 
+iapProductsDict : Model -> Dict String IapProduct
+iapProductsDict model =
+  case model.iapProducts of
+      Nothing -> Dict.empty
+      Just (products, _) ->
+          case products of
+              Nothing -> Dict.empty
+              Just list -> Dict.fromList
+                           <| List.map (\x -> (x.productId, x)) list
+
+processIapBuy : Model -> String -> Maybe String -> Maybe String -> (Model, Cmd Msg)
+processIapBuy model productId transactionId error =
+    case transactionId of
+        Nothing ->
+            let msg = case error of
+                          Nothing -> "Unspecified error from IAP Buy."
+                          Just m -> m
+            in
+                ( { model | message = Just msg }, Cmd.none )
+        Just tid ->
+            case Dict.get productId <| iapProductsDict model of
+                Nothing ->
+                    ( { model |
+                        message = Just ("productId not found in list: " ++ productId)
+                      }
+                    , Cmd.none
+                    )
+                Just product ->
+                    let purchase = { productId = productId
+                                   , transactionId = tid
+                                   , date = model.times.timestamp
+                                   }
+                        state = { product = product
+                                , purchase = purchase
+                                }
+                    in
+                        updateIapState state model
+
 updateHelpPage : Msg -> Model -> ( Model, Cmd Msg)
 updateHelpPage msg model =
     case msg of
@@ -675,6 +721,8 @@ updateHelpPage msg model =
             ( { model | iapProducts = Nothing }
             , iapGetProducts iapProductIds
             )
+        Tick time ->
+            ( timeTick time model, Cmd.none )
         ClickCell id ->
             ( updateSelectedCell id model, Cmd.none )
         WindowSize size ->
@@ -683,6 +731,11 @@ updateHelpPage msg model =
             ( { model | iapProducts = Just products }
             , Cmd.none
             )
+        IapBuy productId ->
+            ( model
+            , iapBuy productId )
+        IapBuyResponse (productId, transactionId, error) ->
+            processIapBuy model productId transactionId error
         _ ->
             ( model
             , Cmd.none )
@@ -837,7 +890,7 @@ updateMainPage msg model =
         Restart ->
             ( model, restartDialog model )
         Tick time ->
-            ( timeTick time model, Cmd.none )
+            ( timePlayTick time model, Cmd.none )
         Seed time ->
             ( { model | seed = Just <| Random.initialSeed (round time) }
             , Cmd.none
@@ -866,6 +919,11 @@ updateMainPage msg model =
             ( { model | iapProducts = Just products }
             , Cmd.none
             )
+        IapBuy productId ->
+            ( model
+            , iapBuy productId )
+        IapBuyResponse (productId, transactionId, error) ->
+            processIapBuy model productId transactionId error
         WindowSize size ->
             processWindowSize model size
         GetBoardIndex ->
@@ -896,9 +954,9 @@ promptAnswerConfirmed result =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    --Time.every second Tick
     Sub.batch
-        [ Keyboard.downs (DownKey)
+        [ Time.every second Tick
+        , Keyboard.downs (DownKey)
         , Keyboard.ups (UpKey)
         , Keyboard.presses (PressKey)
         , confirmAnswer answerConfirmed
@@ -906,6 +964,7 @@ subscriptions model =
         , promptAnswer promptAnswerConfirmed
         , receiveGame (\maybeJson -> ReceiveGame maybeJson)
         , iapProducts (\products -> IapProducts products)
+        , iapBuyResponse (\x -> IapBuyResponse x)
         , Window.resizes (\size -> WindowSize size)
         ]
 
@@ -1381,6 +1440,29 @@ getIapState model =
         , purchaseDict
         , error)
 
+iapProductRow : IapProduct -> Maybe IapPurchase -> Html Msg
+iapProductRow product purchase =
+    tr []
+        [ td []
+              [ text product.title
+              , br
+              , text product.description
+              ]
+        , td []
+            [ text product.price ]
+        , td []
+            [ case purchase of
+                  Nothing ->
+                    button [ onClick <| IapBuy product.productId
+                           , class ControlsClass
+                           , title "Buy this product."
+                           ]
+                           [ text "Buy" ]
+                  Just p ->
+                    text <| toString <| Date.fromTime p.date
+            ]
+        ]
+
 iapPageDiv: Model -> Html Msg
 iapPageDiv model =
     let (products, purchaseDict, error) = getIapState model
@@ -1394,11 +1476,20 @@ iapPageDiv model =
                         Just msg ->
                           text <| "Error loading products: " ++ msg
                         Nothing ->
-                          case prods of
-                              Nothing -> text "Cant happen: No error or products."
-                              Just prods ->
-                                text <| toString prods
+                          text ""
             ]
+        , table []
+            (( tr []
+                   [ th [] [ text "Product" ]
+                   , th [] [ text "Price" ]
+                   , th [] [ text "Purchase" ]
+                   ]
+             ) ::
+                 ( List.map
+                       (\x -> iapProductRow x (Dict.get x.productId purchaseDict))
+                       products
+                 )
+            )
         , p []
             [ button
                   [ onClick ReloadIapProducts

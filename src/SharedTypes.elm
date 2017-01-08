@@ -147,6 +147,8 @@ type Msg
     | WindowSize Window.Size
     | ShowPage Page
     | GetBoardIndex
+    | IapBuy String
+    | IapBuyResponse (String, Maybe String, Maybe String)
     | Nop
 
 type alias IntBoard =
@@ -215,7 +217,7 @@ type alias IapProduct =
 type alias IapPurchase =
     { productId : String
     , transactionId : String
-    , date : Int
+    , date : Time
     }
 
 -- A list of these is stored as JSON on the "kakuro-iap" property.
