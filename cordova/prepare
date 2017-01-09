@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Copy everything into "platforms/ios/Kakuro Dojo.xcodeproj",
+# ready to be run in Xcode.
+
+cordova prepare ios

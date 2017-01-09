@@ -133,18 +133,29 @@ var kakuroPorts = {};
       app.iapGetProducts(pids, function(res) {
         if (typeof(res) == 'string') {
             res =  [null, res];
-        } else {
-          var prods = [];
-          // Not really necessary, but avoids conversion-to-Elm runtime error,
-          // if return value isn't the correct shape.
-          for (var prod in res) {
-            prod = res[prod];
-            prods.push({ productId: prod.productId || "",
-                         title: prod.title || "",
-                         description: prod.description || "",
-                         price: prod.price || "" })
+        } else if (typeof(res) == 'object') {
+          var msg = res.errorMessage;
+          if (msg) {
+            var code = res.errorCode;
+            if (code) {
+              msg = msg + ", code: " + code;
+            }
+            res = [null, msg];
+          } else {
+            var prods = [];
+            // Not really necessary, but avoids conversion-to-Elm runtime error,
+            // if return value isn't the correct shape.
+            for (var prod in res) {
+              prod = res[prod];
+              prods.push({ productId: prod.productId || "",
+                           title: prod.title || "",
+                           description: prod.description || "",
+                           price: prod.price || "" })
+            }
+            res = [prods, null]
           }
-          res = [prods, null]
+        } else {
+          res = [null, "Bad return from iapGetProducts: " + JSON.stringify(res)];
         }
         kakuro.ports.iapProducts.send(res);
       });

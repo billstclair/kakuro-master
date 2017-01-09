@@ -22,5 +22,11 @@ After that, you can test changes with:
 3. `cd cordova`
 4. `cordova run ios --emulator --target=iPad-Air-2`  # (`--emulator` is the default. `--target` defaults to `iPhone-SE`)
 5. `./run` is a script for the `cordova run...` command above.
-
-Then, you can open `cordova/platforms/ios/Kakuro Dojo.xcodeproj` in XCode, and load it onto your devices.
+6. `./prepare` is a script for the `cordova prepare...` command.
+  1. If you prefer, as I do, to do your compilation and running in Xcode, use this, and operate on `platforms/ios/Kakuro Dojo.xcodeproj` in Xcode.
+  2. You'll need to set your development team in Xcode.
+  3. This makes it easy to load the app onto a real device.
+7. To debug the JavaScript from the simulator or an iOS device:
+  1. In iOS Settings/Safari/Advanced, enable "Web Inspector".
+  2. After starting the app, in Safari on your Mac, open "Develop/&lt;iOS device&gt;/Kakuro Dojo/Kakuro Dojo".
+  3. If it fails before you can get there, try, from the `cordova` directory, `cordova serve`, aim your web browser at the printed location (`http://localhost:8000`), and click on `iOS`.

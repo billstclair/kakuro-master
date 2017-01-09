@@ -661,7 +661,7 @@ update msg model =
 
 gotDeviceReady : Model -> ( Model, Cmd Msg )
 gotDeviceReady model =
-    ( { model | deviceReady = (log "deviceReady" True) }
+    ( { model | deviceReady = True }
     , if model.page == IapPage then
           iapGetProducts iapProductIds
       else
@@ -727,6 +727,33 @@ processIapBuy model productId transactionId error =
                     in
                         updateIapState state model
 
+receiveProducts : (Maybe (List IapProduct), Maybe String) -> Model -> Model
+receiveProducts prodsAndErr model =
+    let (prods, err) = prodsAndErr
+    in
+        case err of
+            Just str ->
+                { model |
+                  iapProducts = Just (Nothing, err)
+                }
+            Nothing ->
+                case prods of
+                    Nothing ->
+                        { model |
+                          iapProducts = Just (Nothing, Just "Missing products.")
+                        }
+                    Just products ->
+                        case List.filter (\x -> x.productId /= "") products of
+                            [] ->
+                                { model |
+                                  iapProducts =
+                                      Just (Nothing, Just "No products returned.")
+                                }
+                            ps ->
+                                { model |
+                                 iapProducts = Just (Just ps, Nothing)
+                                }
+
 updateHelpPage : Msg -> Model -> ( Model, Cmd Msg)
 updateHelpPage msg model =
     case msg of
@@ -747,7 +774,7 @@ updateHelpPage msg model =
         DeviceReady ->
             gotDeviceReady model
         IapProducts products ->
-            ( { model | iapProducts = Just products }
+            ( receiveProducts products model
             , Cmd.none
             )
         IapBuy productId ->
@@ -937,7 +964,7 @@ updateMainPage msg model =
         DeviceReady ->
             gotDeviceReady model
         IapProducts products ->
-            ( { model | iapProducts = Just products }
+            ( receiveProducts products model
             , Cmd.none
             )
         IapBuy productId ->
