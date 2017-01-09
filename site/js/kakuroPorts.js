@@ -163,29 +163,54 @@ var kakuroPorts = {};
 
     kakuro.ports.iapBuy.subscribe(function(pid) {
       app.iapBuy(pid, function(res) {
-        res = (typeof(res) == 'string') ?
-          [pid, null, res] :
-          [pid, res.transactionId, null];
+        console.log("iapBuy result: " + JSON.stringify(res));
+        if (typeof(res) == 'string') {
+          res = [pid, null, res];
+        } else {
+          var msg = res.errorMessage;
+          if (msg) {
+            var code = res.errorCode;
+            if (code == 2) return; // user cancelled password dialog
+            if (code) {
+              msg = msg + ", code: " + code;
+            }
+            res = [pid, null, msg];
+          } else {
+            res = [pid, res.transactionId || null, null];
+          }
+        }
         kakuro.ports.iapBuyResponse.send(res);
       });
     });
 
     kakuro.ports.iapRestorePurchases.subscribe(function() {
       app.iapRestorePurchases(function(res) {
+        console.log("iapPurchases: " + JSON.stringify(res));
         if (typeof(res) == 'string') {
             res = [null, res];
         } else {
-          // Must match IapPurchase in SharedTypes.elm
-          var purchases = [];
-          for (var purchase in res) {
-            purchase = res[purchase];
-            purchase = { productId: res.productId || "",
-                         transactionId: res.transactionId || "",
-                         date: res.date || 0
-                       };
-            purchases.push(purchase);
+          var msg = res.errorMessage;
+          if (msg) {
+            var code = res.errorCode;
+            if (code == 2) return; // user cancelled password dialog
+            if (code) {
+              msg = msg + ", code: " + code;
+            }
+            res = [null, msg];
+          } else {
+            // Must match IapPurchase in SharedTypes.elm
+            var purchases = [];
+            for (var purchase in res) {
+              purchase = res[purchase];
+              purchase = { productId: purchase.productId || "",
+                           transactionId: purchase.transactionId || "",
+                           date: purchase.date || 0
+                         };
+              purchases.push(purchase);
+            }
+            console.log("Sending purchases: " + JSON.stringify(res));
+            res = [purchases, null];
           }
-          res = [purchases, null];
         }
         kakuro.ports.iapPurchases.send(res);
       });

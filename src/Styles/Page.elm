@@ -19,6 +19,7 @@ type PClass
     | BoardLabelClass
     | ControlsClass
     | HelpTextClass
+    | ErrorClass
     | PrettyTable
 
 type PId
@@ -73,6 +74,10 @@ rules =
         [ Class HelpTextClass ]
         [ ( "width", "80%" )
         , ( "max-width", "40em" )
+        ]
+    , rule
+        [ Class ErrorClass ]
+        [ ( "color", "red" )
         ]
     , rule
         [ Class PrettyTable ]

@@ -701,31 +701,38 @@ iapProductsDict model =
 
 processIapBuy : Model -> String -> Maybe String -> Maybe String -> (Model, Cmd Msg)
 processIapBuy model productId transactionId error =
-    case transactionId of
+    let m = { model | message = Nothing }
+    in
+        case transactionId of
+            Nothing ->
+                doIapBuy model Nothing error
+            Just tid ->
+                doIapBuy
+                    model
+                    (Just <| IapPurchase productId tid model.times.timestamp)
+                        Nothing
+
+doIapBuy : Model -> Maybe IapPurchase -> Maybe String -> (Model, Cmd Msg)
+doIapBuy model purchase error =
+    case purchase of
         Nothing ->
-            let msg = case error of
-                          Nothing -> "Unspecified error from IAP Buy."
-                          Just m -> m
+            ( { model | message = error }, Cmd.none )
+        Just p ->
+            let { productId, transactionId, date } = p
             in
-                ( { model | message = Just msg }, Cmd.none )
-        Just tid ->
-            case Dict.get productId <| iapProductsDict model of
-                Nothing ->
-                    ( { model |
-                        message = Just ("productId not found in list: " ++ productId)
-                      }
-                    , Cmd.none
-                    )
-                Just product ->
-                    let purchase = { productId = productId
-                                   , transactionId = tid
-                                   , date = model.times.timestamp
-                                   }
-                        state = { product = product
-                                , purchase = purchase
-                                }
-                    in
-                        updateIapState state model
+                case Dict.get productId <| iapProductsDict model of
+                    Nothing ->
+                        ( { model |
+                            message = Just ("productId not found: \"" ++ productId ++ "\"")
+                          }
+                        , Cmd.none
+                        )
+                    Just product ->
+                        let state = { product = product
+                                    , purchase = p
+                                    }
+                        in
+                            updateIapState state model
 
 receiveProducts : (Maybe (List IapProduct), Maybe String) -> Model -> Model
 receiveProducts prodsAndErr model =
@@ -754,16 +761,42 @@ receiveProducts prodsAndErr model =
                                  iapProducts = Just (Just ps, Nothing)
                                 }
 
+iapPurchasesLoop : List IapPurchase -> Model -> Cmd Msg -> (Model, Cmd Msg)
+iapPurchasesLoop purchases model cmd =
+    case purchases of
+        [] -> ( model, cmd )
+        p :: tail ->
+            let (m, c) = doIapBuy model (Just p) Nothing
+            in
+                iapPurchasesLoop tail m
+                    <| if c == Cmd.none then cmd else c
+                
+processIapPurchases : Model -> Maybe (List IapPurchase) -> Maybe String -> ( Model, Cmd Msg)
+processIapPurchases model purchases error =
+    let m = { model | message = Nothing }
+    in
+        case purchases of
+            Nothing ->
+                doIapBuy model Nothing error
+            Just [] ->
+                doIapBuy model Nothing (Just "You have no purchases to restore.")
+            Just ps ->
+                iapPurchasesLoop ps model Cmd.none
+
 updateHelpPage : Msg -> Model -> ( Model, Cmd Msg)
 updateHelpPage msg model =
     case msg of
         ShowPage page ->
-            ( { model | page = page }
+            ( { model | page = page, message = Nothing }
             , maybeFetchProducts page model
             )
         ReloadIapProducts ->
             ( { model | iapProducts = Nothing }
             , iapGetProducts iapProductIds
+            )
+        RestoreIapPurchases ->
+            ( model,
+              iapRestorePurchases()
             )
         Tick time ->
             ( timeTick time model, Cmd.none )
@@ -778,10 +811,12 @@ updateHelpPage msg model =
             , Cmd.none
             )
         IapBuy productId ->
-            ( model
+            ( { model | message = Nothing }
             , iapBuy productId )
         IapBuyResponse (productId, transactionId, error) ->
             processIapBuy model productId transactionId error
+        IapPurchases (purchases, error) ->
+            processIapPurchases model purchases error
         _ ->
             ( model
             , Cmd.none )
@@ -919,10 +954,12 @@ updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
     case msg of
         ShowPage page ->
-            ( { model | page = page }
+            ( { model | page = page, message = Nothing }
             , maybeFetchProducts page model
             )
         ReloadIapProducts ->
+            ( model, Cmd.none )
+        RestoreIapPurchases ->
             ( model, Cmd.none )
         ChangeKind kind ->
             getBoard kind (getKindIndex kind model) model
@@ -968,10 +1005,12 @@ updateMainPage msg model =
             , Cmd.none
             )
         IapBuy productId ->
-            ( model
+            ( { model | message = Nothing }
             , iapBuy productId )
         IapBuyResponse (productId, transactionId, error) ->
             processIapBuy model productId transactionId error
+        IapPurchases (purchases, error) ->
+            processIapPurchases model purchases error
         WindowSize size ->
             processWindowSize model size
         GetBoardIndex ->
@@ -1004,17 +1043,18 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Time.every second Tick
-        , Keyboard.downs (DownKey)
-        , Keyboard.ups (UpKey)
-        , Keyboard.presses (PressKey)
+        , Keyboard.downs DownKey
+        , Keyboard.ups UpKey
+        , Keyboard.presses PressKey
         , confirmAnswer answerConfirmed
         , multiConfirmAnswer multiAnswerConfirmed
         , promptAnswer promptAnswerConfirmed
-        , receiveGame (\maybeJson -> ReceiveGame maybeJson)
+        , receiveGame ReceiveGame
         , deviceReady (\_ -> DeviceReady)
-        , iapProducts (\products -> IapProducts products)
-        , iapBuyResponse (\x -> IapBuyResponse x)
-        , Window.resizes (\size -> WindowSize size)
+        , iapProducts IapProducts
+        , iapBuyResponse IapBuyResponse
+        , iapPurchases IapPurchases
+        , Window.resizes WindowSize
         ]
 
 -- VIEW
@@ -1083,6 +1123,15 @@ view model =
               IapPage -> iapPageDiv model
         ]
 
+errorMessageHtml : Model -> Html Msg
+errorMessageHtml model =
+    case model.message of
+        Nothing -> text ""
+        Just txt ->
+            span [ class ErrorClass ]
+                [ text <| "(" ++ txt ++ ")"
+                ]
+
 mainPageDiv : Model -> Html Msg
 mainPageDiv model =
     div [ style [ ("margin-top"
@@ -1134,10 +1183,8 @@ mainPageDiv model =
                   , style [ ("width", "2em") ]
                   ]
                 []
-          , text <| case model.message of
-                        Nothing -> ""
-                        Just hash -> " (" ++ hash ++ ")"
           , br
+          , errorMessageHtml model
           -- , text (" " ++ toString model.time)  -- Will eventually be timer
           -- , showValue model.seed               -- debugging
           ]
@@ -1336,9 +1383,7 @@ textPageDiv pageTitle model body =
             [ h2 [] [ text "Kakuro Dojo" ]
             , div []
                 ( List.append
-                      [ text <| case model.message of
-                                    Nothing -> ""
-                                    Just hash -> "(" ++ hash ++ ")"
+                      [ errorMessageHtml model
                       , p []
                             <| List.append [ playButton , br , br ] pageLinks
                       , h3 [] [ text pageTitle ]
@@ -1522,6 +1567,9 @@ iapPageDiv: Model -> Html Msg
 iapPageDiv model =
     let (products, purchaseDict, error) = getIapState model
         productsPurchased = (Dict.size purchaseDict) > 0
+        canRestore = case model.iapProducts of
+                         Just (Just _, _) -> True
+                         _ -> False
     in
         textPageDiv "Purchases" model
         [ p []
@@ -1557,6 +1605,18 @@ iapPageDiv model =
                       )
                  )
             )
+        , if productsPurchased || (not canRestore) then
+              text ""
+          else
+              p [ class HelpTextClass ]
+                  [ text "Click the button below to restore purchases you made on another device or that you lost on this device by deleting the Kakuro Dojo app."
+                  , br
+                  , button
+                        [ onClick RestoreIapPurchases
+                        , class ControlsClass
+                        ]
+                        [ text "Restore Purchases" ]
+                  ]
         ]
 
 footerDiv : Model -> Html Msg

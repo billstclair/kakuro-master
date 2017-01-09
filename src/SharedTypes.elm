@@ -145,6 +145,8 @@ type Msg
     | PromptAnswerConfirmed String String
     | IapProducts (Maybe (List IapProduct), Maybe String)
     | ReloadIapProducts
+    | RestoreIapPurchases
+    | IapPurchases (Maybe (List IapPurchase), Maybe String)
     | NewBoardIndex String
     | WindowSize Window.Size
     | ShowPage Page
