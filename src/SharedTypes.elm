@@ -37,6 +37,7 @@ type Page
     | TacticsPage
     | CreditsPage
     | IapPage
+    | AdvertisePage
 
 -- This gets saved in the browser database.
 

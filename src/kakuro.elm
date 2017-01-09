@@ -50,7 +50,7 @@ import Html.Attributes exposing ( style, align, value, size
                                 , width, height
                                 , type_, size, placeholder
                                 , name, checked
-                                , colspan
+                                , colspan, disabled
         )
 import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
@@ -519,38 +519,51 @@ getBoard kind index model =
                 index
         board = PuzzleDB.getBoardOfKind kind index_
     in
-        case board.spec of
-            Nothing ->
-                let gameState = RenderBoard.makeGameState board
-                    idx = realBoardIndex board
-                in
-                    ( addBoardSizesToModel
-                        { model
-                            | gameState = gameState
-                            , index = idx
-                            , kind = kind
-                            , indices = newModelIndices kind model
-                        }
-                    , Cmd.none
-                    )
-            Just spec ->
-                let currentGameState = model.gameState
-                    maybeSpec = currentGameState.board.spec
-                in
-                    ( { model
-                        | awaitingCommand = Just spec
-                      }
-                    , Cmd.batch
-                        (requestGame spec
-                            :: case maybeSpec of
-                                Nothing -> []
-                                Just currentSpec ->
-                                    let json = encodeGameState currentGameState
-                                    in
-                                      [ saveGame ( currentSpec, json ) ]
-                        )
-                    )
+        if forbidBoard board model then
+            let m2 = { model | page = AdvertisePage }
+            in
+                if forbidBoard m2.gameState.board m2 then
+                    getBoard 6 1 m2
+                else
+                    ( m2, Cmd.none )
+        else
+            gotoBoard board model
 
+gotoBoard : IntBoard -> Model -> ( Model, Cmd a )
+gotoBoard board model =
+    case board.spec of
+        Nothing ->
+            let gameState = RenderBoard.makeGameState board
+                idx = realBoardIndex board
+                kind = board.rows
+            in
+                ( addBoardSizesToModel
+                      { model
+                          | gameState = gameState
+                          , index = idx
+                          , kind = kind
+                          , indices = newModelIndices kind model
+                      }
+                , Cmd.none
+                )
+        Just spec ->
+            let currentGameState = model.gameState
+                maybeSpec = currentGameState.board.spec
+            in
+                ( { model
+                  | awaitingCommand = Just spec
+                  }
+                , Cmd.batch
+                    (requestGame spec
+                    :: case maybeSpec of
+                           Nothing -> []
+                           Just currentSpec ->
+                               let json = encodeGameState currentGameState
+                               in
+                                   [ saveGame ( currentSpec, json ) ]
+                    )
+                )
+                
 getBoardFromSpec : String -> Model -> Model
 getBoardFromSpec spec model =
     let board = PuzzleDB.findBoard spec
@@ -668,6 +681,10 @@ gotDeviceReady model =
           Cmd.none
     )
 
+extraPuzzlesProductId : String
+extraPuzzlesProductId =
+    "puzzles2"
+
 -- This must match the App Store setup
 -- You can't simply add IDs here.
 -- iapPageDiv assumes there is only one product.
@@ -675,7 +692,7 @@ gotDeviceReady model =
 -- be another one.
 iapProductIds : List String
 iapProductIds =
-    [ "puzzles2"
+    [ extraPuzzlesProductId
     ]
 
 maybeFetchProducts : Page -> Model -> Cmd Msg
@@ -790,6 +807,8 @@ updateHelpPage msg model =
             ( { model | page = page, message = Nothing }
             , maybeFetchProducts page model
             )
+        ReceiveGame maybeJson ->
+            receiveGameJson maybeJson model
         ReloadIapProducts ->
             ( { model | iapProducts = Nothing }
             , iapGetProducts iapProductIds
@@ -949,6 +968,24 @@ getKindIndex kind model =
     case Dict.get kind (Dict.fromList model.indices) of
         Nothing -> model.index
         Just index -> index
+
+restrictBoards : Model -> Bool
+restrictBoards model =
+    case model.iapState of
+        Nothing -> True
+        Just dict ->
+            case Dict.get extraPuzzlesProductId dict of
+                Nothing -> True
+                Just _ -> False
+
+forbidBoard : IntBoard -> Model -> Bool
+forbidBoard board model =
+    case board.index of
+        Nothing -> False
+        Just index ->
+            let kind = board.rows
+            in
+                (restrictBoards model) && (kind > 8 || index > 5)        
 
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
@@ -1121,6 +1158,7 @@ view model =
               TacticsPage -> tacticsPageDiv model
               CreditsPage -> creditsPageDiv model
               IapPage -> iapPageDiv model
+              AdvertisePage -> advertisePageDiv model
         ]
 
 errorMessageHtml : Model -> Html Msg
@@ -1176,6 +1214,7 @@ mainPageDiv model =
                 [ text <| "Help" ]
           , text " | Board Number: "
           , input [ value <| toString model.index
+                  , disabled <| restrictBoards model
                   , type_ "number"
                   , size 3
                   , onInput NewBoardIndex
@@ -1617,6 +1656,18 @@ iapPageDiv model =
                         ]
                         [ text "Restore Purchases" ]
                   ]
+        ]
+
+advertisePageDiv: Model -> Html Msg
+advertisePageDiv model =
+    textPageDiv "Commercial Message" model
+        [ ps [ "This game is free to play for five boards of each of the 6x6 and 8x8 layouts. If you pay $0.99, you can get 190 more boards, split between 6x6, 8x8, and 10x10 layouts."
+             ]
+        , button
+            [ onClick <| ShowPage IapPage
+            , class ControlsClass
+            ]
+            [ text "Go to Purchases Page" ]
         ]
 
 footerDiv : Model -> Html Msg
