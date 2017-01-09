@@ -16,10 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 var app = {
+    receivedDeviceReady: false,
+    deviceReadyCallback: null,
+
     // Application Constructor
     initialize: function() {
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+    },
+
+    registerDeviceReady: function(callback) {
+      app.deviceReadyCallback = callback;
+      if (app.receivedDeviceReady) {
+        callback();
+      }
     },
 
     // deviceready Event Handler
@@ -27,21 +38,10 @@ var app = {
     // Bind any cordova events here. Common events are:
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
-        this.receivedDeviceReady('deviceready');
-    },
-
-    // Update DOM on a Received Event
-    receivedDeviceReady: function(id) {
-        var parentElement = document.getElementById(id);
-      /*
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
-      */
+      app.receivedDeviceReady = true;
+      if (app.deviceReadyCallback) {
+        app.deviceReadyCallback();
+      }
     },
 
     confirm: function(query, callback) {

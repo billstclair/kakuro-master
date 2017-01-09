@@ -16,9 +16,6 @@ import Html.Attributes
 
 type BClass
     = Table
-    | KeypadTd
-    | KeypadButton
-    | KeypadButtonHighlight
     | Helper
     | Error
       -- SVG Classes
@@ -56,49 +53,10 @@ greenColor =
 
 rules =
     [ rule
-        [ Type "tr" ]
-        [ ( "padding", "0" )
-        , ( "margin", "0" )
-        , ( "board", "none" )
-        ]
-    , rule
-        [ Type "td" ]
-        [ ( "width", "1.5em" )
-        , ( "height", "1.5em" )
-        , ( "border", "1px solid black" )
-        , ( "padding", "2px" )
-        , ( "margin", "0" )
-        , ( "font-size", "24pt" )
-        ]
-    , rule
         [ Class Table ]
         [ -- ( "font-family", "\"Lucida Console\", Monaco, monospace" )
           ( "border", "1px solid black" )
         ]
-    , rule
-        [ Class KeypadTd ]
-        [ ( "text-align", "center" )
-          --, ("width", "99%")
-          --, ("height", "99%")
-        , ( "color", "#ffffff" )
-        , ( "background-color", "#808080" )
-        ]
-    , rule
-        [ Type "button" ]
-        [ ( "outline", "none" ) ]
-    , rule
-        [ Class KeypadButton ]
-        [ --("font-size", "30pt")
-          ( "background-color", "#808080" )
-        , ( "color", "#ffffff" )
-        , ( "width", "99%" )
-        , ( "height", "99%" )
-        , ( "margin", "0" )
-        , ( "padding", "0" )
-        ]
-    , rule
-        [ Class KeypadButtonHighlight ]
-        [ ( "color", "black" ) ]
     , rule
         [ Class Helper ]
         [ ( "font-size", "10pt" )

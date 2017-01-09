@@ -50,11 +50,13 @@ import Html.Attributes exposing ( style, align, value, size
                                 , width, height
                                 , type_, size, placeholder
                                 , name, checked
+                                , colspan
         )
 import Html.Events exposing (onClick, onInput)
 import Keyboard exposing (KeyCode)
 import Window
 import Date
+import Date.Extra as DE
 
 main : Program (Bool, List (String, String), Maybe String) Model Msg
 main =
@@ -109,8 +111,9 @@ port iapRestorePurchases : () -> Cmd msg
 -- (purchases, error)
 port iapPurchases : ((Maybe (List IapPurchase), Maybe String) -> msg) -> Sub msg
 
--- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
+port deviceReady : (Bool -> msg) -> Sub msg
 
+-- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
 updateWithStorage msg model =
     let ( newModel, cmds ) = update msg model
@@ -208,8 +211,7 @@ init state =
           [ windowSizeCmd
           , setTitle pageTitle
           , seedCmd
-          -- Have to wait until receivedDeviceReady in cordova/www/js/index.js
-          --, maybeFetchProducts m.page m
+          , maybeFetchProducts mod.page mod
           ]
       )
 
@@ -239,6 +241,7 @@ model =
         , helpModelDict = Javole helpBoards
         , isCordova = False
         , properties = Dict.fromList []
+        , deviceReady = False
         , iapState = Nothing
         , iapProducts = Nothing
         }
@@ -656,7 +659,20 @@ update msg model =
         MainPage -> updateMainPage msg model
         _ -> updateHelpPage msg model
 
+gotDeviceReady : Model -> ( Model, Cmd Msg )
+gotDeviceReady model =
+    ( { model | deviceReady = (log "deviceReady" True) }
+    , if model.page == IapPage then
+          iapGetProducts iapProductIds
+      else
+          Cmd.none
+    )
+
 -- This must match the App Store setup
+-- You can't simply add IDs here.
+-- iapPageDiv assumes there is only one product.
+-- I was too lazy to do it right, since I don't expect there to ever
+-- be another one.
 iapProductIds : List String
 iapProductIds =
     [ "puzzles2"
@@ -667,6 +683,7 @@ maybeFetchProducts page model =
     if page == IapPage
         && model.iapProducts == Nothing
         && model.iapState == Nothing
+        && model.deviceReady
     then
         iapGetProducts iapProductIds
     else
@@ -727,6 +744,8 @@ updateHelpPage msg model =
             ( updateSelectedCell id model, Cmd.none )
         WindowSize size ->
             processWindowSize model size
+        DeviceReady ->
+            gotDeviceReady model
         IapProducts products ->
             ( { model | iapProducts = Just products }
             , Cmd.none
@@ -915,6 +934,8 @@ updateMainPage msg model =
             doMultiAnswerConfirmed question index model
         PromptAnswerConfirmed question answer ->
             doPromptAnswerConfirmed question answer model
+        DeviceReady ->
+            gotDeviceReady model
         IapProducts products ->
             ( { model | iapProducts = Just products }
             , Cmd.none
@@ -963,6 +984,7 @@ subscriptions model =
         , multiConfirmAnswer multiAnswerConfirmed
         , promptAnswer promptAnswerConfirmed
         , receiveGame (\maybeJson -> ReceiveGame maybeJson)
+        , deviceReady (\_ -> DeviceReady)
         , iapProducts (\products -> IapProducts products)
         , iapBuyResponse (\x -> IapBuyResponse x)
         , Window.resizes (\size -> WindowSize size)
@@ -1440,63 +1462,74 @@ getIapState model =
         , purchaseDict
         , error)
 
-iapProductRow : IapProduct -> Maybe IapPurchase -> Html Msg
+iapProductRow : IapProduct -> Maybe IapPurchase -> List (Html Msg)
 iapProductRow product purchase =
-    tr []
-        [ td []
-              [ text product.title
-              , br
-              , text product.description
+    [ tr []
+          [ td []
+                [ text product.title
+                ]
+          , td []
+              [ text product.price ]
+          , td []
+              [ case purchase of
+                    Nothing ->
+                      button [ onClick <| IapBuy product.productId
+                             , class ControlsClass
+                             , title "Buy this product."
+                             ]
+                             [ text "Buy" ]
+                    Just p ->
+                      text
+                        -- "z" doesn't work here for time zone
+                        <| DE.toFormattedString "d MMM y, h:mm a"
+                        <| Date.fromTime p.date
               ]
-        , td []
-            [ text product.price ]
-        , td []
-            [ case purchase of
-                  Nothing ->
-                    button [ onClick <| IapBuy product.productId
-                           , class ControlsClass
-                           , title "Buy this product."
-                           ]
-                           [ text "Buy" ]
-                  Just p ->
-                    text <| toString <| Date.fromTime p.date
-            ]
         ]
+    , tr [ ]
+        [ td [ colspan 3 ]
+              [ text product.description ]
+        ]
+    ]
 
 iapPageDiv: Model -> Html Msg
 iapPageDiv model =
     let (products, purchaseDict, error) = getIapState model
+        productsPurchased = (Dict.size purchaseDict) > 0
     in
         textPageDiv "Purchases" model
         [ p []
             [ case model.iapProducts of
-                  Nothing -> text "Fetching products..."
+                  Nothing ->
+                    text <| if productsPurchased then "" else "Fetching products..."
                   Just (prods, error) ->
                     case error of
                         Just msg ->
-                          text <| "Error loading products: " ++ msg
+                          span []
+                            [ text <| "Error loading products: " ++ msg
+                            , br
+                            , button
+                                  [ onClick ReloadIapProducts
+                                  , class ControlsClass
+                                  ]
+                                  [ text "Reload" ]
+                            ]
                         Nothing ->
                           text ""
             ]
-        , table []
+        , table [ class PrettyTable ]
             (( tr []
                    [ th [] [ text "Product" ]
                    , th [] [ text "Price" ]
                    , th [] [ text "Purchase" ]
                    ]
              ) ::
-                 ( List.map
-                       (\x -> iapProductRow x (Dict.get x.productId purchaseDict))
-                       products
+                 (List.concat
+                      ( List.map
+                            (\x -> iapProductRow x (Dict.get x.productId purchaseDict))
+                            products
+                      )
                  )
             )
-        , p []
-            [ button
-                  [ onClick ReloadIapProducts
-                  , class ControlsClass
-                  ]
-                  [ text "Reload Products" ]
-            ]
         ]
 
 footerDiv : Model -> Html Msg

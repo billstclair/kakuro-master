@@ -19,6 +19,7 @@ type PClass
     | BoardLabelClass
     | ControlsClass
     | HelpTextClass
+    | PrettyTable
 
 type PId
     = BoardId
@@ -72,6 +73,28 @@ rules =
         [ Class HelpTextClass ]
         [ ( "width", "80%" )
         , ( "max-width", "40em" )
+        ]
+    , rule
+        [ Class PrettyTable ]
+        [ ( "margin", "0em 0.5em 0.5em 0.5em" )
+        , ( "background", "white" )
+        , ( "border-collapse", "collapse" )
+        ]
+    , rule
+        [ Descendant (Type "th") (Class PrettyTable) ]
+        [ ( "border", "1px silver solid" )
+        , ( "padding", "0.2em" )
+        , ( "background", "gainsboro" )
+        , ( "text-align", "center" )
+        ]
+    , rule
+        [ Descendant (Type "td") (Class PrettyTable) ]
+        [ ( "border", "1px silver solid" )
+        , ( "padding", "0.2em" )
+        ]
+    , rule
+        [ Descendant (Type "tr:nth-child(odd)") (Class PrettyTable) ]
+        [ ( "background-color", "white" ) -- "#f2f2f2" )
         ]
     ]
 

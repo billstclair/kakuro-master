@@ -88,6 +88,7 @@ type alias Model =
     , helpModelDict : MaybeHelpModelDict
     , isCordova : Bool                --true if we're running in a Cordova app
     , properties : Dict String String         --raw properties at startup
+    , deviceReady : Bool
     , iapState : Maybe (Dict String IapState) --from storage
     , iapProducts: Maybe (Maybe (List IapProduct), Maybe String) --from iap call
     }
@@ -121,6 +122,7 @@ savedModelToModel savedModel =
     , helpModelDict = Nicht
     , isCordova = False
     , properties = Dict.fromList []
+    , deviceReady = False
     , iapState = Nothing
     , iapProducts = Nothing
     }
@@ -147,6 +149,7 @@ type Msg
     | WindowSize Window.Size
     | ShowPage Page
     | GetBoardIndex
+    | DeviceReady
     | IapBuy String
     | IapBuyResponse (String, Maybe String, Maybe String)
     | Nop

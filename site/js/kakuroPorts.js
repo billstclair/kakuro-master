@@ -180,6 +180,10 @@ var kakuroPorts = {};
       });
     });
 
+    app.registerDeviceReady(function() {
+      kakuroPorts.registeredDeviceReady = true;
+      kakuro.ports.deviceReady.send(true);
+    });
   }
 
 })();
