@@ -64,11 +64,13 @@ type alias BoardSizes =
 type alias ModelTimes =
     { timestamp : Time
     , lastPersist : Maybe Time
+    , unlockDate : String
+    , unlockHash : String
     }
 
 emptyModelTimes : ModelTimes
 emptyModelTimes =
-    ModelTimes 0 Nothing
+    ModelTimes 0 Nothing "161231" "316966da"
 
 type alias Model =
     { -- on disk. Copied to and from SavedModel instance.
@@ -155,6 +157,7 @@ type Msg
     | DeviceReady
     | IapBuy String
     | IapBuyResponse (String, Maybe String, Maybe String)
+    | InvokeSpecHashReceiver (String -> String -> Model -> Model) String String
     | Nop
 
 type alias IntBoard =

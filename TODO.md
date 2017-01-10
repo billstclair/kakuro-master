@@ -18,7 +18,7 @@ List of tasks remaining for [Kakuro-Dojo.com](https:/Kakuro-Dojo.com/).
   9. "Credits" page. [**done**]
   10. Eraser icon instead of blank square on keypad.
   11. Finish in-app purchase. See [Alex Disler's article](https://alexdisler.com/2016/02/29/in-app-purchases-ionic-cordova/) about his Cordova plugin.
-    1. 'Purchases' page should reference Paypal for non-Cordova
+    1. 'Purchases' page should reference Paypal for non-Cordova [**done**]
     2. Create a web page on Kakuro-Dojo.com to enable the extra games. [**done**]
   12. App Store screen shots and text.
 8. Profit!

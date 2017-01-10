@@ -67,6 +67,11 @@ main =
         , subscriptions = subscriptions
         }
 
+-- (reason, string)
+port specHash : (String, String) -> Cmd a
+-- (reason, string, hash)
+port receiveSpecHash : ((String, String, String) -> msg) -> Sub msg
+
 port setStorage : Maybe String -> Cmd a
 
 port saveGame : (String, String) -> Cmd msg
@@ -638,27 +643,70 @@ receiveGameJson maybeJson model =
                       , Cmd.none
                       )
 
-timeTick : Time -> Model -> Model
-timeTick time model =
+unlockDateReason : String
+unlockDateReason =
+    "unlockDate"
+
+specHashDict : Dict String (String -> String -> Model -> Model)
+specHashDict =
+    Dict.fromList [ ( unlockDateReason, updateUnlockDateHash )
+                  ]
+
+specHashReceiver : (String, String, String) -> Msg
+specHashReceiver (reason, string, hash) =
+    case Dict.get reason specHashDict of
+        Nothing -> Nop
+        Just r ->
+            InvokeSpecHashReceiver r string hash
+
+updateUnlockDateHash : String -> String -> Model -> Model
+updateUnlockDateHash unlockDate hash model =
     let times = model.times
     in
-      { model |
-        times = { times | timestamp = time }
-      }
+        { model |
+          times = { times |
+                    unlockDate = unlockDate
+                  , unlockHash = hash
+                  }
+        }
 
-timePlayTick : Time -> Model -> Model
+convertTimeToUnlockDate : Time -> String
+convertTimeToUnlockDate time =
+    let date = Date.fromTime time
+    in
+        DE.toFormattedString "yyMMdd" date
+
+timeTick : Time -> Model -> ( Model, Cmd Msg )
+timeTick time model =
+    let times = model.times
+        unlockDate = convertTimeToUnlockDate time
+        cmd = if unlockDate /= times.unlockDate then
+                  specHash (unlockDateReason, unlockDate)
+              else
+                  Cmd.none
+                  
+    in
+        ( { model |
+            times = { times | timestamp = time }
+          }
+        , cmd
+        )
+
+timePlayTick : Time -> Model -> ( Model, Cmd Msg)
 timePlayTick time model =
-    let model2 = timeTick time model
+    let (model2, cmd) = timeTick time model
         gameState = model2.gameState
         gameStateTimes = gameState.times
     in
-      { model2 |
-        gameState = { gameState |
-                      times = { gameStateTimes |
-                                elapsed = gameStateTimes.elapsed + 1
-                              }
-                    }
-      }
+        ( { model2 |
+            gameState = { gameState |
+                          times = { gameStateTimes |
+                                    elapsed = gameStateTimes.elapsed + 1
+                                  }
+                        }
+          }
+        , cmd
+        )
 
 processWindowSize : Model -> Window.Size -> ( Model, Cmd Msg)
 processWindowSize model size =
@@ -818,7 +866,9 @@ updateHelpPage msg model =
               iapRestorePurchases()
             )
         Tick time ->
-            ( timeTick time model, Cmd.none )
+            timeTick time model
+        Seed time ->
+            doSeed time model
         ClickCell id ->
             ( updateSelectedCell id model, Cmd.none )
         WindowSize size ->
@@ -836,6 +886,9 @@ updateHelpPage msg model =
             processIapBuy model productId transactionId error
         IapPurchases (purchases, error) ->
             processIapPurchases model purchases error
+        InvokeSpecHashReceiver receiver string hash ->
+            ( receiver string hash model
+            , Cmd.none)
         _ ->
             ( model
             , Cmd.none )
@@ -896,6 +949,7 @@ resetAllGameStates oldModel =
       , windowSize = oldModel.windowSize
       , seed = oldModel.seed
       , isCordova = oldModel.isCordova
+      , iapState = oldModel.iapState
       , iapProducts = oldModel.iapProducts
       }
     , setStorage Nothing )
@@ -987,6 +1041,12 @@ forbidBoard board model =
             in
                 (restrictBoards model) && (kind > 8 || index > 5)        
 
+doSeed : Time -> Model -> ( Model, Cmd Msg )
+doSeed time model =
+    let m = { model | seed = Just <| Random.initialSeed (round time) }
+    in
+        timeTick time model
+
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
     case msg of
@@ -1010,11 +1070,9 @@ updateMainPage msg model =
         Restart ->
             ( model, restartDialog model )
         Tick time ->
-            ( timePlayTick time model, Cmd.none )
+            timePlayTick time model
         Seed time ->
-            ( { model | seed = Just <| Random.initialSeed (round time) }
-            , Cmd.none
-            )
+            doSeed time model
         ClickCell id ->
             ( updateSelectedCell id model, Cmd.none )
         DownKey code ->
@@ -1048,6 +1106,9 @@ updateMainPage msg model =
             processIapBuy model productId transactionId error
         IapPurchases (purchases, error) ->
             processIapPurchases model purchases error
+        InvokeSpecHashReceiver receiver string hash ->
+            ( receiver string hash model
+            , Cmd.none)
         WindowSize size ->
             processWindowSize model size
         GetBoardIndex ->
@@ -1091,6 +1152,7 @@ subscriptions model =
         , iapProducts IapProducts
         , iapBuyResponse IapBuyResponse
         , iapPurchases IapPurchases
+        , receiveSpecHash specHashReceiver
         , Window.resizes WindowSize
         ]
 
@@ -1616,25 +1678,31 @@ iapPageDiv model =
 
 rawPuzzleEnablerLink : Model -> String
 rawPuzzleEnablerLink model =
-    let hash = "foo" --need to compute this and stash it in the model
+    let hash = model.times.unlockHash
     in
         "kakuro-dojo.com/unlock/?hash=" ++ hash
+
+puzzleEnablerLink : Model -> Html Msg
+puzzleEnablerLink model =
+  let link = rawPuzzleEnablerLink model
+  in
+      a [ href <| "https://" ++ link ]
+          [ text link ]
 
 webIapElements : Model -> Bool -> List (Html Msg)
 webIapElements model productsPurchased =
     if productsPurchased then
-        let link = rawPuzzleEnablerLink model
-        in
-            [ p [ class HelpTextClass]
-                  [ text "You have enabled all the puzzles. To enable them in another browser, visit this link: "
-                  , br
-                  , a [ href <| "https://" ++ link ]
-                      [ text link ]
-                  ]
-            , p [ class HelpTextClass ]
-                [ text "The link will only work today and tomorrow. Revisit this page after that to get a new link."
-                ]
+        [ p [ class HelpTextClass]
+              [ text "You have enabled all the puzzles."
+              , br
+              , text "To enable them in another browser, visit this link in that browser:"
+              , br
+              , puzzleEnablerLink model
+              ]
+        , p [ class HelpTextClass ]
+            [ text "The link will only work today and tomorrow. Revisit this page after that, in this browser, to get a new link."
             ]
+        ]
     else
         [ ps [ "You are using a web demo of the Kakuro Dojo app. The demo gives you only 10 puzzles, in 6x6 and 8x8 layouts. The app allows you to purchase 190 additional puzzles, in 6x6, 8x8, and 10x10 layouts, and will provide a link with which you can enable those additional puzzles in this web version."
              , "The app is not yet available, but I have submitted it to Apple's iOS app store, and expect to have an Android version real soon now."
@@ -1682,7 +1750,19 @@ appIapElements model products purchaseDict error productsPurchased =
                  )
             )
         , if productsPurchased || (not canRestore) then
-              text ""
+              if productsPurchased then
+                  div [ class HelpTextClass ]
+                      [ p []
+                            [ text "To enable all the puzzles in a web browser, visit this link in that browser:"
+                            , br
+                            , puzzleEnablerLink model
+                            ]
+                      , p []
+                          [ text "The link will only work today and tomorrow. Revisit this page after that to get a new link."
+                          ]
+                      ]
+              else
+                  text ""
           else
               p [ class HelpTextClass ]
                   [ text "Click the button below to restore purchases you made on another device or that you lost on this device by deleting the Kakuro Dojo app."

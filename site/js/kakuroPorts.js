@@ -17,6 +17,7 @@ var kakuroPorts = {};
   var propertiesName = 'kakuro-properties';
 
   kakuroPorts.init = init;
+  kakuroPorts.specHash = specHash;
   kakuroPorts.storageName = storageName;
   kakuroPorts.propertiesName = propertiesName;
   kakuroPorts.getProperties = getProperties;
@@ -64,17 +65,26 @@ var kakuroPorts = {};
     //log("storedState: " + storedState + "\n")
 
     var alist = [];
-    var properties = getProperties()
+    var properties = getProperties();
     for (key in properties) {
       alist.push([key, properties[key]]);
-    }
+    };
+
     var kakuro = Elm.Kakuro.fullscreen([app.isCordova(), alist, storedState]);
     kakuroPorts.kakuro = kakuro;
+
+    kakuro.ports.specHash.subscribe(function(reasonAndString) {
+      var reason = reasonAndString[0];
+      var string = reasonAndString[1];
+      kakuro.ports.receiveSpecHash.send([reason, string, specHash(string)]);
+    });
 
     kakuro.ports.setStorage.subscribe(function(json) {
       //log("setStorage: " + json + "\n")
       if (json === null) {
+        properties = getProperties();
         localStorage.clear();        // Bye,  bye, birdy.
+        setProperties(properties);
       } else {
         localStorage.setItem(storageName, json);
       }
@@ -82,7 +92,7 @@ var kakuroPorts = {};
 
     kakuro.ports.setTitle.subscribe(function(title) {
       document.title = title;
-    })
+    });
 
     kakuro.ports.saveGame.subscribe(function(specAndState) {
       var spec = specAndState[0]
