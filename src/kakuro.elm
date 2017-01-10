@@ -1244,6 +1244,7 @@ linkDict =
         , ( "FastClick", "https://ftlabs.github.io/fastclick/" )
         , ( "js-sha256", "https://github.com/emn178/js-sha256" )
         , ( "JavaScript", "https://en.wikipedia.org/wiki/JavaScript" )
+        , ( "Paypal", "https://www.paypal.com/" )
         ]
 
 lookupLink : String -> Maybe String
@@ -1606,11 +1607,47 @@ iapPageDiv: Model -> Html Msg
 iapPageDiv model =
     let (products, purchaseDict, error) = getIapState model
         productsPurchased = (Dict.size purchaseDict) > 0
-        canRestore = case model.iapProducts of
+    in
+        textPageDiv "Purchases" model
+        <| if model.isCordova then
+               appIapElements model products purchaseDict error productsPurchased
+           else
+               webIapElements model productsPurchased
+
+rawPuzzleEnablerLink : Model -> String
+rawPuzzleEnablerLink model =
+    let hash = "foo" --need to compute this and stash it in the model
+    in
+        "kakuro-dojo.com/unlock/?hash=" ++ hash
+
+webIapElements : Model -> Bool -> List (Html Msg)
+webIapElements model productsPurchased =
+    if productsPurchased then
+        let link = rawPuzzleEnablerLink model
+        in
+            [ p [ class HelpTextClass]
+                  [ text "You have enabled all the puzzles. To enable them in another browser, visit this link: "
+                  , br
+                  , a [ href <| "https://" ++ link ]
+                      [ text link ]
+                  ]
+            , p [ class HelpTextClass ]
+                [ text "The link will only work today and tomorrow. Revisit this page after that to get a new link."
+                ]
+            ]
+    else
+        [ ps [ "You are using a web demo of the Kakuro Dojo app. The demo gives you only 10 puzzles, in 6x6 and 8x8 layouts. The app allows you to purchase 190 additional puzzles, in 6x6, 8x8, and 10x10 layouts, and will provide a link with which you can enable those additional puzzles in this web version."
+             , "The app is not yet available, but I have submitted it to Apple's iOS app store, and expect to have an Android version real soon now."
+             , "If you [Paypal] $0.99 (or more) to bill@billstclair.com, along with an email address, I'll send you a link to enable the additional puzzles."
+             ]
+        ]
+
+appIapElements : Model -> List IapProduct -> Dict String IapPurchase -> Maybe String -> Bool -> List (Html Msg)
+appIapElements model products purchaseDict error productsPurchased =
+    let canRestore = case model.iapProducts of
                          Just (Just _, _) -> True
                          _ -> False
     in
-        textPageDiv "Purchases" model
         [ p []
             [ case model.iapProducts of
                   Nothing ->
