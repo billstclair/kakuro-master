@@ -19,6 +19,7 @@ var kakuroPorts = {};
   kakuroPorts.init = init;
   kakuroPorts.storageName = storageName;
   kakuroPorts.propertiesName = propertiesName;
+  kakuroPorts.getProperties = getProperties;
   kakuroPorts.setProperty = setProperty;
   kakuroPorts.getProperty = getProperty;
 

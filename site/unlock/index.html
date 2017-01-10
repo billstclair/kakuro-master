@@ -1,0 +1,169 @@
+  <!DOCTYPE HTML>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Kakuro Dojo Puzzle Enabler</title>
+      <script type="text/javascript" src="../js/sha256.js"></script>
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+
+      <script type='text/javascript'>
+var kakuroEnabler = {};
+
+(function() {
+
+  var self = kakuroEnabler;
+  self.dateHash = dateHash;
+  //self.checkDateHash = checkDateHash;
+  self.maybeEnablePuzzles = maybeEnablePuzzles;
+  //self.makePuzzlesState = makePuzzlesState;
+  //self.addPuzzlesState = addPuzzlesState;
+  //self.getProperties = getProperties;
+  //self.getProperty = getProperty;
+  self.queryString = queryString;
+
+  // These must match the Elm code
+  var propertiesName = 'kakuro-properties';
+  var iapPropertyName = "iapStates";
+
+  // This must match the Elm IapState type alias.
+  function makePuzzlesState() {
+    var productId = "puzzles2";
+    var title = "Puzzles unlock";
+    var description = "Web site unlock of 190 puzzles."
+    var price = "Free!";
+    var transactionId = "You joke";
+    var now = new Date();
+    var product = { productId: productId,
+                    title: title,
+                    description: description,
+                    price: price
+                  };
+    var purchase = { productId: productId,
+                     transactionId: transactionId,
+                     date: now.getTime()
+                   };
+    return { product: product, purchase: purchase };
+  }
+
+  function specHash(spec) {
+    var hash = sha256(spec);      // Defined in sha256.js
+    return hash.substring(0, 8);
+  }
+
+  function dateHash(date) {
+    if (date === undefined) {
+      date = new Date();
+    }
+    var n = ((date.getYear() % 100) * 10000) + ((date.getMonth()+1) * 100) + date.getDate();
+    return specHash("" + n);
+  }
+
+  function checkDateHash(hash) {
+    var now = new Date();
+    var then = new Date(now.getTime - (24 * 3600 * 1000));
+    return (dateHash(now) == hash) || (dateHash(then) == hash);
+  }
+
+  function getProperties() {
+    var json = localStorage.getItem(propertiesName);
+    return json ? JSON.parse(json) : {};
+  }
+
+  function setProperties(properties) {
+    localStorage.setItem(propertiesName, JSON.stringify(properties));
+  }
+
+  function getProperty(property) {
+    var props = getProperties();
+    return props[property];
+  }
+
+  function setProperty(property, value) {
+    var props = getProperties();
+    if (value == null) {
+      delete props[property];
+    } else {
+      props[property] = value;
+    }
+    setProperties(props);
+  }
+
+  function addPuzzlesState() {
+    var state = makePuzzlesState();
+    var productId = state.product.productId;
+    var json = getProperty(iapPropertyName) || "[]";
+    var states = JSON.parse(json);
+    if (typeof(states) != "object") {
+      states = [];
+    }
+    var nstates = [];
+    for (var i in states) {
+      var st = states[i];
+      if (st.product.productId != productId) {
+        nstates.push(st);
+      }
+    }
+    states = nstates;
+    states.push(state);
+    json = JSON.stringify(states);
+    setProperty(iapPropertyName, json);
+    return state;
+  }
+
+  function maybeEnablePuzzles(hash) {
+    if (!checkDateHash(hash)) {
+      return false;
+    } else {
+      return addPuzzlesState();
+    }
+  }
+    
+  // From http://stackoverflow.com/questions/979975/how-to-get-the-value-from-the-get-parameters
+  function queryString() {
+    var query_string = {};
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i=0;i<vars.length;i++) {
+      var pair = vars[i].split("=");
+      // If first entry with this name
+      if (typeof query_string[pair[0]] === "undefined") {
+        query_string[pair[0]] = decodeURIComponent(pair[1]);
+        // If second entry with this name
+      } else if (typeof query_string[pair[0]] === "string") {
+        var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+        query_string[pair[0]] = arr;
+        // If third or later entry with this name
+      } else {
+        query_string[pair[0]].push(decodeURIComponent(pair[1]));
+      }
+    } 
+    return query_string;
+  }
+
+})();
+      </script>
+    </head>
+
+    <body style='width:40em; margin: 0 auto;text-align: center;'>
+
+      <h2>Kakuro Dojo Puzzle Enabler</h2>
+
+      <noscript>
+        <p style='color: red; font-size: 200%; font-weight: bold;'>
+            This page require JavaScript to do what it does. Enable JavaScript and reload, if you want to unlock the additional <a href='https://kakuro-dojo.com'>Kokuro Dojo</a> puzzles.
+        </p>
+      </noscript>
+
+      <script type='text/javascript'>
+var qs = kakuroEnabler.queryString();
+var hash = qs.hash || "";
+if (kakuroEnabler.maybeEnablePuzzles(hash)) {
+  document.write("<p>Puzzles enabled. <a href='../'>Play now</a>.</p>");
+} else {
+  document.write("Link expired. Puzzles not enabled.");
+}
+      </script>
+
+    </body>
+  </html>
