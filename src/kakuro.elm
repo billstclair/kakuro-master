@@ -1475,7 +1475,8 @@ pageLinksLoop pageTitle specsTail res =
                         pageTitle tail
                             <| (pageLink page title description) :: res
                 else
-                    pageLinksLoop pageTitle tail res
+                    pageLinksLoop pageTitle tail
+                        <| (text title) :: res
 
 textPageDiv: String -> Model-> List (Html Msg) -> Html Msg
 textPageDiv pageTitle model body =
