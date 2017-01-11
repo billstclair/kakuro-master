@@ -1047,6 +1047,22 @@ doSeed time model =
     in
         timeTick time model
 
+processNewBoardIndex : String -> Model -> ( Model, Cmd Msg )
+processNewBoardIndex indexStr model =
+    case String.toInt <| String.right 2 indexStr of
+        Err _ -> ( model, Cmd.none )
+        Ok index ->
+            let maxidx = PuzzleDB.numberOfBoardsOfKind model.kind
+                idx = if index >= maxidx then
+                          case String.toInt <| String.right 1 indexStr of
+                              Err _ -> index
+                              Ok i ->
+                                  if i < 1 then 1 else i
+                      else
+                          index
+            in
+                getBoard (log "model.kind" model.kind) (log "idx" idx) model
+
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
     case msg of
@@ -1063,10 +1079,7 @@ updateMainPage msg model =
         Generate increment ->
             getBoard model.kind (model.index + increment) model
         NewBoardIndex indexStr ->
-            case String.toInt <| String.right 2 indexStr of
-                Err _ -> ( model, Cmd.none )
-                Ok index ->
-                    getBoard model.kind index model
+            processNewBoardIndex indexStr model
         Restart ->
             ( model, restartDialog model )
         Tick time ->
