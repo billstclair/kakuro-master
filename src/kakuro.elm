@@ -194,7 +194,7 @@ init state =
                 Err msg -> (Nothing, Just msg)
                 Ok state -> (state, Nothing)
         mod = case savedModel of
-                  Nothing -> { model
+                  Nothing -> { initialModel
                                  | isCordova = isCordova
                                  , properties = propertiesDict
                                  , iapState = iapState
@@ -224,8 +224,8 @@ windowSizeCmd : Cmd Msg
 windowSizeCmd =
     Task.perform (\x -> WindowSize x) Window.size
 
-model : Model
-model =
+initialModel : Model
+initialModel =
     let board = PuzzleDB.getBoardOfKind initialKind 1
         state = RenderBoard.makeGameState board
         idx = realBoardIndex board
@@ -944,7 +944,7 @@ multiRestartQuery =
 -- TBD
 resetAllGameStates : Model -> ( Model, Cmd Msg )
 resetAllGameStates oldModel =
-    ( { model
+    ( { initialModel
       | times = oldModel.times
       , windowSize = oldModel.windowSize
       , seed = oldModel.seed
@@ -1767,6 +1767,9 @@ appIapElements model products purchaseDict error productsPurchased =
               if productsPurchased then
                   div [ class HelpTextClass ]
                       [ p []
+                            [ text "Thank you for purchasing the additional puzzles. You may use them on other devices by pressing the \"Restore Purchases\" button that appears on this page on a device with a newly-installed version of Kakuro Dojo."
+                            ]
+                      , p []
                             [ text "To enable all the puzzles in a web browser, visit this link in that browser:"
                             , br
                             , puzzleEnablerLink model
@@ -1780,7 +1783,7 @@ appIapElements model products purchaseDict error productsPurchased =
           else
               p [ class HelpTextClass ]
                   [ text "Click the button below to restore purchases you made on another device or that you lost on this device by deleting the Kakuro Dojo app."
-                  , br
+                  , br, br
                   , button
                         [ onClick RestoreIapPurchases
                         , class ControlsClass
