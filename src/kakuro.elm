@@ -1814,7 +1814,7 @@ appStoreBlurb model =
     else
         div [ class HelpTextClass ]
             [ p []
-                  [ text "The game is also available as an app, for your portable device. Click the link below to go to its App Store page. You can purchase the additional puzzles in the app. Android coming soon."
+                  [ text "The game is also available as an app, for your portable device. Click the button below to go to its App Store page. You can purchase the additional puzzles in the app. Android coming soon."
                   ]
             , p []
                 [ a [ href "https://itunes.apple.com/us/app/kakuro-dojo/id1191778737?mt=8" ]
