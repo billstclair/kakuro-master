@@ -10,6 +10,8 @@
     <content src="index.html" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
     <preference name="Orientation" value="portrait" />
+    <access origin="http://*/*" launch-external="yes" />
+    <access origin="https://*/*" launch-external="yes" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
