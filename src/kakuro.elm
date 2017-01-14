@@ -1491,7 +1491,7 @@ pageLinksLoop pageTitle specsTail res =
                     pageLinksLoop pageTitle tail
                         <| (text title) :: res
 
-textPageDiv: String -> Model-> List (Html Msg) -> Html Msg
+textPageDiv : String -> Model-> List (Html Msg) -> Html Msg
 textPageDiv pageTitle model body =
     let pageLinks = pageLinksLoop pageTitle textPageSpecs []
     in
@@ -1515,7 +1515,7 @@ textPageDiv pageTitle model body =
             , footerDiv model
             ]
                 
-helpPageDiv: Model -> Html Msg
+helpPageDiv : Model -> Html Msg
 helpPageDiv model =
     let windowSize = helpWindowSize 1 2 model
     in
@@ -1542,7 +1542,7 @@ helpPageDiv model =
                 ]
             ]
 
-tacticsPageDiv: Model -> Html Msg
+tacticsPageDiv : Model -> Html Msg
 tacticsPageDiv model =
     let windowSize = helpWindowSize 1 2 model
         bigWindowSize = helpWindowSize 3 4 model
@@ -1600,7 +1600,7 @@ tacticsPageDiv model =
                 ]
             ]
 
-creditsPageDiv: Model -> Html Msg
+creditsPageDiv : Model -> Html Msg
 creditsPageDiv model =
     textPageDiv "Credits" model
         [ ps [ "[Kakuro Dojo] was written by Bill St. Clair, the proprietor of [Gib Goy Games]. I fell in love with Kakuro and wanted some features I couldn't find elsewhere. Then I discovered [Elm], and it became a labor of love. I hope you enjoy it as much as I've enjoyed making and playing it."
@@ -1679,7 +1679,7 @@ iapProductRow product purchase =
         ]
     ]
 
-iapPageDiv: Model -> Html Msg
+iapPageDiv : Model -> Html Msg
 iapPageDiv model =
     let (products, purchaseDict, error) = getIapState model
         productsPurchased = (Dict.size purchaseDict) > 0
@@ -1719,9 +1719,9 @@ webIapElements model productsPurchased =
         ]
     else
         [ ps [ "You are using a web demo of the Kakuro Dojo app. The demo gives you only 10 puzzles, in 6x6 and 8x8 layouts. The app allows you to purchase 190 additional puzzles, in 6x6, 8x8, and 10x10 layouts, and will provide a link with which you can enable those additional puzzles in this web version."
-             , "The app is not yet available, but I have submitted it to Apple's iOS app store, and expect to have an Android version real soon now."
              , "If you [Paypal] $0.99 (or more) to bill@billstclair.com, along with an email address, I'll send you a link to enable the additional puzzles."
              ]
+        , appStoreBlurb model
         ]
 
 appIapElements : Model -> List IapProduct -> Dict String IapPurchase -> Maybe String -> Bool -> List (Html Msg)
@@ -1792,18 +1792,43 @@ appIapElements model products purchaseDict error productsPurchased =
                   ]
         ]
 
-advertisePageDiv: Model -> Html Msg
+advertisePageDiv : Model -> Html Msg
 advertisePageDiv model =
     textPageDiv "Commercial Message" model
-        [ ps [ "This game is free to play for five boards of each of the 6x6 and 8x8 layouts. If you pay $0.99, you can get 190 more boards, split between 6x6, 8x8, and 10x10 layouts."
+        [ ps [ "This game is free to play for five boards of each of the 6x6 and 8x8 layouts. For a small fee, you can get 190 more boards, split between 6x6, 8x8, and 10x10 layouts."
              ]
-        , button
-            [ onClick <| ShowPage IapPage
-            , class ControlsClass
+        , p []
+            [ button
+                  [ onClick <| ShowPage IapPage
+                  , class ControlsClass
+                  ]
+                  [ text "Go to Purchases Page" ]
             ]
-            [ text "Go to Purchases Page" ]
+        , appStoreBlurb model
         ]
 
+appStoreBlurb : Model -> Html Msg
+appStoreBlurb model =
+    if model.isCordova then
+          text ""
+    else
+        div [ class HelpTextClass ]
+            [ p []
+                  [ text "The game is also available as an app, for your portable device. Click the link below to go to its App Store page. You can purchase the additional puzzles in the app. Android coming soon."
+                  ]
+            , p []
+                [ a [ href "https://itunes.apple.com/us/app/kakuro-dojo/id1191778737?mt=8" ]
+                      [ img [ src "images/Download_on_the_App_Store_Badge_US-UK_135x40.svg"
+                            , alt "Download on the App Store"
+                            , width 135
+                            , height 40
+                            ]
+                            []
+                      ]
+                ]
+            ]
+            
+            
 footerDiv : Model -> Html Msg
 footerDiv model =
     div [ id FooterId ]
