@@ -7,6 +7,9 @@
         "files": {}
     },
     "installed_plugins": {
+        "cordova-plugin-device": {
+            "PACKAGE_NAME": "com.gibgoygames.kakuro"
+        },
         "cordova-plugin-dialogs": {
             "PACKAGE_NAME": "com.gibgoygames.kakuro"
         },

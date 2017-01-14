@@ -30,3 +30,22 @@ After that, you can test changes with:
   1. In iOS Settings/Safari/Advanced, enable "Web Inspector".
   2. After starting the app, in Safari on your Mac, open "Develop/&lt;iOS device&gt;/Kakuro Dojo/Kakuro Dojo".
   3. If it fails before you can get there, try, from the `cordova` directory, `cordova serve`, aim your web browser at the printed location (`http://localhost:8000`), and click on `iOS`.
+
+## Android notes
+
+The `./configure` script in the `cordova` directory may fail for Android while executing `cordova plugin add cordova-plugin-device`. If it does, you need to edit `cordova/platforms/android/CordovaLib/build.gradle`, and add `jcenter()` to the repositories:
+
+```
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+```
+
+Then retry `cordova plugin add cordova-plugin-device`.
+
+Doing `cordova run android` tends to fail. I prefer to just use `./prepare android`, and then import the run `File/New/Import Project...` from Android Studio, choosing the `cordova/platforms/android` directory. Then build and run the project in Android Studio.
+
+Some changes you make, followed by `./prepare android`, will require `Build/Clean Project` or `Build/Rebuild Project` in Android Studio. Others it will properly notice and do the right thing. I haven't figured out which is which.
+
+You may also need to add `~/Library/Android/sdk/tools/bin` (in MacOS, or the equivalent in Linux) to your shell PATH.

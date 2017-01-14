@@ -70,7 +70,8 @@ var kakuroPorts = {};
       alist.push([key, properties[key]]);
     };
 
-    var kakuro = Elm.Kakuro.fullscreen([app.isCordova(), alist, storedState]);
+    // The platform isn't valid in Cordova until device ready
+    var kakuro = Elm.Kakuro.fullscreen([app.platform(), alist, storedState]);
     kakuroPorts.kakuro = kakuro;
 
     kakuro.ports.specHash.subscribe(function(reasonAndString) {
@@ -228,8 +229,11 @@ var kakuroPorts = {};
     });
 
     app.registerDeviceReady(function() {
+      var platform = app.platform();
       kakuroPorts.registeredDeviceReady = true;
-      kakuro.ports.deviceReady.send(true);
+      kakuroPorts.platform = platform;
+      // The platform is now valid in Cordova
+      kakuro.ports.deviceReady.send(platform)
     });
   }
 

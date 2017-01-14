@@ -20,10 +20,10 @@ module BoardSize
         , rightLabelLocation
         , labelBackgroundRect
         , hintTextLocation
-        , cordovaTopPad
+        , iosTopPad
         )
 
-import SharedTypes exposing (Model, BoardSizes)
+import SharedTypes exposing (Model, BoardSizes, Platform(..))
 import Window
 import Debug exposing (log)
 
@@ -96,16 +96,20 @@ boardFromCellSize : Model -> Int -> Int
 boardFromCellSize model cellSize =
     (cellSize * (model.kind + 1)) + (cellBorder + whiteSpace)
 
-cordovaTopPad : Model -> Int
-cordovaTopPad model =
-    if model.isCordova then
-        25
-    else
-        0
+iosTopPad : Model -> Int
+iosTopPad model =
+    case model.platform of
+        IosPlatform -> 25
+        AndroidPlatform -> 10
+        _ -> 0
 
 nonBoardSize : Model -> Int
 nonBoardSize model =
-    130 + (cordovaTopPad model)
+    let size = case model.platform of
+                   AndroidPlatform -> 110
+                   _ -> 130
+    in
+        size + (iosTopPad model)
 
 computeBoardSize : Model -> Int
 computeBoardSize model =

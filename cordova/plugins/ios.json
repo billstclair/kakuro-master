@@ -18,6 +18,9 @@
         },
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "com.gibgoygames.kakuro"
+        },
+        "cordova-plugin-device": {
+            "PACKAGE_NAME": "com.gibgoygames.kakuro"
         }
     },
     "dependent_plugins": {}

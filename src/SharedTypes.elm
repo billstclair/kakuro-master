@@ -19,6 +19,7 @@ module SharedTypes exposing ( SavedModel, ModelTimes, Model
                             , Labels, LabelsBoard, Hints, HintsBoard
                             , HelpModelDict, MaybeHelpModelDict(..)
                             , IapProduct, IapPurchase, IapState
+                            , Platform(..)
                             )
 
 import SimpleMatrix exposing (Matrix)
@@ -38,6 +39,11 @@ type Page
     | CreditsPage
     | IapPage
     | AdvertisePage
+
+type Platform
+    = WebPlatform
+    | IosPlatform
+    | AndroidPlatform
 
 -- This gets saved in the browser database.
 
@@ -89,7 +95,7 @@ type alias Model =
     , message : Maybe String
     , shifted : Bool
     , helpModelDict : MaybeHelpModelDict
-    , isCordova : Bool                --true if we're running in a Cordova app
+    , platform : Platform
     , properties : Dict String String         --raw properties at startup
     , deviceReady : Bool
     , iapState : Maybe (Dict String IapState) --from storage
@@ -123,7 +129,7 @@ savedModelToModel savedModel =
     , message = Nothing
     , shifted = False
     , helpModelDict = Nicht
-    , isCordova = False
+    , platform = WebPlatform
     , properties = Dict.fromList []
     , deviceReady = False
     , iapState = Nothing
@@ -154,7 +160,7 @@ type Msg
     | WindowSize Window.Size
     | ShowPage Page
     | GetBoardIndex
-    | DeviceReady
+    | DeviceReady String
     | IapBuy String
     | IapBuyResponse (String, Maybe String, Maybe String)
     | InvokeSpecHashReceiver (String -> String -> Model -> Model) String String

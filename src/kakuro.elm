@@ -16,6 +16,7 @@ import SharedTypes exposing ( SavedModel, Model, GameState
                             , IntBoard, HintsBoard, Selection, Flags
                             , MaybeHelpModelDict(..)
                             , IapProduct, IapPurchase, IapState
+                            , Platform(..)
                             )
 import Styles.Page exposing (id, class, PId(..), PClass(..))
 import Board exposing (Board)
@@ -58,7 +59,7 @@ import Window
 import Date
 import Date.Extra as DE
 
-main : Program (Bool, List (String, String), Maybe String) Model Msg
+main : Program (String, List (String, String), Maybe String) Model Msg
 main =
     Html.programWithFlags
         { init = init
@@ -116,7 +117,7 @@ port iapRestorePurchases : () -> Cmd msg
 -- (purchases, error)
 port iapPurchases : ((Maybe (List IapPurchase), Maybe String) -> msg) -> Sub msg
 
-port deviceReady : (Bool -> msg) -> Sub msg
+port deviceReady : (String -> msg) -> Sub msg
 
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
 updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
@@ -177,9 +178,17 @@ updateIapState state model =
           , setProperty (iapStatePropertyName, Just json)
         )
 
-init : (Bool, List (String, String), Maybe String) -> ( Model, Cmd Msg )
+decodePlatform : String -> Platform
+decodePlatform name =
+    case name of
+        "iOS" -> IosPlatform
+        "Android" -> AndroidPlatform
+        _ -> WebPlatform
+
+init : (String, List (String, String), Maybe String) -> ( Model, Cmd Msg )
 init state =
-    let (isCordova, properties, maybeJson) = state
+    let (platformName, properties, maybeJson) = state
+        platform = decodePlatform platformName
         savedModel = case maybeJson of
                        Nothing -> Nothing
                        Just json ->
@@ -195,7 +204,7 @@ init state =
                 Ok state -> (state, Nothing)
         mod = case savedModel of
                   Nothing -> { initialModel
-                                 | isCordova = isCordova
+                                 | platform = platform
                                  , properties = propertiesDict
                                  , iapState = iapState
                                  , message = message
@@ -205,7 +214,7 @@ init state =
                       in
                           { res
                               | helpModelDict = Javole helpBoards
-                              , isCordova = isCordova
+                              , platform = platform
                               , properties = propertiesDict
                               , iapState = iapState
                               , message = message
@@ -244,7 +253,7 @@ initialModel =
         , message = Nothing
         , shifted = False
         , helpModelDict = Javole helpBoards
-        , isCordova = False
+        , platform = WebPlatform
         , properties = Dict.fromList []
         , deviceReady = False
         , iapState = Nothing
@@ -720,13 +729,20 @@ update msg model =
         MainPage -> updateMainPage msg model
         _ -> updateHelpPage msg model
 
-gotDeviceReady : Model -> ( Model, Cmd Msg )
-gotDeviceReady model =
-    ( { model | deviceReady = True }
-    , if model.page == IapPage then
-          iapGetProducts iapProductIds
-      else
-          Cmd.none
+gotDeviceReady : Model -> String -> ( Model, Cmd Msg )
+gotDeviceReady model platformName =
+    let platform = decodePlatform platformName
+        m = { model
+                | deviceReady = True
+                , platform = platform
+            }
+        m2 = addBoardSizesToModel m 
+    in
+        ( m2
+        , if m2.page == IapPage then
+              iapGetProducts iapProductIds
+          else
+              Cmd.none
     )
 
 extraPuzzlesProductId : String
@@ -873,8 +889,8 @@ updateHelpPage msg model =
             ( updateSelectedCell id model, Cmd.none )
         WindowSize size ->
             processWindowSize model size
-        DeviceReady ->
-            gotDeviceReady model
+        DeviceReady platformName ->
+            gotDeviceReady model platformName
         IapProducts products ->
             ( receiveProducts products model
             , Cmd.none
@@ -902,7 +918,7 @@ processRestartQuery doit model =
     if doit then
         let gameState = model.gameState
         in
-            if (not model.isCordova) &&
+            if (model.platform == WebPlatform) &&
                (Board.isBoardEmpty gameState.guesses) &&
                (Board.isBoardEmpty gameState.hints) then
                 maybeResetAllGameStates model
@@ -948,7 +964,7 @@ resetAllGameStates oldModel =
       | times = oldModel.times
       , windowSize = oldModel.windowSize
       , seed = oldModel.seed
-      , isCordova = oldModel.isCordova
+      , platform = oldModel.platform
       , iapState = oldModel.iapState
       , iapProducts = oldModel.iapProducts
       }
@@ -983,10 +999,11 @@ doMultiAnswerConfirmed question index model =
 
 restartDialog : Model -> Cmd Msg
 restartDialog model =
-    if model.isCordova then
-        multiConfirmDialog multiRestartQuery
-    else
-        confirmDialog restartQuery
+    case model.platform of
+        WebPlatform ->
+            confirmDialog restartQuery
+        _ ->
+            multiConfirmDialog multiRestartQuery
 
 boardIndexQuery : String
 boardIndexQuery =
@@ -1106,8 +1123,8 @@ updateMainPage msg model =
             doMultiAnswerConfirmed question index model
         PromptAnswerConfirmed question answer ->
             doPromptAnswerConfirmed question answer model
-        DeviceReady ->
-            gotDeviceReady model
+        DeviceReady platformName ->
+            gotDeviceReady model platformName
         IapProducts products ->
             ( receiveProducts products model
             , Cmd.none
@@ -1161,7 +1178,7 @@ subscriptions model =
         , multiConfirmAnswer multiAnswerConfirmed
         , promptAnswer promptAnswerConfirmed
         , receiveGame ReceiveGame
-        , deviceReady (\_ -> DeviceReady)
+        , deviceReady DeviceReady
         , iapProducts IapProducts
         , iapBuyResponse IapBuyResponse
         , iapPurchases IapPurchases
@@ -1248,7 +1265,7 @@ errorMessageHtml model =
 mainPageDiv : Model -> Html Msg
 mainPageDiv model =
     div [ style [ ("margin-top"
-                  , (toString <| BoardSize.cordovaTopPad model) ++ "px"
+                  , (toString <| BoardSize.iosTopPad model) ++ "px"
                   )
                 ]
         ]
@@ -1459,10 +1476,11 @@ renderHelp name model size =
 
 clickTap : Model -> String
 clickTap model =
-    if model.isCordova then
-        "tap"
-    else
-        "click/tap"
+    case model.platform of
+        WebPlatform ->
+            "click/tap"
+        _ ->
+            "tap"
 
 type alias PageSpec =
     (String, Page, String)
@@ -1520,10 +1538,11 @@ helpPageDiv model =
     let windowSize = helpWindowSize 1 2 model
     in
         textPageDiv "Help" model <|
-            [ ps [ if model.isCordova then
-                       "Tap to select.\nArrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
-                   else
-                       "Click/Tap to select.\nArrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+            [ ps [ case model.platform of
+                       WebPlatform ->
+                         "Click/Tap to select.\nArrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                       _ ->
+                         "Tap to select.\nArrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
                  ]
             , h3 [] [ text "Rules" ]
             , ps [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
@@ -1606,11 +1625,12 @@ creditsPageDiv model =
         [ ps [ "[Kakuro Dojo] was written by Bill St. Clair, the proprietor of [Gib Goy Games]. I fell in love with Kakuro and wanted some features I couldn't find elsewhere. Then I discovered [Elm], and it became a labor of love. I hope you enjoy it as much as I've enjoyed making and playing it."
              , "[Kakuro Dojo] is written primarily in the [Elm] programming language. Elm is a pure functional language, similar to [Haskell], which compiles into [JavaScript], and has a very nice programming model. If an Elm program compiles, it will almost certainly never encounter an unexpected run-time error. Thank you to Evan Czaplicki, and the Elm community, for creating my favorite programming language (and that's a big compliment from this old [Lisp] [hacker])."
              ]
-        , ( if model.isCordova then
-                ps [ "[Apache Cordova] is a system that makes it very easy to distribute a web app as an App Store app. It is copyright The Apache Software Foundation and distributed under the Apache License, Version 2.0."
-                   ]
-            else
-                text ""
+        , ( case model.platform of
+                WebPlatform ->
+                  text ""
+                _ ->
+                  ps [ "[Apache Cordova] is a system that makes it very easy to distribute a web app as an App Store app. It is copyright The Apache Software Foundation and distributed under the Apache License, Version 2.0."
+                     ]
           )
         , ps [ "[FastClick] is a [JavaScript] library to eliminate a 300ms delay introduced by mobile web browsers. It is copyright The Financial Times Limited and distributed under the MIT License."
              , "[js-sha256] is a [JavaScript] library that computes the SHA256 cryptographic hash of a string. It is copyright Yi-Cyuan Chen and distributed under the MIT License."
@@ -1685,10 +1705,11 @@ iapPageDiv model =
         productsPurchased = (Dict.size purchaseDict) > 0
     in
         textPageDiv "Purchases" model
-        <| if model.isCordova then
-               appIapElements model products purchaseDict error productsPurchased
-           else
-               webIapElements model productsPurchased
+        <| case model.platform of
+               WebPlatform ->
+                   webIapElements model productsPurchased
+               _ ->
+                   appIapElements model products purchaseDict error productsPurchased
 
 rawPuzzleEnablerLink : Model -> String
 rawPuzzleEnablerLink model =
@@ -1809,8 +1830,8 @@ advertisePageDiv model =
 
 appStoreBlurb : Model -> Html Msg
 appStoreBlurb model =
-    if model.isCordova then
-          text ""
+    if model.platform /= WebPlatform then
+        text ""
     else
         div [ class HelpTextClass ]
             [ p []
@@ -1827,7 +1848,6 @@ appStoreBlurb model =
                       ]
                 ]
             ]
-            
             
 footerDiv : Model -> Html Msg
 footerDiv model =
@@ -1852,15 +1872,16 @@ footerDiv model =
           "GitHub source code"
           32
       , span []
-          (if model.isCordova then
-               [ space
-               , logoLink "https://cordova.apache.org/"
-                   "cordova-logo-84x81.png"
-                   "App Made with Cordova"
-                   32
-               ]
-           else
-               []
+          ( case model.platform of
+                WebPlatform ->
+                  []
+                _ ->
+                  [ space
+                  , logoLink "https://cordova.apache.org/"
+                      "cordova-logo-84x81.png"
+                      "App Made with Cordova"
+                      32
+                  ]
           )
       , space
       , logoLink "http://elm-lang.org/"

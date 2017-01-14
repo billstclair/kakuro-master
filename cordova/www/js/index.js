@@ -58,8 +58,13 @@ var app = {
                                      title, responses);
     },
 
-    isCordova: function() {
-      return true;
+    platform: function() {
+      var defaultDevice = 'iOS';
+      if (typeof(device) == 'object') {
+        return device.platform || defaultDevice;
+      } else {
+        return defaultDevice;
+      }
     },
 
   iapGetProducts: function(pids, callback) {
