@@ -5,3 +5,30 @@
 
 if [[ -z $* ]];then cordova prepare android; else cordova prepare $*; fi
 
+# Work-around Cordova bug
+if [[ $1 == "android" ]]; then
+    rm -rf platforms/android/res/drawable-port-ldpi
+    rm -rf platforms/android/res/drawable-port-mdpi
+    rm -rf platforms/android/res/drawable-port-hdpi
+    rm -rf platforms/android/res/drawable-port-xhdpi
+
+    rm -rf platforms/android/res/mipmap-ldpi
+    rm -rf platforms/android/res/mipmap-mdpi
+    rm -rf platforms/android/res/mipmap-hdpi
+    rm -rf platforms/android/res/mipmap-xhdpi
+    rm -rf platforms/android/res/mipmap-xxhdpi
+    rm -rf platforms/android/res/mipmap-xxxhdpi
+
+    mv -f res/drawable-port-ldpi platforms/android/res/
+    mv -f res/drawable-port-mdpi platforms/android/res/
+    mv -f res/drawable-port-hdpi platforms/android/res/
+    mv -f res/drawable-port-xhdpi platforms/android/res/
+
+    mv -f res/mipmap-ldpi platforms/android/res/
+    mv -f res/mipmap-mdpi platforms/android/res/
+    mv -f res/mipmap-hdpi platforms/android/res/
+    mv -f res/mipmap-xhdpi platforms/android/res/
+    mv -f res/mipmap-xxhdpi platforms/android/res/
+    mv -f res/mipmap-xxxhdpi platforms/android/res/
+fi
+
