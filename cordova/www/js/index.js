@@ -68,10 +68,18 @@ var app = {
     },
 
   iapGetProducts: function(pids, callback) {
+*/
     inAppPurchase
       .getProducts(pids)
       .then(callback)
       .catch(callback);
+*/
+    var prod = { productId: pids[0],
+                 title: 'Additional Puzzles',
+                 description: 'Add 190 puzzles, split between 6x6, 8x8, and 10x10 layouts.',
+                 price: "$0.99"
+               };
+    callback([prod]);
   },
 
   iapBuy: function(pid, callback) {
