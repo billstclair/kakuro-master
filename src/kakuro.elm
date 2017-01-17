@@ -1737,6 +1737,7 @@ webIapElements model productsPurchased =
         , p [ class HelpTextClass ]
             [ text "The link will only work today and tomorrow. Revisit this page after that, in this browser, to get a new link."
             ]
+        , appStoreBlurb model
         ]
     else
         [ ps [ "You are using a web demo of the Kakuro Dojo app. The demo gives you only 10 puzzles, in 6x6 and 8x8 layouts. The app allows you to purchase 190 additional puzzles, in 6x6, 8x8, and 10x10 layouts, and will provide a link with which you can enable those additional puzzles in this web version."
@@ -1835,7 +1836,7 @@ appStoreBlurb model =
     else
         div [ class HelpTextClass ]
             [ p []
-                  [ text "The game is also available as an app, for your portable device. Click the button below to go to its App Store page. You can purchase the additional puzzles in the app. Android coming soon."
+                  [ text "The game is also available as an app, for your portable device. Click the button below to go to its App Store page. You can purchase the additional puzzles in the app."
                   ]
             , p []
                 [ a [ href "https://itunes.apple.com/us/app/kakuro-dojo/id1191778737?mt=8" ]
