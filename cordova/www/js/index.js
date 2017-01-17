@@ -68,7 +68,7 @@ var app = {
     },
 
   iapGetProducts: function(pids, callback) {
-*/
+/*
     inAppPurchase
       .getProducts(pids)
       .then(callback)
@@ -97,10 +97,6 @@ var app = {
   }
 
 };
-
-// https://github.com/ftlabs/fastclick/blob/master/README.md
-var attachFastClick = Origami.fastclick;
-attachFastClick(document.body);
 
 app.initialize();
 kakuroPorts.init();
