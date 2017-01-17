@@ -1846,6 +1846,15 @@ appStoreBlurb model =
                             ]
                             []
                       ]
+                , text (nbsp ++ nbsp)
+                , a [ href "https://play.google.com/store/apps/details?id=com.gibgoygames.kakuro" ]
+                        [ img [ src "images/google-play-badge.png"
+                              , alt "Get it on Google Play"
+                              , width 137
+                              , height 40
+                              ]
+                              []
+                        ]
                 ]
             ]
             
