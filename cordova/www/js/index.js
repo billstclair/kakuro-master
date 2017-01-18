@@ -82,20 +82,46 @@ var app = {
     callback([prod]);
   },
 
+  restoredPurchases: false,
+
   iapBuy: function(pid, callback) {
-    inAppPurchase
-      .buy(pid)
-      .then(callback)
-      .catch(callback);
+    if (app.restoredPurchases) {
+      inAppPurchase
+        .buy(pid)
+        .then(callback)
+        .catch(callback);
+    } else {
+      app.iapRestorePurchases(function(res) {
+        app.restoredPurchases = true;
+        if (typeof(res) == 'object' && !res.errorMessage) {
+          var tid = null;
+          for (var purchase in res) {
+            purchase = res[purchase];
+            if (purchase.productId == pid && purchase.transactionId) {
+              callback(purchase);
+              return;
+            }
+          }
+          app.iapBuy(pid, callback);
+        }
+      });
+    }
   },
 
   iapRestorePurchases: function(callback) {
+    var cb = function(ignore) {
+      inAppPurchase
+        .restorePurchases()
+        .then(callback)
+        .catch(callback);
+    };
+    var prods = ["puzzles2"];
+    // Make sure to call getProducts before anything else.
     inAppPurchase
-      .restorePurchases()
-      .then(callback)
+      .getProducts(prods)
+      .then(cb)
       .catch(callback);
   }
-
 };
 
 app.initialize();
