@@ -4,6 +4,8 @@ Each clued subset of a row or column must contain unique numbers, between 1 and 
 
 The app includes instructions, rules, and a tactics tutorial.
 
+Fills the screen on tablets, making it a joy to use.
+
 You get, for free, ten puzzle layouts, five in 6x6 and five in 8x8. For $0.99, you can purchase 190 more layouts, in 6x6, 8x8, and 10x10. You can also play in your web browser, at Kakuro-Dojo.com, and, if you pay for the additional puzzles in the app, you'll get a URL to enable those layouts on the web.
 
 The free app has no ads, except a "Commercial Message" page, which you can see above, that quietly reminds you of the available in-app purchase, whenever you attempt to advance beyond the fifth game or select the 10x10 layout.

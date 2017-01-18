@@ -61,7 +61,7 @@ var kakuroEnabler = {};
 
   function checkDateHash(hash) {
     var now = new Date();
-    var then = new Date(now.getTime - (24 * 3600 * 1000));
+    var then = new Date(now.getTime() - (24 * 3600 * 1000));
     return (dateHash(now) == hash) || (dateHash(then) == hash);
   }
 

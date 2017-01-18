@@ -749,6 +749,35 @@ extraPuzzlesProductId : String
 extraPuzzlesProductId =
     "puzzles2"
 
+productsDefault : List IapProduct
+productsDefault =
+    [ { productId = extraPuzzlesProductId
+      , title = "Additional Puzzles"
+      , description = "Add 190 puzzles, split between 6x6, 8x8, and 10x10 layouts."
+      , price = "$0.99"
+      }
+    ]
+
+defaultProducts : a -> Msg
+defaultProducts _ =
+    DefaultProducts productsDefault
+
+spawnTimeout : (a -> Msg) -> Time -> Cmd Msg
+spawnTimeout msgWrapper time =
+    
+
+iapGetDefaultedProducts : List String -> Model -> Cmd Msg
+iapGetDefaultedProducts products model =
+    let defaultTimeout = case model.iapProducts of
+                             Nothing -> spawnTimeout defaultProducts Time.second
+                             Just (prods, _) ->
+                                 case prods of
+                                     Nothing -> spawnTimeout defaultProducts
+                                     _ -> Cmd.none
+    in
+        Cmd.batch (iapGetProducts products) defaultTimeout
+    
+
 -- This must match the App Store setup
 -- You can't simply add IDs here.
 -- iapPageDiv assumes there is only one product.
