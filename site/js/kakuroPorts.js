@@ -208,7 +208,7 @@ var kakuroPorts = {};
 
     kakuro.ports.iapRestorePurchases.subscribe(function() {
       app.iapRestorePurchases(function(res) {
-        console.log("iapPurchases: " + JSON.stringify(res));
+        //console.log("iapPurchases: " + JSON.stringify(res));
         if (typeof(res) == 'string') {
             res = [null, res];
         } else {
@@ -223,15 +223,21 @@ var kakuroPorts = {};
           } else {
             // Must match IapPurchase in SharedTypes.elm
             var purchases = [];
+            var now = new Date();
+            now = now.getTime();
             for (var purchase in res) {
               purchase = res[purchase];
+              var time = purchase.date;
+              if (!time) {
+                time = now;
+              }
               purchase = { productId: purchase.productId || "",
                            transactionId: purchase.transactionId || "",
-                           date: purchase.date || 0
+                           date: time
                          };
               purchases.push(purchase);
             }
-            console.log("Sending purchases: " + JSON.stringify(res));
+            //console.log("Sending purchases: " + JSON.stringify(res));
             res = [purchases, null];
           }
         }

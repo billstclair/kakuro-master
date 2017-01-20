@@ -66,20 +66,35 @@ var app = {
         return defaultDevice;
       }
     },
-
+  
   iapGetProducts: function(pids, callback) {
-/*
+    var timeout = false;
+    var toFun = function() {
+      timeout = false;
+      var prod = { productId: pids[0],
+                   title: 'Additional Puzzles',
+                   description: 'Add 190 puzzles, split between 6x6, 8x8, and 10x10 layouts.',
+                   price: "$0.99 (US)"
+                 };
+      callback([prod]);
+    }, 
+    timeout = window.setTimeout(toFun, 1000);
+    var done = function(res) {
+      var to = timeout;
+      if (to) {
+        window.clearTimeout(to);
+      }
+      // Protect against empty return
+      if (typeof(res) == 'object' && (res.length === undefined || res.length == 0)) {
+        toFun();
+      } else {
+        callback(res);
+      }
+    };
     inAppPurchase
       .getProducts(pids)
-      .then(callback)
-      .catch(callback);
-*/
-    var prod = { productId: pids[0],
-                 title: 'Additional Puzzles',
-                 description: 'Add 190 puzzles, split between 6x6, 8x8, and 10x10 layouts.',
-                 price: "$0.99"
-               };
-    callback([prod]);
+      .then(done)
+      .catch(done);
   },
 
   restoredPurchases: false,

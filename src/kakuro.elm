@@ -42,7 +42,7 @@ import Random
 import Task
 import Debug exposing (log)
 import Html exposing ( Html, Attribute
-                     , div, p, h2, h3, text, blockquote
+                     , div, p, h2, h3, h4, text, blockquote
                      , table, tr, td, th
                      , input, button, a, img, span, fieldset, label
                      )
@@ -1538,11 +1538,22 @@ helpPageDiv model =
     let windowSize = helpWindowSize 1 2 model
     in
         textPageDiv "Help" model <|
-            [ ps [ case model.platform of
+            [ h3 [] [ text "Top of Page Controls" ]
+            , ps [ "Number radio buttons to change size.\n'<' or '>' to change boards\n'X' to erase board.\n'Help' link for this page."
+                 ]
+            , h3 [] [ text "Board" ]
+            , ps [ case model.platform of
                        WebPlatform ->
-                         "Click/Tap to select.\nArrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                         "Click/Tap to select cell."
                        _ ->
-                         "Tap to select.\nArrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                         "Tap to select cell."
+                 ]
+            , h3 [] [ text "Keypad" ]
+            , ps [ case model.platform of
+                       WebPlatform ->
+                         "Arrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                       _ ->
+                         "Arrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
                  ]
             , h3 [] [ text "Rules" ]
             , ps [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
