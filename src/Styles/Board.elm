@@ -25,6 +25,7 @@ type BClass
     | SvgCell
     | SvgClick
     | SvgSelected
+    | SvgSelectedSmall
     | SvgCellColor
     | SvgDoneColor
     | SvgErrorColor
@@ -116,6 +117,10 @@ rules =
     , rule
         [ Class SvgSelected ]
         [ ( "stroke-width", "4px" )
+        ]
+    , rule
+        [ Class SvgSelectedSmall ]
+        [ ( "stroke-width", "3px" )
         ]
     , rule
         [ Class SvgCellText ]

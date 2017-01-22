@@ -228,7 +228,13 @@ var kakuroPorts = {};
             for (var purchase in res) {
               purchase = res[purchase];
               var time = purchase.date;
-              if (!time) {
+              if (typeof(time) == 'string') {
+                var d = new Date(time);
+                time = d.getTime();
+                if (isNaN(time)) {
+                  time = now;
+                }
+              } else if (typeof(time) != 'number') {
                 time = now;
               }
               purchase = { productId: purchase.productId || "",
@@ -239,6 +245,7 @@ var kakuroPorts = {};
             }
             //console.log("Sending purchases: " + JSON.stringify(res));
             res = [purchases, null];
+            //res = [null, "raw: " + JSON.stringify(res) + ", processed: " + JSON.stringify(purchases)];
           }
         }
         kakuro.ports.iapPurchases.send(res);

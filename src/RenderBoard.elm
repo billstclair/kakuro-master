@@ -416,7 +416,10 @@ renderSvgCell row col sizes state =
                     "SvgCell SvgCellColor"
             else
                 (if isSelected then
-                    "SvgSelected "
+                    if sizes.cellSize < 50 then
+                        "SvgSelectedSmall "
+                    else
+                        "SvgSelected "
                  else
                     ""
                 )

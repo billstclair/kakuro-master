@@ -128,7 +128,7 @@ computeBoardSizes model =
         keypadSize = h - boardSize - (nonBoardSize model)
     in
         { boardSize = boardSize
-        , cellSize = cellSize
+        , cellSize = (log "cellSize" cellSize)
         , cellFontSize = cellFontSize
         , labelFontSize = labelFontSize
         , hintFontSize = hintFontSize
@@ -207,11 +207,11 @@ hintColToTextX hintCol =
 hintRowToTextY : Int -> Int
 hintRowToTextY hintRow =
     if hintRow == 0 then
-        30
+        32
     else if hintRow == 1 then
         60
     else
-        90
+        89
 
 hintTextLocation : Int -> Rect -> ( Int, Int )
 hintTextLocation hint cellRect =
