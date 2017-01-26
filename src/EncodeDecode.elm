@@ -80,7 +80,6 @@ flagsEncoder flags =
     JE.object
         [ ("isHintInput", JE.bool flags.isHintInput)
         , ("showPossibilities", JE.bool flags.showPossibilities)
-        , ("allDone", JE.bool flags.allDone)
         ]
 
 selectionEncoder : Maybe Selection -> Value
@@ -213,11 +212,10 @@ flags1Decoder =
 
 flagsDecoder : Decoder Flags
 flagsDecoder =
-    JD.map3
+    JD.map2
         Flags
         (field "isHintInput" JD.bool)
         (field "showPossibilities" JD.bool)
-        (field "allDone" JD.bool)
 
 listToMaybeSelection : Maybe (List Int) -> Maybe Selection
 listToMaybeSelection list =
@@ -557,12 +555,7 @@ gameState2To3 gameState =
     , labels = gameState.labels
     , guesses = gameState.guesses
     , hints = gameState.hints
-    , flags = let flags = gameState.flags
-              in
-                  { isHintInput = flags.isHintInput
-                  , showPossibilities = flags.showPossibilities
-                  , allDone = gameState.allDone
-                  }
+    , flags = gameState.flags
     , selection = gameState.selection
     , exploreState = Nothing
     , times = { timestamp = 0, elapsed = 0 }

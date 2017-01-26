@@ -194,7 +194,6 @@ type alias BClassBoard =
 type alias Flags =
     { isHintInput : Bool
     , showPossibilities : Bool
-    , allDone : Bool
     }
 
 type alias GameStateTimes =

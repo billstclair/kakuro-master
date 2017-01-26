@@ -72,6 +72,7 @@ type alias RenderState =
     , selection :
         Maybe Selection
         -- Added to GameState
+    , allDone : Bool
     , cellClasses : BClassBoard
     }
 
@@ -85,10 +86,11 @@ makeRenderState name state cellClasses allDone =
         , labels = state.labels
         , guesses = state.guesses
         , hints = state.hints
-        , flags = { flags | allDone = allDone }
+        , flags = state.flags
         , selection =
             state.selection
         -- Added to state
+        , allDone = allDone
         , cellClasses = cellClasses
         }
 
@@ -117,7 +119,6 @@ defaultFlags : Flags
 defaultFlags =
     { isHintInput = False
     , showPossibilities = True
-    , allDone = False
     }
 
 
@@ -372,7 +373,7 @@ renderSvgCell row col sizes state =
                 []
 
         allDone =
-            state.flags.allDone
+            state.allDone
 
         errorClass =
             if value == 0 then
