@@ -14,7 +14,8 @@ module SharedTypes exposing ( SavedModel, ModelTimes, Model
                             , modelToSavedModel, savedModelToModel
                             , BoardSizes
                             , Msg, Msg(..)
-                            , Selection, GameStateTimes, GameState, Flags, Page(..)
+                            , Selection, GameStateTimes, GameState, ExploreState
+                            , Flags, Page(..)
                             , IntBoard, BClassMatrix, BClassBoard
                             , Labels, LabelsBoard, Hints, HintsBoard
                             , HelpModelDict, MaybeHelpModelDict(..)
@@ -193,6 +194,7 @@ type alias BClassBoard =
 type alias Flags =
     { isHintInput : Bool
     , showPossibilities : Bool
+    , allDone : Bool
     }
 
 type alias GameStateTimes =
@@ -204,14 +206,22 @@ emptyGameStateTimes : GameStateTimes
 emptyGameStateTimes =
     GameStateTimes 0 0
 
+type alias ExploreState =
+    { savedBoard : IntBoard
+    , savedHints : HintsBoard
+    , guesses : IntBoard
+    , firstGuess : Int
+    , firstGuessSelection : Maybe Selection
+    }
+
 type alias GameState =
     { board : IntBoard
     , labels : LabelsBoard
-    , allDone : Bool
     , guesses : IntBoard
     , hints : HintsBoard
     , flags : Flags
     , selection : Maybe Selection
+    , exploreState : Maybe ExploreState
     , times: GameStateTimes
     }
 

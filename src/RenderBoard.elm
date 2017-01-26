@@ -66,7 +66,6 @@ type alias RenderState =
     { name: String
     , board : IntBoard
     , labels : LabelsBoard
-    , allDone : Bool
     , guesses : IntBoard
     , hints : HintsBoard
     , flags : Flags
@@ -79,18 +78,19 @@ type alias RenderState =
 
 makeRenderState : String -> GameState -> BClassBoard -> Bool -> RenderState
 makeRenderState name state cellClasses allDone =
-    { name = name
-    , board = state.board
-    , labels = state.labels
-    , guesses = state.guesses
-    , hints = state.hints
-    , flags = state.flags
-    , selection =
-        state.selection
+    let flags = state.flags
+    in
+        { name = name
+        , board = state.board
+        , labels = state.labels
+        , guesses = state.guesses
+        , hints = state.hints
+        , flags = { flags | allDone = allDone }
+        , selection =
+            state.selection
         -- Added to state
-    , cellClasses = cellClasses
-    , allDone = allDone
-    }
+        , cellClasses = cellClasses
+        }
 
 
 br : Html a
@@ -117,6 +117,7 @@ defaultFlags : Flags
 defaultFlags =
     { isHintInput = False
     , showPossibilities = True
+    , allDone = False
     }
 
 
@@ -229,11 +230,11 @@ makeGameState board =
     in
         { board = board
         , labels = (computeLabels board)
-        , allDone = False
         , guesses = guesses
         , hints = hints
         , flags = defaultFlags
         , selection = Nothing
+        , exploreState = Nothing
         , times = SharedTypes.emptyGameStateTimes
         }
 
@@ -371,7 +372,7 @@ renderSvgCell row col sizes state =
                 []
 
         allDone =
-            state.allDone
+            state.flags.allDone
 
         errorClass =
             if value == 0 then

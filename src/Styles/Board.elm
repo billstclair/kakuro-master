@@ -37,6 +37,7 @@ type BClass
     | SvgKeypadText
     | SvgKeypadColor
     | SvgKeypadHighlightColor
+    | SvgKeypadExploratoryColor
 
 imports : List String
 imports =
@@ -153,6 +154,9 @@ rules =
     , rule
         [ Class SvgKeypadHighlightColor ]
         [ ( "fill", "black" ) ]
+    , rule
+        [ Class SvgKeypadExploratoryColor ]
+        [ ( "fill", "#c0d0ff" ) ]
     ]
 
 stylesheet =

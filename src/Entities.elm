@@ -25,3 +25,7 @@ nbsp =
 copyright : String
 copyright =
     stringFromCode 169  -- \u00A9
+
+checkmark : String
+checkmark =
+    stringFromCode 10004 -- \u2714
