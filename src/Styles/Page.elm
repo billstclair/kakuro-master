@@ -19,7 +19,7 @@ type PClass
     | BoardLabelClass
     | ControlsClass
     | HelpTextClass
-    | StarMenuFontClass
+    | StarMenuButtonClass
     | FullWidthClass
     | ErrorClass
     | PrettyTable
@@ -78,8 +78,9 @@ rules =
         , ( "max-width", "40em" )
         ]
     , rule
-        [ Class StarMenuFontClass ]
-        [ ( "font-size", "200%" )
+        [ Class StarMenuButtonClass ]
+        [ ( "font-size", "100%" )
+        , ( "width", "100%" )
         ]
     , rule [ Class FullWidthClass ]
         [ ( "width", "100%" )

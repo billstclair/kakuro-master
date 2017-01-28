@@ -1335,8 +1335,7 @@ renderStarMenu model =
         exploreState = gameState.exploreState
         makeButton = (\(msg, txt) ->
                        button [ onClick msg
-                              , class FullWidthClass
-                              , class StarMenuFontClass
+                              , class StarMenuButtonClass
                               ]
                            [ text txt ]
                      )
@@ -1358,7 +1357,11 @@ renderStarMenu model =
         topStyles = case model.boardSizes of
                         Nothing -> []
                         Just sizes ->
-                            [ ("margin", (toString sizes.boardSize) ++ "px auto") ]
+                            let pixels = (toString sizes.boardSize) ++ "px"
+                            in
+                                [ ("margin", pixels ++ " auto")
+                                , ("width", "20em")
+                                ]
     in
         modalDiv CloseStarMenu
             []

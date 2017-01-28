@@ -33,7 +33,7 @@ outerStyle = [ ( "position", "fixed" )
 innerStyle : List (String, String)
 innerStyle = [ ( "margin", "100px auto" )
              , ( "border", "1px solid #888" )
-             , ( "width", "30em" )
+             , ( "width", "20em" )
              , ( "background-color", "white" )
              ]
 
