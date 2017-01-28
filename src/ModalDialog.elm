@@ -21,7 +21,6 @@ import Html.Events exposing ( onClick )
 outerStyle : List (String, String)
 outerStyle = [ ( "position", "fixed" )
              , ( "z-index", "1" )
-             , ( "padding-top", "100px" )
              , ( "left", "0" )
              , ( "top", "0" )
              , ( "width", "100%" )
@@ -32,12 +31,11 @@ outerStyle = [ ( "position", "fixed" )
              ]
 
 innerStyle : List (String, String)
-innerStyle = [ ( "margin", "0 auto" )
+innerStyle = [ ( "margin", "100px auto" )
              , ( "border", "1px solid #888" )
              , ( "width", "30em" )
              , ( "background-color", "white" )
              ]
-    
 
 modalDiv : msg -> List (Attribute msg) -> List (Attribute msg) -> List (Html msg) -> Html msg
 modalDiv closeMsg outerAttributes attributes children =

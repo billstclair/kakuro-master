@@ -18,7 +18,7 @@ import SharedTypes exposing ( GameState, Model, SavedModel
                             , BoardSizes, Flags, IntBoard, BClassBoard
                             , Labels, LabelsBoard, Selection, Hints , HintsBoard
                             , Msg ( ClickCell, DownKey
-                                  , ToggleShowPossibilities, ToggleHintInput
+                                  , OpenStarMenu, ToggleHintInput
                                   )
                             )
 import Styles.Board exposing (class, classes, BClass(..))
@@ -119,8 +119,8 @@ defaultFlags : Flags
 defaultFlags =
     { isHintInput = False
     , showPossibilities = True
+    , firstGuess = 0
     }
-
 
 sumColLoop : Int -> Int -> Int -> IntBoard -> Int
 sumColLoop row col sum board =
@@ -734,9 +734,7 @@ keypadTextClass : String -> GameState -> String
 keypadTextClass label state =
     let
         highlight =
-            if label == "*" then
-                state.flags.showPossibilities
-            else if String.contains label "#123456789" then
+            if String.contains label "#123456789" then
                 state.flags.isHintInput
             else
                 False
@@ -755,7 +753,7 @@ keycodeCell keycode label cx cy cellSize fontsize state =
     let
         msg =
             if label == "*" then
-                onClick ToggleShowPossibilities
+                onClick OpenStarMenu
             else if label == "#" then
                 onClick ToggleHintInput
             else

@@ -95,6 +95,7 @@ type alias Model =
     , awaitingCommand : Maybe String
     , message : Maybe String
     , shifted : Bool
+    , showStarMenu : Bool
     , helpModelDict : MaybeHelpModelDict
     , platform : Platform
     , properties : Dict String String         --raw properties at startup
@@ -129,6 +130,7 @@ savedModelToModel savedModel =
     , awaitingCommand = Nothing
     , message = Nothing
     , shifted = False
+    , showStarMenu = False
     , helpModelDict = Nicht
     , platform = WebPlatform
     , properties = Dict.fromList []
@@ -149,6 +151,11 @@ type Msg
     | UpKey Keyboard.KeyCode
     | ToggleHintInput
     | ToggleShowPossibilities
+    | OpenStarMenu
+    | StartExploration
+    | KeepExploration
+    | DiscardExploration
+    | CloseStarMenu
     | ReceiveGame (Maybe String)
     | AnswerConfirmed String Bool
     | MultiAnswerConfirmed String Int
@@ -194,6 +201,7 @@ type alias BClassBoard =
 type alias Flags =
     { isHintInput : Bool
     , showPossibilities : Bool
+    , firstGuess : Int
     }
 
 type alias GameStateTimes =

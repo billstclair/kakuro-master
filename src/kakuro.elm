@@ -30,6 +30,7 @@ import EncodeDecode exposing ( encodeGameState, encodeSavedModel
                              , encodeIapStates, decodeIapStates
                              )
 import HelpBoards exposing ( helpBoards )
+import ModalDialog exposing ( modalDiv )
 
 import Array exposing (Array)
 import Char
@@ -252,6 +253,7 @@ initialModel =
         , awaitingCommand = Nothing
         , message = Nothing
         , shifted = False
+        , showStarMenu = False
         , helpModelDict = Javole helpBoards
         , platform = WebPlatform
         , properties = Dict.fromList []
@@ -498,7 +500,7 @@ processKeyPress keyCode model =
     let char = Char.fromCode keyCode
     in
         if char == '*' then
-            toggleShowPossibilities model
+            { model | showStarMenu = True }
         else if char == '#' then
             toggleHintInput model
         else
@@ -608,7 +610,61 @@ toggleHintInput model =
 
 toggleShowPossibilities : Model -> Model
 toggleShowPossibilities model =
-    toggleFlag .showPossibilities (\v r -> { r | showPossibilities = v }) model
+    let m = toggleFlag
+              .showPossibilities (\v r -> { r | showPossibilities = v }) model
+    in
+        { m | showStarMenu = False }
+
+startExploration : Model -> Model
+startExploration model =
+    let gameState = model.gameState
+        guesses = gameState.guesses
+        kind = guesses.rows
+        exploreState = { savedBoard = guesses
+                       , savedHints = gameState.hints
+                       , guesses = Board.make kind kind 0
+                       , firstGuess = 0
+                       , firstGuessSelection = Nothing
+                       }
+        newState = { gameState | exploreState = Just exploreState }
+    in
+        { model
+            | gameState = newState
+            , showStarMenu = False
+        }
+
+keepExploration : Model -> Model
+keepExploration model =
+    let gameState = model.gameState
+    in
+        { model
+            | gameState = { gameState | exploreState = Nothing }
+            , showStarMenu = False}
+
+discardExploration : Model -> Model
+discardExploration model =
+    let gameState = model.gameState
+    in
+        case gameState.exploreState of
+            Nothing -> model
+            Just state ->
+                let selection = case state.firstGuessSelection of
+                                    Nothing -> gameState.selection
+                                    Just sel -> Just sel
+                    flags = gameState.flags
+                    newState = { gameState
+                                   | guesses = state.savedBoard
+                                   , hints = state.savedHints
+                                   , flags = { flags
+                                                 | firstGuess = state.firstGuess }
+                                   , selection = selection
+                                   , exploreState = Nothing
+                               }
+                in
+                    { model
+                        | gameState = newState
+                        , showStarMenu = False
+                    }
 
 resetGameState : Model -> Model
 resetGameState model =
@@ -1115,6 +1171,16 @@ updateMainPage msg model =
             ( toggleHintInput model, Cmd.none )
         ToggleShowPossibilities ->
             ( toggleShowPossibilities model, Cmd.none )
+        OpenStarMenu ->
+            ( { model | showStarMenu = True }, Cmd.none )
+        StartExploration ->
+            ( startExploration model, Cmd.none )
+        KeepExploration ->
+            ( keepExploration model, Cmd.none )
+        DiscardExploration ->
+            ( discardExploration model, Cmd.none )
+        CloseStarMenu ->
+            ( { model | showStarMenu = False }, Cmd.none )
         ReceiveGame maybeJson ->
             receiveGameJson maybeJson model
         AnswerConfirmed question doit ->
@@ -1262,6 +1328,45 @@ errorMessageHtml model =
                 [ text <| "(" ++ txt ++ ")"
                 ]
 
+renderStarMenu : Model -> Html Msg
+renderStarMenu model =
+    let gameState = model.gameState
+        showPossibilities = gameState.flags.showPossibilities
+        exploreState = gameState.exploreState
+        makeButton = (\(msg, txt) ->
+                       button [ onClick msg
+                              , class FullWidthClass
+                              , class StarMenuFontClass
+                              ]
+                           [ text txt ]
+                     )
+        possibilitiesButton = makeButton
+                                ( ToggleShowPossibilities
+                                , if showPossibilities then
+                                      "Hide row/col possibilities"
+                                  else
+                                      "Show row/col possibilities")
+        exploreLabels = case exploreState of
+                            Nothing ->
+                                [ (StartExploration, "Start Exploration") ]
+                            Just _ ->
+                                [ (KeepExploration, "Keep Exploration")
+                                , (DiscardExploration, "Discard Exploration")
+                                ]
+        exploreHtml = List.map makeButton exploreLabels
+        cancelButton = makeButton ( CloseStarMenu, "Cancel" )
+        topStyles = case model.boardSizes of
+                        Nothing -> []
+                        Just sizes ->
+                            [ ("margin", (toString sizes.boardSize) ++ "px auto") ]
+    in
+        modalDiv CloseStarMenu
+            []
+            [ style topStyles ]
+            ( List.append (possibilitiesButton :: exploreHtml)
+                          [ cancelButton ]
+            )
+
 mainPageDiv : Model -> Html Msg
 mainPageDiv model =
     div [ style [ ("margin-top"
@@ -1321,6 +1426,10 @@ mainPageDiv model =
           ]
       , div [] [ RenderBoard.render model ]
       , div [] [ RenderBoard.renderKeypad model ]
+      , if model.showStarMenu then
+            renderStarMenu model
+        else
+            text ""
       ]
 
 linkDict : Dict String String
