@@ -156,7 +156,7 @@ rules =
         [ ( "fill", "black" ) ]
     , rule
         [ Class SvgKeypadExploratoryColor ]
-        [ ( "fill", "#c0d0ff" ) ]
+        [ ( "fill", "#a0b0ff" ) ]
     ]
 
 stylesheet =

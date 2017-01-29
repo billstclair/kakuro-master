@@ -14,7 +14,7 @@ module RenderBoard exposing ( makeGameState
                             , render, renderHelp, renderKeypad
                             , computeLabels)
 
-import SharedTypes exposing ( GameState, Model, SavedModel
+import SharedTypes exposing ( GameState, ExploreState, Model, SavedModel
                             , BoardSizes, Flags, IntBoard, BClassBoard
                             , Labels, LabelsBoard, Selection, Hints , HintsBoard
                             , Msg ( ClickCell, DownKey
@@ -69,8 +69,8 @@ type alias RenderState =
     , guesses : IntBoard
     , hints : HintsBoard
     , flags : Flags
-    , selection :
-        Maybe Selection
+    , selection : Maybe Selection
+    , exploreState : Maybe ExploreState
         -- Added to GameState
     , allDone : Bool
     , cellClasses : BClassBoard
@@ -87,8 +87,8 @@ makeRenderState name state cellClasses allDone =
         , guesses = state.guesses
         , hints = state.hints
         , flags = state.flags
-        , selection =
-            state.selection
+        , selection = state.selection
+        , exploreState = state.exploreState
         -- Added to state
         , allDone = allDone
         , cellClasses = cellClasses
@@ -366,6 +366,15 @@ renderSvgCell row col sizes state =
             else
                 0
 
+        isExploratory =
+            if guess == 0 then
+                False
+            else
+                case state.exploreState of
+                    Nothing -> False
+                    Just es ->
+                        guess == Board.get brow bcol es.guesses
+
         hints =
             if value /= 0 && guess == 0 then
                 Board.get brow bcol state.hints
@@ -466,7 +475,12 @@ renderSvgCell row col sizes state =
                         in
                             [ rectHtml
                             , Svg.text_
-                                [ svgClass "SvgCellText"
+                                [ svgClass
+                                      (if isExploratory then
+                                           "SvgCellText SvgKeypadExploratoryColor"
+                                       else
+                                           "SvgCellText"
+                                      )
                                 , fontSize (toString sizes.cellFontSize)
                                 , x (toString tx)
                                 , y (toString ty)
@@ -733,15 +747,30 @@ renderHelp name model windowSize =
 keypadTextClass : String -> GameState -> String
 keypadTextClass label state =
     let
+        isDigit = String.contains label "123456789"
         highlight =
-            if String.contains label "#123456789" then
+            if isDigit || (label == "#") then
                 state.flags.isHintInput
             else
                 False
-
+        exploratory = if highlight then
+                          False
+                      else if isDigit then
+                          state.exploreState /= Nothing
+                      else
+                          False
+        firstGuess = state.flags.firstGuess
+        digit = if not isDigit || (firstGuess == 0) then
+                    0
+                else
+                    case String.toInt label of
+                        Ok d -> d
+                        _ -> 0
         color =
             if highlight then
                 "SvgKeypadHighlightColor"
+            else if exploratory || (firstGuess /= 0 && firstGuess == digit) then
+                "SvgKeypadExploratoryColor"
             else
                 "SvgKeypadColor"
     in

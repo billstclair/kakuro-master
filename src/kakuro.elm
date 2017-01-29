@@ -11,7 +11,7 @@
 
 port module Kakuro exposing (..)
 
-import SharedTypes exposing ( SavedModel, Model, GameState
+import SharedTypes exposing ( SavedModel, Model, GameState, ExploreState
                             , Msg, Msg(..), Page(..)
                             , IntBoard, HintsBoard, Selection, Flags
                             , MaybeHelpModelDict(..)
@@ -285,11 +285,13 @@ toInt s =
 updateSelection : Model -> Int -> Int -> Model
 updateSelection model row col =
     let gameState = model.gameState
+        flags = gameState.flags
     in
         { model
             | gameState =
               { gameState
                   | selection = Just ( row, col )
+                  , flags = { flags | firstGuess = 0 }
               }
             , message = Nothing
         }
@@ -381,6 +383,7 @@ moveSelection direction model =
                 Down -> newLocation ( 1, 0 ) selection board
                 Right -> newLocation ( 0, 1 ) selection board
                 Left -> newLocation ( 0, -1 ) selection board
+        flags = gameState.flags
     in
         case newSelection of
             Nothing -> model
@@ -389,6 +392,7 @@ moveSelection direction model =
                     | gameState =
                         { gameState
                             | selection = newSelection
+                            , flags = { flags | firstGuess = 0 }
                         }
                     , message = Nothing
                 }
@@ -436,12 +440,31 @@ toggleHint row col digit hints =
     in
         Board.set row col new hints
 
+updateExploreState : GameState -> Int -> Int -> Int -> Maybe ExploreState
+updateExploreState gameState row col digit =
+    case gameState.exploreState of
+        Nothing -> Nothing
+        Just state ->
+            let st2 = { state
+                          | guesses = Board.set row col digit state.guesses
+                      }
+                st3 = if st2.firstGuess /= 0 then
+                          st2
+                      else
+                          { st2
+                              | firstGuess = digit
+                              , firstGuessSelection = gameState.selection
+                          }
+            in
+                Just st3                           
+                           
 processDigitKeys : Int -> Model -> Model
 processDigitKeys keyCode model =
     let gameState = model.gameState
         selection = gameState.selection
         guesses = gameState.guesses
         hints = gameState.hints
+        flags = gameState.flags
     in
         case selection of
             Nothing -> model
@@ -469,6 +492,10 @@ processDigitKeys keyCode model =
                                     { gameState
                                         | guesses =
                                             Board.set row col digit guesses
+                                        , flags = { flags | firstGuess = 0 }
+                                        , exploreState =
+                                            updateExploreState
+                                              gameState row col digit
                                     }
                         }
 
@@ -624,7 +651,7 @@ startExploration model =
                        , savedHints = gameState.hints
                        , guesses = Board.make kind kind 0
                        , firstGuess = 0
-                       , firstGuessSelection = Nothing
+                       , firstGuessSelection = gameState.selection
                        }
         newState = { gameState | exploreState = Just exploreState }
     in
@@ -636,9 +663,13 @@ startExploration model =
 keepExploration : Model -> Model
 keepExploration model =
     let gameState = model.gameState
+        flags = gameState.flags
     in
         { model
-            | gameState = { gameState | exploreState = Nothing }
+            | gameState = { gameState
+                              | exploreState = Nothing
+                              , flags = { flags | firstGuess = 0 }
+                          }
             , showStarMenu = False}
 
 discardExploration : Model -> Model
