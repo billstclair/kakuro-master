@@ -1373,9 +1373,9 @@ renderStarMenu model =
         possibilitiesButton = makeButton
                                 ( ToggleShowPossibilities
                                 , if showPossibilities then
-                                      "Hide row/col possibilities"
+                                      "Hide row/col Possibilities"
                                   else
-                                      "Show row/col possibilities")
+                                      "Show row/col Possibilities")
         exploreLabels = case exploreState of
                             Nothing ->
                                 [ (StartExploration, "Start Exploration") ]
@@ -1694,7 +1694,7 @@ helpPageDiv model =
             , h3 [] [ text "Keypad" ]
             , ps [ case model.platform of
                        WebPlatform ->
-                         "Arrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                         "Arrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'#' toggles hint input.\n'*' brings up the Exploratory Menu, described below."
                        _ ->
                          "Arrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
                  ]
@@ -1713,6 +1713,15 @@ helpPageDiv model =
                     ]
                       [ text "en.wikipedia.org/wiki/Kakuro" ]
                 ]
+            , h3 [] [ text "Exploratory menu" ]
+            , ps [ "The Exploratory Menu allows you to enable or disable the row/col possibilities display and to start or end exploratory mode."
+                 , "Click \"Cancel\" or anywhere outside the menu to dismiss it without doing anything."
+                 , "Click \"Hide/Show row/col Possibilities\" to toggle the possibilities output between the game board and the keypad."
+                 , "Click \"Start Exploration\" to enter exploratory mode. In exploratory mode, the keypad numbers change to light blue color, and your guesses are displayed in that color. You can use it to make some exploratory guesses."
+                 , "If you decide to keep those guesses, bring up the menu again and click \"Keep Exploration\". The board will remain as it is, but with all the blue numbers changed to black."
+                 , "If you decide that the guesses were wrong, click \"Discard Exploration\", and the board will be returned to as it was when you clicked \"Start Exploration\". The cell where you made your first exploratory guess will be selected, and the keypad number of that guess will be shown in blue, to remind you of how you started the exploration."
+                 , "Exploratory mode is rarely necessary. Usually, a combination of hint numbers and logic will be enough to solve a puzzle."
+                 ]
             ]
 
 tacticsPageDiv : Model -> Html Msg
