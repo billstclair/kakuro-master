@@ -1714,7 +1714,8 @@ helpPageDiv model =
                       [ text "en.wikipedia.org/wiki/Kakuro" ]
                 ]
             , h3 [] [ text "Exploratory menu" ]
-            , ps [ "The Exploratory Menu allows you to enable or disable the row/col possibilities display and to start or end exploratory mode."
+            , ps [ "When you can go no farther without guesswork, the Exploratory Menu allows you to test and track various possibilities."
+                 , "Click \"*\" to start or end exploratory mode (as well as to enable or disable the row/col possibilities display)."
                  , "Click \"Cancel\" or anywhere outside the menu to dismiss it without doing anything."
                  , "Click \"Hide/Show row/col Possibilities\" to toggle the possibilities output between the game board and the keypad."
                  , "Click \"Start Exploration\" to enter exploratory mode. In exploratory mode, the keypad numbers change to light blue color, and your guesses are displayed in that color. You can use it to make some exploratory guesses."
