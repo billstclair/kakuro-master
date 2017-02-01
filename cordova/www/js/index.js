@@ -124,18 +124,29 @@ var app = {
   },
 
   iapRestorePurchases: function(callback) {
-    var cb = function(ignore) {
+    var simulateRestore = false; // true to fake restorePurchases in simulator
+    if (simulateRestore) {
+      var now = new Date();
+      now = now.getTime();
+      var res = { productId: "puzzles2",
+                  transactionId: "1",
+                  date: now
+                }
+      callback([res]);
+    } else {
+      var cb = function(ignore) {
+        inAppPurchase
+          .restorePurchases()
+          .then(callback)
+          .catch(callback);
+      };
+      var prods = ["puzzles2"];
+      // Make sure to call getProducts before anything else.
       inAppPurchase
-        .restorePurchases()
-        .then(callback)
+        .getProducts(prods)
+        .then(cb)
         .catch(callback);
-    };
-    var prods = ["puzzles2"];
-    // Make sure to call getProducts before anything else.
-    inAppPurchase
-      .getProducts(prods)
-      .then(cb)
-      .catch(callback);
+    }
   }
 };
 

@@ -1391,7 +1391,7 @@ renderStarMenu model =
                             let pixels = (toString sizes.boardSize) ++ "px"
                             in
                                 [ ("margin", pixels ++ " auto")
-                                , ("width", "20em")
+                                , ("width", "15em")
                                 ]
     in
         modalDiv CloseStarMenu
@@ -1696,7 +1696,7 @@ helpPageDiv model =
                        WebPlatform ->
                          "Arrows, WASD, or IJKL to move.\n1-9 to enter number.\n0 or <space> to erase.\n'#' toggles hint input.\n'*' brings up the Exploratory Menu, described below."
                        _ ->
-                         "Arrows to move.\n1-9 to enter number.\n<blank> to erase.\n'*' toggles row/col possibility display.\n'#' toggles hint input."
+                         "Arrows to move.\n1-9 to enter number.\n<blank> to erase.\n'#' toggles hint input.\n'*' brings up the Exploratory Menu, described below."
                  ]
             , h3 [] [ text "Rules" ]
             , ps [ "Each contiguous row or column of white squares must contain unique numbers from 1 to 9. The numbers must sum to the number in the gray square to the left of a row or above a column."
