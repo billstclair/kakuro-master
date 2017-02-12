@@ -137,7 +137,7 @@ updateWithStorage msg model =
 maybeMakeClickSound : Model -> Cmd Msg
 maybeMakeClickSound model =
     if model.gameState.flags.keyClickSound then
-        (log "click" makeClickSound())
+        makeClickSound()
     else
         Cmd.none
 
