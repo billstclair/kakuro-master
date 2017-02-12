@@ -9,3 +9,4 @@ cordova plugin add cordova-plugin-dialogs
 cordova plugin add cordova-plugin-splashscreen
 cordova plugin add cordova-plugin-inapppurchase
 cordova plugin add cordova-plugin-device
+cordova plugin add cordova-plugin-nativeclicksound

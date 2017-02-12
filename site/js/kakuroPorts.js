@@ -252,6 +252,10 @@ var kakuroPorts = {};
       });
     });
 
+    kakuro.ports.makeClickSound.subscribe(function() {
+      app.makeClickSound();
+    });
+
     app.registerDeviceReady(function() {
       var platform = app.platform();
       kakuroPorts.registeredDeviceReady = true;

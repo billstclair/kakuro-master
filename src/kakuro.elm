@@ -118,6 +118,8 @@ port iapRestorePurchases : () -> Cmd msg
 -- (purchases, error)
 port iapPurchases : ((Maybe (List IapPurchase), Maybe String) -> msg) -> Sub msg
 
+port makeClickSound : () -> Cmd msg
+
 port deviceReady : (String -> msg) -> Sub msg
 
 -- Copied verbatim from https://github.com/evancz/elm-todomvc/blob/master/Todo.elm
@@ -131,6 +133,13 @@ updateWithStorage msg model =
         , Cmd.batch [ setStorage <| Just json
                     , cmds ]
         )
+
+maybeMakeClickSound : Model -> Cmd Msg
+maybeMakeClickSound model =
+    if model.gameState.flags.keyClickSound then
+        makeClickSound()
+    else
+        Cmd.none
 
 -- MODEL
 
@@ -642,6 +651,13 @@ toggleShowPossibilities model =
     in
         { m | showStarMenu = False }
 
+toggleKeyClick : Model -> Model
+toggleKeyClick model =
+    let m = toggleFlag
+              .keyClickSound (\v r -> { r | keyClickSound = v }) model
+    in
+        { m | showStarMenu = False }
+
 startExploration : Model -> Model
 startExploration model =
     let gameState = model.gameState
@@ -973,7 +989,7 @@ updateHelpPage msg model =
         Seed time ->
             doSeed time model
         ClickCell id ->
-            ( updateSelectedCell id model, Cmd.none )
+            ( updateSelectedCell id model, maybeMakeClickSound model )
         WindowSize size ->
             processWindowSize model size
         DeviceReady platformName ->
@@ -1191,19 +1207,21 @@ updateMainPage msg model =
         Seed time ->
             doSeed time model
         ClickCell id ->
-            ( updateSelectedCell id model, Cmd.none )
+            ( updateSelectedCell id model, maybeMakeClickSound model )
         DownKey code ->
-            ( processKeyDown code model, Cmd.none )
+            ( processKeyDown code model, maybeMakeClickSound model )
         UpKey code ->
             ( processKeyUp code model, Cmd.none )
         PressKey code ->
             ( processKeyPress code model, Cmd.none )
         ToggleHintInput ->
-            ( toggleHintInput model, Cmd.none )
+            ( toggleHintInput model, maybeMakeClickSound model )
         ToggleShowPossibilities ->
             ( toggleShowPossibilities model, Cmd.none )
+        ToggleKeyClick ->
+            ( toggleKeyClick model, Cmd.none )
         OpenStarMenu ->
-            ( { model | showStarMenu = True }, Cmd.none )
+            ( { model | showStarMenu = True }, maybeMakeClickSound model )
         StartExploration ->
             ( startExploration model, Cmd.none )
         KeepExploration ->
@@ -1384,6 +1402,16 @@ renderStarMenu model =
                                 , (DiscardExploration, "Discard Exploration")
                                 ]
         exploreHtml = List.map makeButton exploreLabels
+        keyClickButton = case model.platform of
+                             WebPlatform -> []
+                             _ ->
+                                 [ makeButton ( ToggleKeyClick
+                                              , if model.gameState.flags.keyClickSound then
+                                                    "Disable Key Clicks"
+                                                else
+                                                    "Enable Key Clicks"
+                                              )
+                                 ]
         cancelButton = makeButton ( CloseStarMenu, "Cancel" )
         topStyles = case model.boardSizes of
                         Nothing -> []
@@ -1397,8 +1425,11 @@ renderStarMenu model =
         modalDiv CloseStarMenu
             []
             [ style topStyles ]
-            ( List.append (possibilitiesButton :: exploreHtml)
-                          [ cancelButton ]
+            ( List.concat [ [ possibilitiesButton ]
+                          , keyClickButton
+                          , exploreHtml
+                          , [ cancelButton ]
+                          ]
             )
 
 mainPageDiv : Model -> Html Msg
@@ -1718,7 +1749,13 @@ helpPageDiv model =
                  , "Click \"*\" to start or end exploratory mode (as well as to enable or disable the row/col possibilities display)."
                  , "Click \"Cancel\" or anywhere outside the menu to dismiss it without doing anything."
                  , "Click \"Hide/Show row/col Possibilities\" to toggle the possibilities output between the game board and the keypad."
-                 , "Click \"Start Exploration\" to enter exploratory mode. In exploratory mode, the keypad numbers change to light blue color, and your guesses are displayed in that color. You can use it to make some exploratory guesses."
+                 ]
+            , case model.platform of
+                  WebPlatform -> text ""
+                  _ ->
+                      ps [ "Click \"Enable/Disable Key Clicks\" to toggle whether tapping on the board or the keypad makes little click sounds."
+                         ]
+            , ps [ "Click \"Start Exploration\" to enter exploratory mode. In exploratory mode, the keypad numbers change to light blue color, and your guesses are displayed in that color. You can use it to make some exploratory guesses."
                  , "If you decide to keep those guesses, bring up the menu again and click \"Keep Exploration\". The board will remain as it is, but with all the blue numbers changed to black."
                  , "If you decide that the guesses were wrong, click \"Discard Exploration\", and the board will be returned to as it was when you clicked \"Start Exploration\". The cell where you made your first exploratory guess will be selected, and the keypad number of that guess will be shown in blue, to remind you of how you started the exploration."
                  , "Exploratory mode is rarely necessary. Usually, a combination of hint numbers and logic will be enough to solve a puzzle."

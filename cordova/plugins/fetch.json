@@ -38,5 +38,13 @@
         },
         "is_top_level": true,
         "variables": {}
+    },
+    "cordova-plugin-nativeclicksound": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-nativeclicksound"
+        },
+        "is_top_level": true,
+        "variables": {}
     }
 }

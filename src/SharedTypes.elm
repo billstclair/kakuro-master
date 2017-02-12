@@ -151,6 +151,7 @@ type Msg
     | UpKey Keyboard.KeyCode
     | ToggleHintInput
     | ToggleShowPossibilities
+    | ToggleKeyClick
     | OpenStarMenu
     | StartExploration
     | KeepExploration
@@ -202,6 +203,7 @@ type alias Flags =
     { isHintInput : Bool
     , showPossibilities : Bool
     , firstGuess : Int
+    , keyClickSound : Bool
     }
 
 type alias GameStateTimes =

@@ -81,6 +81,7 @@ flagsEncoder flags =
         [ ("isHintInput", JE.bool flags.isHintInput)
         , ("showPossibilities", JE.bool flags.showPossibilities)
         , ("firstGuess", JE.int flags.firstGuess)
+        , ("keyClickSound", JE.bool flags.keyClickSound)
         ]
 
 selectionEncoder : Maybe Selection -> Value
@@ -213,11 +214,15 @@ flags1Decoder =
 
 flagsDecoder : Decoder Flags
 flagsDecoder =
-    JD.map3
+    JD.map4
         Flags
         (field "isHintInput" JD.bool)
         (field "showPossibilities" JD.bool)
         (field "firstGuess" JD.int)
+        (JD.oneOf [ (field "keyClickSound" JD.bool)
+                  , JD.succeed True
+                  ]
+        )
 
 listToMaybeSelection : Maybe (List Int) -> Maybe Selection
 listToMaybeSelection list =
@@ -562,6 +567,7 @@ gameState2To3 gameState =
         , flags = { isHintInput = flags.isHintInput
                   , showPossibilities = flags.showPossibilities
                   , firstGuess = 0
+                  , keyClickSound = True
                   }
         , selection = gameState.selection
         , exploreState = Nothing

@@ -21,6 +21,9 @@
         },
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "com.gibgoygames.kakuro"
+        },
+        "cordova-plugin-nativeclicksound": {
+            "PACKAGE_NAME": "com.gibgoygames.kakuro"
         }
     },
     "dependent_plugins": {}

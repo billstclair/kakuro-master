@@ -23,7 +23,7 @@ var app = {
 
     // Application Constructor
     initialize: function() {
-        document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+      document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
     },
 
     registerDeviceReady: function(callback) {
@@ -39,6 +39,8 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
       app.receivedDeviceReady = true;
+      var clickyClasses = ['sound-click', 'button']; 
+      nativeclick.watch(clickyClasses);
       if (app.deviceReadyCallback) {
         app.deviceReadyCallback();
       }
@@ -147,7 +149,12 @@ var app = {
         .then(cb)
         .catch(callback);
     }
+  },
+
+  makeClickSound: function() {
+    nativeclick.trigger();
   }
+
 };
 
 app.initialize();

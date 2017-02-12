@@ -120,6 +120,7 @@ defaultFlags =
     { isHintInput = False
     , showPossibilities = True
     , firstGuess = 0
+    , keyClickSound = True
     }
 
 sumColLoop : Int -> Int -> Int -> IntBoard -> Int
