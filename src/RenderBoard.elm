@@ -787,7 +787,7 @@ keycodeCell keycode label cx cy cellSize fontsize state =
             else if label == "#" then
                 onClick ToggleHintInput
             else
-                onClickWithInt DownKey keycode
+                onClickWithInt (DownKey True) keycode
 
         cs =
             toString cellSize

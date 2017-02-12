@@ -128,7 +128,7 @@ computeBoardSizes model =
         keypadSize = h - boardSize - (nonBoardSize model)
     in
         { boardSize = boardSize
-        , cellSize = (log "cellSize" cellSize)
+        , cellSize = cellSize
         , cellFontSize = cellFontSize
         , labelFontSize = labelFontSize
         , hintFontSize = hintFontSize

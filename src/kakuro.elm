@@ -137,7 +137,7 @@ updateWithStorage msg model =
 maybeMakeClickSound : Model -> Cmd Msg
 maybeMakeClickSound model =
     if model.gameState.flags.keyClickSound then
-        makeClickSound()
+        (log "click" makeClickSound())
     else
         Cmd.none
 
@@ -1181,7 +1181,7 @@ processNewBoardIndex indexStr model =
                       else
                           index
             in
-                getBoard (log "model.kind" model.kind) (log "idx" idx) model
+                getBoard model.kind idx model
 
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
@@ -1208,8 +1208,13 @@ updateMainPage msg model =
             doSeed time model
         ClickCell id ->
             ( updateSelectedCell id model, maybeMakeClickSound model )
-        DownKey code ->
-            ( processKeyDown code model, maybeMakeClickSound model )
+        DownKey makeClick code ->
+            ( processKeyDown code model
+            , if makeClick then
+                  maybeMakeClickSound model
+              else
+                  Cmd.none
+            )
         UpKey code ->
             ( processKeyUp code model, Cmd.none )
         PressKey code ->
@@ -1286,7 +1291,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Time.every second Tick
-        , Keyboard.downs DownKey
+        , Keyboard.downs <| DownKey False
         , Keyboard.ups UpKey
         , Keyboard.presses PressKey
         , confirmAnswer answerConfirmed

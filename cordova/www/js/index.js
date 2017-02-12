@@ -39,8 +39,9 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
       app.receivedDeviceReady = true;
-      var clickyClasses = ['sound-click', 'button']; 
-      nativeclick.watch(clickyClasses);
+      // This doesn't work in Android. Left here as a reminder.
+      //var clickyClasses = ['sound-click', 'button']; 
+      //nativeclick.watch(clickyClasses);
       if (app.deviceReadyCallback) {
         app.deviceReadyCallback();
       }

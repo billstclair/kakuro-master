@@ -147,7 +147,7 @@ type Msg
     | Seed Time
     | ClickCell String
     | PressKey Keyboard.KeyCode
-    | DownKey Keyboard.KeyCode
+    | DownKey Bool Keyboard.KeyCode
     | UpKey Keyboard.KeyCode
     | ToggleHintInput
     | ToggleShowPossibilities
