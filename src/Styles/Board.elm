@@ -17,6 +17,7 @@ import Html.Attributes
 type BClass
     = Table
     | Helper
+    | HelperLine
     | Error
       -- SVG Classes
     | SvgLabel
@@ -63,6 +64,13 @@ rules =
         [ Class Helper ]
         [ ( "font-size", "10pt" )
         --, ( "font-weight", "bold")
+        ]
+    , rule
+        [ Class HelperLine ]
+        [ ( "width", "100%" )
+        , ( "height", "1.2em" )
+        , ( "white-space", "nowrap" )
+        , ( "overflow-x", "auto" )
         ]
     , rule
         [ Class Error ]

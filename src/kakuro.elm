@@ -1753,7 +1753,7 @@ helpPageDiv model =
             , ps [ "When you can go no farther without guesswork, the Exploratory Menu allows you to test and track various possibilities."
                  , "Click \"*\" to start or end exploratory mode (as well as to enable or disable the row/col possibilities display)."
                  , "Click \"Cancel\" or anywhere outside the menu to dismiss it without doing anything."
-                 , "Click \"Hide/Show row/col Possibilities\" to toggle the possibilities output between the game board and the keypad."
+                 , "Click \"Hide/Show row/col Possibilities\" to toggle the possibilities output between the game board and the keypad. If one of those rows gets too long, it will scroll horizontally."
                  ]
             , case model.platform of
                   WebPlatform -> text ""

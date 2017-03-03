@@ -710,10 +710,10 @@ renderPossibilities : Model -> Html Msg
 renderPossibilities model =
     if model.gameState.flags.showPossibilities then
         div [ class Helper ]
-            [ text <| "row: " ++ (rowHelperText model)
-            , br
-            , text <| "col: " ++ (colHelperText model)
-            , br
+            [ div [ class HelperLine ]
+                  [ text <| "row: " ++ (rowHelperText model) ]
+            , div [ class HelperLine ]
+                  [ text <| "col: " ++ (colHelperText model) ]
             ]
     else
         br
