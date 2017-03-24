@@ -2,6 +2,8 @@ Kakuro in [Elm](http://elm-lang.org/).
 
 It's live at [kakuro-dojo.com](https://kakuro-dojo.com/).
 
+Links to the iOS and Android app stores are at [GibGoyGames.com](https://gibgoygames.com/).
+
 Code is in the `src` directory, scripts in the `bin` directory.
 
 Due to its port, which it uses to save game state, you cannot develop with `elm-reactor`.
