@@ -9,10 +9,12 @@
 --
 ----------------------------------------------------------------------
 
-module Styles.Board exposing (style, BClass(..), class, classes)
+
+module Styles.Board exposing (BClass(..), class, classes, style)
 
 import Css exposing (Sel(..))
 import Html.Attributes
+
 
 type BClass
     = Table
@@ -40,9 +42,11 @@ type BClass
     | SvgKeypadHighlightColor
     | SvgKeypadExploratoryColor
 
+
 imports : List String
 imports =
     []
+
 
 rule : a -> b -> { selectors : a, descriptor : b }
 rule selectors descriptor =
@@ -50,9 +54,11 @@ rule selectors descriptor =
     , descriptor = descriptor
     }
 
+
 greenColor : String
 greenColor =
     "#E0FFE0"
+
 
 rules =
     [ rule
@@ -63,6 +69,7 @@ rules =
     , rule
         [ Class Helper ]
         [ ( "font-size", "10pt" )
+
         --, ( "font-weight", "bold")
         ]
     , rule
@@ -77,7 +84,8 @@ rules =
         [ ( "background-color", "red" )
         , ( "color", "white" )
         ]
-      -- SVG classes
+
+    -- SVG classes
     , rule
         [ Class SvgLabel ]
         [ ( "padding", "2px" )
@@ -167,18 +175,26 @@ rules =
         [ ( "fill", "#a0b0ff" ) ]
     ]
 
+
 stylesheet =
     Css.stylesheet imports rules
 
+
+
 -- This is for inclusion at the beginning of the Board div
+
 
 style =
     Css.style [ Html.Attributes.scoped True ] stylesheet
 
+
+
 -- For use in the attributes of Html elements
+
 
 class =
     stylesheet.class
+
 
 classes =
     stylesheet.classes

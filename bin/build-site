@@ -2,7 +2,7 @@
 
 # Compile the application into site/index.html
 
-elm-make src/kakuro.elm --output site/kakuro.js
+elm make src/Kakuro.elm --output site/Kakuro.js
 
 # For the Cordova app wrapper
 rsync -av site/kakuro.js cordova/www/

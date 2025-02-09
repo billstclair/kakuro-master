@@ -9,27 +9,52 @@
 --
 ----------------------------------------------------------------------
 
+
 module DebuggingRender exposing (renderBoard)
 
-import Styles.Page exposing (id, class, PId(..), PClass(..))
-import Board exposing (Board)
-import PuzzleDB
-import Entities exposing (nbsp, copyright)
 import Array exposing (Array)
+import Board exposing (Board)
 import Char
-import String
-import Html exposing ( Html, Attribute
-                     , button, div, h2, text
-                     , table, tr, td, th
-                     , input, button
-                     , br, a, img
+import Entities exposing (copyright, nbsp)
+import Html
+    exposing
+        ( Attribute
+        , Html
+        , a
+        , br
+        , button
+        , div
+        , h2
+        , img
+        , input
+        , table
+        , td
+        , text
+        , th
+        , tr
         )
-import Html.Attributes exposing (style, align, value, size, href, src
-                                , title, alt, width, height)
+import Html.Attributes
+    exposing
+        ( align
+        , alt
+        , height
+        , href
+        , size
+        , src
+        , style
+        , title
+        , value
+        , width
+        )
+import PuzzleDB
+import String
+import Styles.Page exposing (PClass(..), PId(..), class, id)
+
 
 showDebugNumbers : Bool
 showDebugNumbers =
     True
+
 
 renderElement : Int -> Html a
 renderElement val =
@@ -38,28 +63,38 @@ renderElement val =
         [ text
             (if val == 0 then
                 nbsp
+
              else
                 toString val
             )
         ]
 
+
 renderRow : Int -> Array Int -> Html a
 renderRow rowNum row =
-    let es = (List.map renderElement (Array.toList row))
-        elts = if showDebugNumbers then
-                   (debugNumbersIntElement rowNum) :: es
-               else
-                   es
+    let
+        es =
+            List.map renderElement (Array.toList row)
+
+        elts =
+            if showDebugNumbers then
+                debugNumbersIntElement rowNum :: es
+
+            else
+                es
     in
-        tr [] elts
+    tr [] elts
+
 
 debugNumbersElement : String -> Html a
 debugNumbersElement label =
     td [ class BoardLabelClass ] [ text label ]
 
+
 debugNumbersIntElement : Int -> Html a
 debugNumbersIntElement num =
     debugNumbersElement (toString num)
+
 
 debugNumbersTopRow : Board Int -> Html a
 debugNumbersTopRow board =
@@ -69,17 +104,23 @@ debugNumbersTopRow board =
             :: List.map debugNumbersIntElement (List.range 0 <| board.cols - 1)
         )
 
+
 renderBoard : Board Int -> Html a
 renderBoard board =
-    let rs = (List.map2
-                  renderRow
-                  (List.range 0 <| board.cols - 1)
-                  (Array.toList board.array))
-        rows = if showDebugNumbers then
-                   (debugNumbersTopRow board) :: rs
-               else
-                   rs
+    let
+        rs =
+            List.map2
+                renderRow
+                (List.range 0 <| board.cols - 1)
+                (Array.toList board.array)
+
+        rows =
+            if showDebugNumbers then
+                debugNumbersTopRow board :: rs
+
+            else
+                rs
     in
-        table
-            [ id BoardId ]
-            rows
+    table
+        [ id BoardId ]
+        rows

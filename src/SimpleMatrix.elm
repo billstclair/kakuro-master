@@ -10,21 +10,41 @@
 --
 ----------------------------------------------------------------------
 
-module SimpleMatrix exposing ( Location, Matrix, IntMatrix
-                             , loc, row, col
-                             , incRow, incCol, incRowBy, incColBy, fill
-                             , initialize
-                             , rows, cols, get, set
-                             , elemIndex, find
-                             , updateRange, updateRangeUntil
-                             , updateRowRange, updateColRange
-                             , updateRowRangeUntil, updateColRangeUntil
-                             , updateRowRangeWithValue, updateColRangeWithValue
-                             , updateRowRangeWithValueUntil
-                             , updateColRangeWithValueUntil
-                             )
+
+module SimpleMatrix exposing
+    ( IntMatrix
+    , Location
+    , Matrix
+    , col
+    , cols
+    , elemIndex
+    , fill
+    , find
+    , get
+    , incCol
+    , incColBy
+    , incRow
+    , incRowBy
+    , initialize
+    , loc
+    , row
+    , rows
+    , set
+    , updateColRange
+    , updateColRangeUntil
+    , updateColRangeWithValue
+    , updateColRangeWithValueUntil
+    , updateRange
+    , updateRangeUntil
+    , updateRowRange
+    , updateRowRangeUntil
+    , updateRowRangeWithValue
+    , updateRowRangeWithValueUntil
+    )
 
 import Array exposing (Array)
+
+
 
 {-
    --
@@ -39,170 +59,234 @@ import Array exposing (Array)
 
 -}
 
+
 type alias Location =
     ( Int, Int )
 
+
 loc : Int -> Int -> Location
-loc row col =
-    ( row, col )
+loc rowa cola =
+    ( rowa, cola )
+
 
 row : Location -> Int
-row loc =
-    Tuple.first loc
+row loca =
+    Tuple.first loca
+
 
 col : Location -> Int
-col loc =
-    Tuple.second loc
+col loca =
+    Tuple.second loca
+
 
 incRowBy : Int -> Location -> Location
-incRowBy increment loc =
-    ( (row loc) + increment, col loc )
+incRowBy increment loca =
+    ( row loca + increment, col loca )
+
 
 incColBy : Int -> Location -> Location
-incColBy increment loc =
-    ( row loc, (col loc) + increment )
+incColBy increment loca =
+    ( row loca, col loca + increment )
+
 
 incRow : Location -> Location
-incRow loc =
-    incRowBy 1 loc
+incRow loca =
+    incRowBy 1 loca
+
 
 incCol : Location -> Location
-incCol loc =
-    incColBy 1 loc
+incCol loca =
+    incColBy 1 loca
+
 
 type alias Matrix a =
     Array (Array a)
 
+
 type alias IntMatrix =
     Matrix Int
 
+
 fill : Int -> Int -> a -> Matrix a
-fill rows cols value =
-    Array.repeat cols value
-        |> Array.repeat rows
+fill rowsa colsa value =
+    Array.repeat colsa value
+        |> Array.repeat rowsa
+
 
 initializeCols : Int -> Int -> Int -> (Location -> a) -> Array a -> Array a
-initializeCols rowidx colidx cols initializer row =
-    if colidx >= cols then
-        row
+initializeCols rowidx colidx colsa initializer rowa =
+    if colidx >= colsa then
+        rowa
+
     else
-        let value = initializer ( rowidx, colidx )
+        let
+            value =
+                initializer ( rowidx, colidx )
         in
-            initializeCols
-                rowidx
-                (colidx + 1)
-                cols
-                initializer
-                (Array.set colidx value row)
+        initializeCols
+            rowidx
+            (colidx + 1)
+            colsa
+            initializer
+            (Array.set colidx value rowa)
+
 
 initializeRows : Int -> Int -> Int -> (Location -> a) -> Matrix a -> Matrix a
-initializeRows rowidx rows cols initializer res =
-    if rowidx >= rows then
+initializeRows rowidx rowsa colsa initializer res =
+    if rowidx >= rowsa then
         res
+
     else
-        let row = Array.get rowidx res
+        let
+            rowa =
+                Array.get rowidx res
+
             res_ =
-                case row of
-                    Nothing -> res
+                case rowa of
+                    Nothing ->
+                        res
+
                     Just r ->
                         let
                             row_ =
-                                initializeCols rowidx 0 cols initializer r
+                                initializeCols rowidx 0 colsa initializer r
                         in
-                            (Array.set rowidx row_ res)
+                        Array.set rowidx row_ res
         in
-            initializeRows
-                (rowidx + 1)
-                rows
-                cols
-                initializer
-                res_
+        initializeRows
+            (rowidx + 1)
+            rowsa
+            colsa
+            initializer
+            res_
+
 
 initialize : Int -> Int -> (Location -> a) -> Matrix a
-initialize rows cols initializer =
-    let default = initializer ( 0, 0 )
-        res = fill rows cols default
+initialize rowsa colsa initializer =
+    let
+        default =
+            initializer ( 0, 0 )
+
+        res =
+            fill rowsa colsa default
     in
-        initializeRows 0 rows cols initializer res
+    initializeRows 0 rowsa colsa initializer res
+
 
 rows : Matrix a -> Int
 rows matrix =
     Array.length matrix
 
+
 cols : Matrix a -> Int
 cols matrix =
-    let row = Array.get 0 matrix
+    let
+        rowa =
+            Array.get 0 matrix
     in
-        case row of
-            Nothing -> 0
-            Just row ->
-                Array.length row
+    case rowa of
+        Nothing ->
+            0
+
+        Just rowb ->
+            Array.length rowb
+
 
 get : Location -> Matrix a -> Maybe a
-get loc matrix =
-    let ( rowidx, colidx ) = loc
+get loca matrix =
+    let
+        ( rowidx, colidx ) =
+            loca
     in
-        case Array.get rowidx matrix of
-            Nothing -> Nothing
-            Just r ->
-                case Array.get colidx r of
-                    Nothing -> Nothing
-                    something -> something
+    case Array.get rowidx matrix of
+        Nothing ->
+            Nothing
+
+        Just r ->
+            case Array.get colidx r of
+                Nothing ->
+                    Nothing
+
+                something ->
+                    something
+
 
 set : Location -> a -> Matrix a -> Matrix a
-set loc val matrix =
-    let ( rowidx, colidx ) = loc
+set loca val matrix =
+    let
+        ( rowidx, colidx ) =
+            loca
     in
-        case Array.get rowidx matrix of
-            Nothing -> matrix
-            Just r ->
-                Array.set rowidx (Array.set colidx val r) matrix
+    case Array.get rowidx matrix of
+        Nothing ->
+            matrix
+
+        Just r ->
+            Array.set rowidx (Array.set colidx val r) matrix
+
 
 indexColLoop : Int -> Int -> Int -> (a -> Bool) -> Array a -> Maybe ( Location, a )
-indexColLoop rowidx colidx cols pred row =
-    if colidx >= cols then
+indexColLoop rowidx colidx colsa pred rowa =
+    if colidx >= colsa then
         Nothing
+
     else
-        case Array.get colidx row of
-            Nothing -> Nothing
+        case Array.get colidx rowa of
+            Nothing ->
+                Nothing
+
             Just e ->
                 if pred e then
                     Just ( ( rowidx, colidx ), e )
+
                 else
-                    indexColLoop rowidx (colidx + 1) cols pred row
+                    indexColLoop rowidx (colidx + 1) colsa pred rowa
+
 
 indexRowLoop : Int -> Int -> (a -> Bool) -> Matrix a -> Maybe ( Location, a )
-indexRowLoop rowidx rows pred matrix =
-    if rowidx >= rows then
+indexRowLoop rowidx rowsa pred matrix =
+    if rowidx >= rowsa then
         Nothing
+
     else
         case Array.get rowidx matrix of
-            Nothing -> Nothing
+            Nothing ->
+                Nothing
+
             Just r ->
                 case indexColLoop rowidx 0 (cols matrix) pred r of
                     Nothing ->
-                        indexRowLoop (rowidx + 1) rows pred matrix
+                        indexRowLoop (rowidx + 1) rowsa pred matrix
+
                     something ->
                         something
+
 
 elemIndex : a -> Matrix a -> Maybe Location
 elemIndex elem matrix =
     case indexRowLoop 0 (rows matrix) (\x -> x == elem) matrix of
-        Nothing -> Nothing
+        Nothing ->
+            Nothing
+
         Just pair ->
             Just (Tuple.first pair)
+
 
 find : (a -> Bool) -> Matrix a -> Maybe a
 find pred matrix =
     case indexRowLoop 0 (rows matrix) pred matrix of
-        Nothing -> Nothing
+        Nothing ->
+            Nothing
+
         Just pair ->
             Just (Tuple.second pair)
+
 
 updateRange : a -> (a -> a) -> Int -> (a -> b -> b) -> b -> b
 updateRange start incrementor count updater thing =
     if count <= 0 then
         thing
+
     else
         updateRange
             (incrementor start)
@@ -211,10 +295,12 @@ updateRange start incrementor count updater thing =
             updater
             (updater start thing)
 
+
 updateRangeUntil : a -> (a -> a) -> (a -> Bool) -> (a -> b -> b) -> b -> b
 updateRangeUntil start incrementor predicate updater thing =
     if predicate start then
         thing
+
     else
         updateRangeUntil
             (incrementor start)
@@ -223,44 +309,59 @@ updateRangeUntil start incrementor predicate updater thing =
             updater
             (updater start thing)
 
+
 updateRowRange : Location -> Int -> (Location -> Matrix a -> Matrix a) -> Matrix a -> Matrix a
-updateRowRange loc count updater matrix =
-    updateRange loc incRow count updater matrix
+updateRowRange loca count updater matrix =
+    updateRange loca incRow count updater matrix
+
 
 updateColRange : Location -> Int -> (Location -> Matrix a -> Matrix a) -> Matrix a -> Matrix a
-updateColRange loc count updater matrix =
-    updateRange loc incCol count updater matrix
+updateColRange loca count updater matrix =
+    updateRange loca incCol count updater matrix
+
 
 updateRowRangeUntil : Location -> (Location -> Bool) -> (Location -> Matrix a -> Matrix a) -> Matrix a -> Matrix a
-updateRowRangeUntil loc predicate updater matrix =
-    updateRangeUntil loc incRow predicate updater matrix
+updateRowRangeUntil loca predicate updater matrix =
+    updateRangeUntil loca incRow predicate updater matrix
+
 
 updateColRangeUntil : Location -> (Location -> Bool) -> (Location -> Matrix a -> Matrix a) -> Matrix a -> Matrix a
-updateColRangeUntil loc predicate updater matrix =
-    updateRangeUntil loc incCol predicate updater matrix
+updateColRangeUntil loca predicate updater matrix =
+    updateRangeUntil loca incCol predicate updater matrix
+
 
 valueUpdater : a -> Location -> Matrix a -> Matrix a
-valueUpdater value loc matrix =
-    let rowidx = (row loc)
-        r = Array.get rowidx matrix
+valueUpdater value loca matrix =
+    let
+        rowidx =
+            row loca
+
+        r =
+            Array.get rowidx matrix
     in
-        case r of
-            Nothing -> matrix
-            Just r_ ->
-                Array.set rowidx (Array.set (col loc) value r_) matrix
+    case r of
+        Nothing ->
+            matrix
+
+        Just r_ ->
+            Array.set rowidx (Array.set (col loca) value r_) matrix
+
 
 updateRowRangeWithValue : Location -> Int -> a -> Matrix a -> Matrix a
-updateRowRangeWithValue loc count value matrix =
-    updateRowRange loc count (valueUpdater value) matrix
+updateRowRangeWithValue loca count value matrix =
+    updateRowRange loca count (valueUpdater value) matrix
+
 
 updateColRangeWithValue : Location -> Int -> a -> Matrix a -> Matrix a
-updateColRangeWithValue loc count value matrix =
-    updateColRange loc count (valueUpdater value) matrix
+updateColRangeWithValue loca count value matrix =
+    updateColRange loca count (valueUpdater value) matrix
+
 
 updateRowRangeWithValueUntil : Location -> (Location -> Bool) -> a -> Matrix a -> Matrix a
-updateRowRangeWithValueUntil loc predicate value matrix =
-    updateRowRangeUntil loc predicate (valueUpdater value) matrix
+updateRowRangeWithValueUntil loca predicate value matrix =
+    updateRowRangeUntil loca predicate (valueUpdater value) matrix
+
 
 updateColRangeWithValueUntil : Location -> (Location -> Bool) -> a -> Matrix a -> Matrix a
-updateColRangeWithValueUntil loc predicate value matrix =
-    updateColRangeUntil loc predicate (valueUpdater value) matrix
+updateColRangeWithValueUntil loca predicate value matrix =
+    updateColRangeUntil loca predicate (valueUpdater value) matrix

@@ -9,19 +9,24 @@
 --
 ----------------------------------------------------------------------
 
+
+module Main exposing (Model, Msg(..), br, dialog, fullWidth, main, model, update, view)
+
+import Html exposing (Html, button, div, span, text)
+import Html.Attributes exposing (align, style)
+import Html.Events exposing (onClick)
 import ModalDialog exposing (modalDiv)
 
-import Html exposing (Html, button, div, text, span)
-import Html.Events exposing (onClick)
-import Html.Attributes exposing (style, align)
 
 main =
     Html.beginnerProgram { model = model, view = view, update = update }
+
 
 type alias Model =
     { message : String
     , isDialog : Bool
     }
+
 
 model : Model
 model =
@@ -29,11 +34,13 @@ model =
     , isDialog = False
     }
 
+
 type Msg
     = Set String
     | OpenDialog
     | CloseDialog
     | Nop
+
 
 update : Msg -> Model -> Model
 update msg model =
@@ -41,24 +48,30 @@ update msg model =
         Set string ->
             { model
                 | message = string
-                , isDialog = False}
+                , isDialog = False
+            }
+
         OpenDialog ->
             { model | isDialog = True }
+
         CloseDialog ->
             { model | isDialog = False }
+
         Nop ->
             model
+
 
 br : Html Msg
 br =
     Html.br [] []
 
+
 view : Model -> Html Msg
 view model =
-    div [ style [ ( "padding", "20px" )
-                , ( "width", "30em" )
-                , ( "border", "1px solid blue" )
-                ]
+    div
+        [ style "padding" "20px"
+        , style "width" "30em"
+        , style "border" "1px solid blue"
         ]
         [ text model.message
         , br
@@ -67,30 +80,35 @@ view model =
         , dialog model
         ]
 
+
 fullWidth : Html.Attribute Msg
 fullWidth =
-    style [ ("width", "100%") ]
+    style [ ( "width", "100%" ) ]
+
 
 dialog : Model -> Html Msg
 dialog model =
     if not model.isDialog then
-        span [][]
+        span [] []
+
     else
         modalDiv
             CloseDialog
             []
-            [ style [ ("padding", "5px")
-                    , ("width", "10em")
-                    ]
+            [ style "padding" "5px"
+            , style "width" "10em"
+
             --, align "center"
             ]
-            [ button [ onClick (Set "Hello")
-                     , fullWidth
-                     ]
-                  [ text "Hello" ]
+            [ button
+                [ onClick (Set "Hello")
+                , fullWidth
+                ]
+                [ text "Hello" ]
             , br
-            , button [ onClick (Set "World")
-                     , fullWidth
-                     ]
-                  [ text "World" ]
+            , button
+                [ onClick (Set "World")
+                , fullWidth
+                ]
+                [ text "World" ]
             ]

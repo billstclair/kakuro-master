@@ -9,10 +9,12 @@
 --
 ----------------------------------------------------------------------
 
-module Styles.Page exposing ( style, PClass(..), PId(..), id, class )
+
+module Styles.Page exposing (PClass(..), PId(..), class, id, style)
 
 import Css exposing (Sel(..))
 import Html.Attributes
+
 
 type PClass
     = BoardCellClass
@@ -24,20 +26,24 @@ type PClass
     | ErrorClass
     | PrettyTable
 
+
 type PId
     = BoardId
     | TopInputId
     | FooterId
 
+
 imports : List String
 imports =
     []
+
 
 rule : a -> b -> { selectors : a, descriptor : b }
 rule selectors descriptor =
     { selectors = selectors
     , descriptor = descriptor
     }
+
 
 rules =
     [ rule
@@ -113,21 +119,27 @@ rules =
         ]
     ]
 
+
 stylesheet =
     Css.stylesheet imports rules
 
 
+
 -- This is for inclusion at the beginning of the outermost div
+
 
 style =
     Css.style [ Html.Attributes.scoped True ] stylesheet
 
 
+
 -- For use in the attributes of Html elements
 -- E.g. id Board
 
+
 id =
     stylesheet.id
+
 
 class =
     stylesheet.class

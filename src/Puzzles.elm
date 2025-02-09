@@ -17,11 +17,13 @@
 --
 ----------------------------------------------------------------------
 
+
 module Puzzles exposing (puzzles)
 
 -- [(kind, volume, book, number, spec)]
-puzzles : List ( Int, Int, Int, Int, String )
 
+
+puzzles : List ( Int, Int, Int, Int, String )
 puzzles =
     [ ( 6, 1, 1, 1, ".38.31.13.12..139..798..31.92.92.21." )
     , ( 8, 1, 1, 1, "421..39.6982715393.19.61.59..13..71..34.21.31.7994187526.83..412" )

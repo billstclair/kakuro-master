@@ -12,44 +12,52 @@
 --
 ----------------------------------------------------------------------
 
+
 module ModalDialog exposing (modalDiv)
 
-import Html exposing ( Html, Attribute, div )
-import Html.Attributes exposing ( style, attribute )
-import Html.Events exposing ( onClick )
+import Html exposing (Attribute, Html, div)
+import Html.Attributes exposing (attribute, style)
+import Html.Events exposing (onClick)
 
-outerStyle : List (String, String)
-outerStyle = [ ( "position", "fixed" )
-             , ( "z-index", "1" )
-             , ( "left", "0" )
-             , ( "top", "0" )
-             , ( "width", "100%" )
-             , ( "height", "100%" )
-             , ( "overflow", "auto" )
-             , ( "background-color", "rgb(0,0,0)" )
-             , ( "background-color", "rgba(0,0,0,0.2)" )
-             ]
 
-innerStyle : List (String, String)
-innerStyle = [ ( "margin", "100px auto" )
-             , ( "border", "1px solid #888" )
-             , ( "width", "20em" )
-             , ( "background-color", "white" )
-             ]
+outerStyle : List (Attribute msg)
+outerStyle =
+    [ style "position" "fixed"
+    , style "z-index" "1"
+    , style "left" "0"
+    , style "top" "0"
+    , style "width" "100%"
+    , style "height" "100%"
+    , style "overflow" "auto"
+    , style "background-color" "rgb(0,0,0)"
+    , style "background-color" "rgba(0,0,0,0.2)"
+    ]
+
+
+innerStyle : List (Attribute msg)
+innerStyle =
+    [ style "margin" "100px auto"
+    , style "border" "1px solid #888"
+    , style "width" "20em"
+    , style "background-color" "white"
+    ]
+
 
 modalDiv : msg -> List (Attribute msg) -> List (Attribute msg) -> List (Html msg) -> Html msg
 modalDiv closeMsg outerAttributes attributes children =
-  div ( List.append
-            [ style outerStyle
-            , onClick closeMsg
+    div
+        (List.concat
+            [ outerStyle
+            , [ onClick closeMsg ]
+            , outerAttributes
             ]
-            outerAttributes
-      )
-      [ div ( List.append
-                  [ style innerStyle
-                  , attribute "onClick" "event.stopPropagation()"
-                  ]
-                  attributes
+        )
+        [ div
+            (List.concat
+                [ innerStyle
+                , [ attribute "onClick" "event.stopPropagation()" ]
+                , attributes
+                ]
             )
             children
-      ]
+        ]

@@ -10,52 +10,66 @@
 ----------------------------------------------------------------------
 
 
-module RenderBoard exposing ( makeGameState
-                            , render, renderHelp, renderKeypad
-                            , computeLabels)
+module RenderBoard exposing
+    ( computeLabels
+    , makeGameState
+    , render
+    , renderHelp
+    , renderKeypad
+    )
 
-import SharedTypes exposing ( GameState, ExploreState, Model, SavedModel
-                            , BoardSizes, Flags, IntBoard, BClassBoard
-                            , Labels, LabelsBoard, Selection, Hints , HintsBoard
-                            , Msg ( ClickCell, DownKey
-                                  , OpenStarMenu, ToggleHintInput
-                                  )
-                            )
-import Styles.Board exposing (class, classes, BClass(..))
-import BoardSize
-import Board exposing (Board, get, set)
-import PuzzleDB
-import Entities exposing (nbsp, copyright)
-
-import Window
-import Events exposing (onClickWithId, onClickWithInt, svgOnClickWithId)
-import PlayHelpers exposing (isAllDone, computeFilledCellClasses, possibilities)
 import Array exposing (Array)
+import Board exposing (Board, get, set)
+import BoardSize
 import Char
-import String
+import Debug exposing (log)
+import Entities exposing (copyright, nbsp)
+import Events exposing (onClickWithId, onClickWithInt, svgOnClickWithId)
+import Html exposing (Attribute, Html, a, button, div, img, table, td, text, th, tr)
+import Html.Attributes exposing (alt, autofocus, href, id, src, style, title, value)
+import Html.Events exposing (on, onClick)
+import Json.Decode as Json
 import List exposing (map)
 import List.Extra as LE
-import Debug exposing (log)
-import Json.Decode as Json
-import Html exposing (Html, Attribute, div, text, table, tr, td, th, a, img, button)
-import Html.Attributes exposing (style, value, href, src, title, alt, id, autofocus)
-import Html.Events exposing (on, onClick)
-import Svg exposing (Svg, svg, line, rect, g)
+import PlayHelpers exposing (computeFilledCellClasses, isAllDone, possibilities)
+import PuzzleDB
+import SharedTypes
+    exposing
+        ( BClassBoard
+        , BoardSizes
+        , ExploreState
+        , Flags
+        , GameState
+        , Hints
+        , HintsBoard
+        , IntBoard
+        , Labels
+        , LabelsBoard
+        , Model
+        , Msg(..)
+        , SavedModel
+        , Selection
+        )
+import String
+import Styles.Board exposing (BClass(..), class, classes)
+import Svg exposing (Svg, g, line, rect, svg)
 import Svg.Attributes
     exposing
-        ( x
-        , y
-        , width
-        , height
-        , x1
-        , y1
-        , x2
-        , y2
-        , fill
-        , stroke
+        ( fill
         , fontSize
+        , height
+        , stroke
         , transform
+        , width
+        , x
+        , x1
+        , x2
+        , y
+        , y1
+        , y2
         )
+import Window
+
 
 
 -- I wanted to make GameState be an extensible record type,
@@ -63,7 +77,7 @@ import Svg.Attributes
 
 
 type alias RenderState =
-    { name: String
+    { name : String
     , board : IntBoard
     , labels : LabelsBoard
     , guesses : IntBoard
@@ -71,7 +85,8 @@ type alias RenderState =
     , flags : Flags
     , selection : Maybe Selection
     , exploreState : Maybe ExploreState
-        -- Added to GameState
+
+    -- Added to GameState
     , allDone : Bool
     , cellClasses : BClassBoard
     }
@@ -79,20 +94,23 @@ type alias RenderState =
 
 makeRenderState : String -> GameState -> BClassBoard -> Bool -> RenderState
 makeRenderState name state cellClasses allDone =
-    let flags = state.flags
+    let
+        flags =
+            state.flags
     in
-        { name = name
-        , board = state.board
-        , labels = state.labels
-        , guesses = state.guesses
-        , hints = state.hints
-        , flags = state.flags
-        , selection = state.selection
-        , exploreState = state.exploreState
-        -- Added to state
-        , allDone = allDone
-        , cellClasses = cellClasses
-        }
+    { name = name
+    , board = state.board
+    , labels = state.labels
+    , guesses = state.guesses
+    , hints = state.hints
+    , flags = state.flags
+    , selection = state.selection
+    , exploreState = state.exploreState
+
+    -- Added to state
+    , allDone = allDone
+    , cellClasses = cellClasses
+    }
 
 
 br : Html a
@@ -102,7 +120,7 @@ br =
 
 cellId : String -> Int -> Int -> Attribute m
 cellId name row col =
-    id (name ++ "," ++ (toString row) ++ "," ++ (toString col))
+    id (name ++ "," ++ toString row ++ "," ++ toString col)
 
 
 emptyLabels : Labels
@@ -123,16 +141,18 @@ defaultFlags =
     , keyClickSound = True
     }
 
+
 sumColLoop : Int -> Int -> Int -> IntBoard -> Int
 sumColLoop row col sum board =
     let
         elt =
             get row (col - 1) board
     in
-        if elt == 0 then
-            sum
-        else
-            sumColLoop (row + 1) col (sum + elt) board
+    if elt == 0 then
+        sum
+
+    else
+        sumColLoop (row + 1) col (sum + elt) board
 
 
 sumCol : Int -> Int -> IntBoard -> Int
@@ -146,10 +166,11 @@ sumRowLoop row col sum board =
         elt =
             get (row - 1) col board
     in
-        if elt == 0 then
-            sum
-        else
-            sumRowLoop row (col + 1) (sum + elt) board
+    if elt == 0 then
+        sum
+
+    else
+        sumRowLoop row (col + 1) (sum + elt) board
 
 
 sumRow : Int -> Int -> IntBoard -> Int
@@ -159,8 +180,9 @@ sumRow row col board =
 
 computeLabel : Int -> Int -> LabelsBoard -> IntBoard -> LabelsBoard
 computeLabel row col res board =
-    if (get (row - 1) (col - 1) board) /= 0 then
+    if get (row - 1) (col - 1) board /= 0 then
         res
+
     else
         let
             rowsum =
@@ -169,16 +191,18 @@ computeLabel row col res board =
             colsum =
                 sumCol row col board
         in
-            if rowsum == 0 && colsum == 0 then
-                res
-            else
-                set row col ( rowsum, colsum ) res
+        if rowsum == 0 && colsum == 0 then
+            res
+
+        else
+            set row col ( rowsum, colsum ) res
 
 
 computeLabelsColsLoop : Int -> Int -> LabelsBoard -> IntBoard -> LabelsBoard
 computeLabelsColsLoop row col res board =
     if col >= res.cols then
         res
+
     else
         computeLabelsColsLoop row
             (col + 1)
@@ -195,6 +219,7 @@ computeLabelsRowLoop : Int -> LabelsBoard -> IntBoard -> LabelsBoard
 computeLabelsRowLoop row res board =
     if row >= res.rows then
         res
+
     else
         computeLabelsRowLoop (row + 1)
             (computeLabelsCols row res board)
@@ -207,7 +232,7 @@ computeLabelsRow row board =
         res =
             Board.make (board.rows + 1) (board.cols + 1) emptyLabels
     in
-        computeLabelsRowLoop row res board
+    computeLabelsRowLoop row res board
 
 
 computeLabels : IntBoard -> LabelsBoard
@@ -230,15 +255,15 @@ makeGameState board =
         hints =
             Board.make rows cols emptyHints
     in
-        { board = board
-        , labels = (computeLabels board)
-        , guesses = guesses
-        , hints = hints
-        , flags = defaultFlags
-        , selection = Nothing
-        , exploreState = Nothing
-        , times = SharedTypes.emptyGameStateTimes
-        }
+    { board = board
+    , labels = computeLabels board
+    , guesses = guesses
+    , hints = hints
+    , flags = defaultFlags
+    , selection = Nothing
+    , exploreState = Nothing
+    , times = SharedTypes.emptyGameStateTimes
+    }
 
 
 toTwoDigitString : Int -> String
@@ -247,10 +272,11 @@ toTwoDigitString x =
         str =
             toString x
     in
-        if String.length str == 1 then
-            nbsp ++ str
-        else
-            str
+    if String.length str == 1 then
+        nbsp ++ str
+
+    else
+        str
 
 
 
@@ -271,14 +297,14 @@ svgLabelTextHtml label cr sizes labelLocation =
         ( blx, bly ) =
             labelLocation cr
     in
-        [ Svg.text_
-            [ svgClass "SvgLabelText"
-            , fontSize (toString sizes.labelFontSize)
-            , x (toString blx)
-            , y (toString bly)
-            ]
-            [ Svg.text (toTwoDigitString label) ]
+    [ Svg.text_
+        [ svgClass "SvgLabelText"
+        , fontSize (toString sizes.labelFontSize)
+        , x (toString blx)
+        , y (toString bly)
         ]
+        [ Svg.text (toTwoDigitString label) ]
+    ]
 
 
 svgLabelHtml : ( Int, Int ) -> BoardSizes -> BoardSize.Rect -> BoardSize.Rect -> List (Html msg)
@@ -309,15 +335,17 @@ svgLabelHtml label sizes cr bgr =
         res2 =
             if bottom == 0 then
                 res
+
             else
                 List.append res <|
                     svgLabelTextHtml bottom cr sizes BoardSize.bottomLabelLocation
     in
-        if right == 0 then
-            res2
-        else
-            List.append res2 <|
-                svgLabelTextHtml right cr sizes BoardSize.rightLabelLocation
+    if right == 0 then
+        res2
+
+    else
+        List.append res2 <|
+            svgLabelTextHtml right cr sizes BoardSize.rightLabelLocation
 
 
 svgHintTexts : List Int -> BoardSizes -> BoardSize.Rect -> List (Html msg) -> List (Html msg)
@@ -340,7 +368,7 @@ svgHintTexts hints sizes cr res =
                         ]
                         [ Svg.text (toString hint) ]
             in
-                svgHintTexts tail sizes cr (html :: res)
+            svgHintTexts tail sizes cr (html :: res)
 
 
 renderSvgCell : Int -> Int -> BoardSizes -> RenderState -> Html Msg
@@ -358,27 +386,33 @@ renderSvgCell row col sizes state =
         label =
             if value == 0 then
                 Board.get row col state.labels
+
             else
                 ( 0, 0 )
 
         guess =
             if value /= 0 then
                 Board.get brow bcol state.guesses
+
             else
                 0
 
         isExploratory =
             if guess == 0 then
                 False
+
             else
                 case state.exploreState of
-                    Nothing -> False
+                    Nothing ->
+                        False
+
                     Just es ->
                         guess == Board.get brow bcol es.guesses
 
         hints =
             if value /= 0 && guess == 0 then
                 Board.get brow bcol state.hints
+
             else
                 []
 
@@ -388,6 +422,7 @@ renderSvgCell row col sizes state =
         errorClass =
             if value == 0 then
                 SvgCell
+
             else
                 case Board.get brow bcol state.cellClasses of
                     Nothing ->
@@ -410,13 +445,17 @@ renderSvgCell row col sizes state =
         colorClass =
             if value == 0 then
                 "SvgCellColor"
+
             else if allDone then
                 "SvgDoneColor"
+
             else if errorClass == Error then
                 if isSelected then
                     "SvgSelectedErrorColor"
+
                 else
                     "SvgErrorColor"
+
             else
                 "SvgCellColor"
 
@@ -424,14 +463,18 @@ renderSvgCell row col sizes state =
             if value == 0 then
                 if label == emptyLabels then
                     "SvgEmptyCell"
+
                 else
                     "SvgCell SvgCellColor"
+
             else
                 (if isSelected then
                     if sizes.cellSize < 50 then
                         "SvgSelectedSmall "
+
                     else
                         "SvgSelected "
+
                  else
                     ""
                 )
@@ -441,6 +484,7 @@ renderSvgCell row col sizes state =
         cr2 =
             if isSelected then
                 BoardSize.insetRectForSelection cr
+
             else
                 cr
 
@@ -454,72 +498,74 @@ renderSvgCell row col sizes state =
                 ]
                 []
     in
-        g []
-            (if value /= 0 then
+    g []
+        (if value /= 0 then
+            let
+                clickRect =
+                    rect
+                        [ svgClass "SvgClick"
+                        , x (toString cr.x)
+                        , y (toString cr.y)
+                        , width (toString cr.w)
+                        , height (toString cr.h)
+                        , cellId state.name brow bcol
+                        , svgOnClickWithId ClickCell
+                        ]
+                        []
+            in
+            if guess /= 0 then
                 let
-                    clickRect =
-                        rect
-                            [ svgClass "SvgClick"
-                            , x (toString cr.x)
-                            , y (toString cr.y)
-                            , width (toString cr.w)
-                            , height (toString cr.h)
-                            , cellId state.name brow bcol
-                            , svgOnClickWithId ClickCell
-                            ]
-                            []
+                    ( tx, ty ) =
+                        BoardSize.cellTextLocation cr
                 in
-                    if guess /= 0 then
-                        let
-                            ( tx, ty ) =
-                                BoardSize.cellTextLocation cr
-                        in
-                            [ rectHtml
-                            , Svg.text_
-                                [ svgClass
-                                      (if isExploratory then
-                                           "SvgCellText SvgKeypadExploratoryColor"
-                                       else
-                                           "SvgCellText"
-                                      )
-                                , fontSize (toString sizes.cellFontSize)
-                                , x (toString tx)
-                                , y (toString ty)
-                                ]
-                                [ Svg.text (toString guess) ]
-                            , clickRect
-                            ]
-                    else
-                        (rectHtml
-                            :: (List.append
-                                    (svgHintTexts hints sizes cr [])
-                                    [ clickRect ]
-                               )
+                [ rectHtml
+                , Svg.text_
+                    [ svgClass
+                        (if isExploratory then
+                            "SvgCellText SvgKeypadExploratoryColor"
+
+                         else
+                            "SvgCellText"
                         )
-             else if label == ( 0, 0 ) then
+                    , fontSize (toString sizes.cellFontSize)
+                    , x (toString tx)
+                    , y (toString ty)
+                    ]
+                    [ Svg.text (toString guess) ]
+                , clickRect
+                ]
+
+            else
+                rectHtml
+                    :: List.append
+                        (svgHintTexts hints sizes cr [])
+                        [ clickRect ]
+
+         else if label == ( 0, 0 ) then
+            [ rectHtml ]
+
+         else
+            let
+                bgr =
+                    BoardSize.labelBackgroundRect cr
+            in
+            List.append
                 [ rectHtml ]
-             else
-                let
-                    bgr =
-                        BoardSize.labelBackgroundRect cr
-                in
-                    (List.append
-                        [ rectHtml ]
-                        (svgLabelHtml label sizes cr bgr)
-                    )
-            )
+                (svgLabelHtml label sizes cr bgr)
+        )
 
 
 renderSvgCells : Int -> Int -> Int -> List (Html Msg) -> BoardSizes -> RenderState -> List (Html Msg)
 renderSvgCells row col cols res sizes state =
     if col >= cols then
         List.reverse res
+
     else
         let
             cellHtml =
                 renderSvgCell row col sizes state
         in
-            renderSvgCells row (col + 1) cols (cellHtml :: res) sizes state
+        renderSvgCells row (col + 1) cols (cellHtml :: res) sizes state
 
 
 renderSvgRow : Int -> BoardSizes -> RenderState -> Html Msg
@@ -532,12 +578,13 @@ renderSvgRows : Int -> Int -> List (Html Msg) -> BoardSizes -> RenderState -> Li
 renderSvgRows row rows res sizes state =
     if row >= rows then
         List.reverse res
+
     else
         let
             rowHtml =
                 renderSvgRow row sizes state
         in
-            renderSvgRows (row + 1) rows (rowHtml :: res) sizes state
+        renderSvgRows (row + 1) rows (rowHtml :: res) sizes state
 
 
 getBoardSizes : Model -> BoardSizes
@@ -571,16 +618,17 @@ renderSvgBoard name model =
         state2 =
             makeRenderState name state cellClasses allDone
     in
-        svg [ width size, height size ]
-            ((rect [ svgClass "SvgCell SvgCellColor", width size, height size ] [])
-                :: (renderSvgRows 0 state2.labels.rows [] sizes state2)
-            )
+    svg [ width size, height size ]
+        (rect [ svgClass "SvgCell SvgCellColor", width size, height size ] []
+            :: renderSvgRows 0 state2.labels.rows [] sizes state2
+        )
 
 
 helperLoop : ( Int, Int ) -> Int -> ( Int, Int ) -> IntBoard -> IntBoard -> ( Int, Int, List Int ) -> ( Int, Int, List Int )
 helperLoop start cnt inc board guesses res =
     if cnt <= 0 then
         res
+
     else
         let
             ( row, col ) =
@@ -592,32 +640,35 @@ helperLoop start cnt inc board guesses res =
             guess =
                 Board.get row col guesses
         in
-            if value == 0 then
-                res
-            else
-                let
-                    ( ri, ci ) =
-                        inc
+        if value == 0 then
+            res
 
-                    ( zeroes, sum, nums ) =
-                        res
+        else
+            let
+                ( ri, ci ) =
+                    inc
 
-                    zeroes_ =
-                        if guess == 0 then
-                            zeroes + 1
-                        else
-                            zeroes
+                ( zeroes, sum, nums ) =
+                    res
 
-                    sum_ =
-                        sum + value
+                zeroes_ =
+                    if guess == 0 then
+                        zeroes + 1
 
-                    nums_ =
-                        if guess == 0 then
-                            nums
-                        else
-                            (guess :: nums)
-                in
-                    helperLoop ( row + ri, col + ci ) (cnt - 1) inc board guesses ( zeroes_, sum_, nums_ )
+                    else
+                        zeroes
+
+                sum_ =
+                    sum + value
+
+                nums_ =
+                    if guess == 0 then
+                        nums
+
+                    else
+                        guess :: nums
+            in
+            helperLoop ( row + ri, col + ci ) (cnt - 1) inc board guesses ( zeroes_, sum_, nums_ )
 
 
 maxHelperLen : Int
@@ -638,62 +689,63 @@ helperText inc neginc acc state =
         guesses =
             state.guesses
     in
-        case state.selection of
-            Nothing ->
-                ""
+    case state.selection of
+        Nothing ->
+            ""
 
-            Just loc ->
-                let
-                    ( row, col ) =
-                        loc
+        Just loc ->
+            let
+                ( row, col ) =
+                    loc
 
-                    ( ri, ci ) =
+                ( ri, ci ) =
+                    neginc
+
+                rc =
+                    acc loc
+
+                ( zeroes, sum, nums ) =
+                    helperLoop loc
+                        (10 - rc)
+                        inc
+                        board
+                        guesses
+                        ( 0, 0, [] )
+
+                ( zeroes_, sum_, nums_ ) =
+                    helperLoop ( row + ri, col + ci )
+                        rc
                         neginc
+                        board
+                        guesses
+                        ( zeroes, sum, nums )
 
-                    rc =
-                        acc loc
+                leftsum =
+                    sum_ - List.foldr (+) 0 nums_
 
-                    ( zeroes, sum, nums ) =
-                        helperLoop loc
-                            (10 - rc)
-                            inc
-                            board
-                            guesses
-                            ( 0, 0, [] )
+                run =
+                    possibilities leftsum zeroes_ nums_
 
-                    ( zeroes_, sum_, nums_ ) =
-                        helperLoop ( row + ri, col + ci )
-                            rc
-                            neginc
-                            board
-                            guesses
-                            ( zeroes, sum, nums )
+                runlen =
+                    List.length run
 
-                    leftsum =
-                        sum_ - (List.foldr (+) 0 nums_)
+                maxRunlen =
+                    maxHelperLen // (zeroes_ + 1)
 
-                    run =
-                        possibilities leftsum zeroes_ nums_
+                run_ =
+                    List.take maxRunlen run
+            in
+            String.append
+                (List.map (\x -> List.map toString x) run_
+                    |> List.map String.concat
+                    |> String.join " "
+                )
+            <|
+                if runlen > maxRunlen then
+                    "..."
 
-                    runlen =
-                        List.length run
-
-                    maxRunlen =
-                        maxHelperLen // (zeroes_ + 1)
-
-                    run_ =
-                        List.take maxRunlen run
-                in
-                    String.append
-                        (List.map (\x -> List.map toString x) run_
-                            |> List.map String.concat
-                            |> String.join " "
-                        )
-                    <|
-                        if runlen > maxRunlen then
-                            "..."
-                        else
-                            ""
+                else
+                    ""
 
 
 rowHelperText : Model -> String
@@ -711,12 +763,14 @@ renderPossibilities model =
     if model.gameState.flags.showPossibilities then
         div [ class Helper ]
             [ div [ class HelperLine ]
-                  [ text <| "row: " ++ (rowHelperText model) ]
+                [ text <| "row: " ++ rowHelperText model ]
             , div [ class HelperLine ]
-                  [ text <| "col: " ++ (colHelperText model) ]
+                [ text <| "col: " ++ colHelperText model ]
             ]
+
     else
         br
+
 
 render : Model -> Html Msg
 render model =
@@ -726,19 +780,25 @@ render model =
         , renderPossibilities model
         ]
 
+
 renderHelp : String -> Model -> Window.Size -> Html Msg
 renderHelp name model windowSize =
-    let m = { model | windowSize = Just windowSize }
+    let
+        m =
+            { model | windowSize = Just windowSize }
     in
-        div []
-            [ Styles.Board.style
-            , renderSvgBoard name m
-            , case model.gameState.selection of
-                  Nothing ->
-                      br
-                  Just _ ->
-                      renderPossibilities m
-            ]
+    div []
+        [ Styles.Board.style
+        , renderSvgBoard name m
+        , case model.gameState.selection of
+            Nothing ->
+                br
+
+            Just _ ->
+                renderPossibilities m
+        ]
+
+
 
 --
 -- The push-button keypad
@@ -748,34 +808,52 @@ renderHelp name model windowSize =
 keypadTextClass : String -> GameState -> String
 keypadTextClass label state =
     let
-        isDigit = String.contains label "123456789"
+        isDigit =
+            String.contains label "123456789"
+
         highlight =
             if isDigit || (label == "#") then
                 state.flags.isHintInput
+
             else
                 False
-        exploratory = if highlight then
-                          False
-                      else if isDigit then
-                          state.exploreState /= Nothing
-                      else
-                          False
-        firstGuess = state.flags.firstGuess
-        digit = if not isDigit || (firstGuess == 0) then
-                    0
-                else
-                    case String.toInt label of
-                        Ok d -> d
-                        _ -> 0
+
+        exploratory =
+            if highlight then
+                False
+
+            else if isDigit then
+                state.exploreState /= Nothing
+
+            else
+                False
+
+        firstGuess =
+            state.flags.firstGuess
+
+        digit =
+            if not isDigit || (firstGuess == 0) then
+                0
+
+            else
+                case String.toInt label of
+                    Ok d ->
+                        d
+
+                    _ ->
+                        0
+
         color =
             if highlight then
                 "SvgKeypadHighlightColor"
+
             else if exploratory || (firstGuess /= 0 && firstGuess == digit) then
                 "SvgKeypadExploratoryColor"
+
             else
                 "SvgKeypadColor"
     in
-        "SvgKeypadText " ++ color
+    "SvgKeypadText " ++ color
 
 
 keycodeCell : Int -> String -> String -> String -> Int -> String -> GameState -> Html Msg
@@ -784,8 +862,10 @@ keycodeCell keycode label cx cy cellSize fontsize state =
         msg =
             if label == "*" then
                 onClick OpenStarMenu
+
             else if label == "#" then
                 onClick ToggleHintInput
+
             else
                 onClickWithInt (DownKey True) keycode
 
@@ -798,28 +878,28 @@ keycodeCell keycode label cx cy cellSize fontsize state =
         fy =
             13 * cellSize // 16
     in
-        g [ transform <| "translate(" ++ cx ++ "," ++ cy ++ ")" ]
-            [ rect
-                [ svgClass "SvgKeypad"
-                , width cs
-                , height cs
-                ]
-                []
-            , Svg.text_
-                [ svgClass <| keypadTextClass label state
-                , x <| toString fx
-                , y <| toString fy
-                , fontSize fontsize
-                ]
-                [ Svg.text label ]
-            , rect
-                [ svgClass "SvgClick"
-                , width cs
-                , height cs
-                , msg
-                ]
-                []
+    g [ transform <| "translate(" ++ cx ++ "," ++ cy ++ ")" ]
+        [ rect
+            [ svgClass "SvgKeypad"
+            , width cs
+            , height cs
             ]
+            []
+        , Svg.text_
+            [ svgClass <| keypadTextClass label state
+            , x <| toString fx
+            , y <| toString fy
+            , fontSize fontsize
+            ]
+            [ Svg.text label ]
+        , rect
+            [ svgClass "SvgClick"
+            , width cs
+            , height cs
+            , msg
+            ]
+            []
+        ]
 
 
 keypadAlist : List ( Char, Int )
@@ -838,17 +918,18 @@ keypadKeycode : Char -> Int
 keypadKeycode char =
     if char >= '0' && char <= '9' then
         Char.toCode char
+
     else
         let
             pair =
-                LE.find (\x -> (Tuple.first x) == char) keypadAlist
+                LE.find (\x -> Tuple.first x == char) keypadAlist
         in
-            case pair of
-                Nothing ->
-                    0
+        case pair of
+            Nothing ->
+                0
 
-                Just ( _, res ) ->
-                    res
+            Just ( _, res ) ->
+                res
 
 
 renderKeypadCell : Char -> String -> Int -> Int -> String -> GameState -> Svg Msg
@@ -860,14 +941,14 @@ renderKeypadCell char cy col cellSize fontSize state =
         cs =
             toString cellSize
     in
-        keycodeCell
-            (keypadKeycode char)
-            (String.fromList [ char ])
-            cx
-            cy
-            cellSize
-            fontSize
-            state
+    keycodeCell
+        (keypadKeycode char)
+        (String.fromList [ char ])
+        cx
+        cy
+        cellSize
+        fontSize
+        state
 
 
 renderKeypadRow : Int -> String -> Int -> String -> GameState -> Svg Msg
@@ -882,13 +963,13 @@ renderKeypadRow row string cellSize fontSize state =
         chars =
             String.toList string
     in
-        g [] <|
-            List.map2
-                (\char col ->
-                    renderKeypadCell char cy col cellSize fontSize state
-                )
-                chars
-                (List.range 0 <| List.length chars)
+    g [] <|
+        List.map2
+            (\char col ->
+                renderKeypadCell char cy col cellSize fontSize state
+            )
+            chars
+            (List.range 0 <| List.length chars)
 
 
 
@@ -911,25 +992,25 @@ renderKeypad model =
             toString (cellSize * 4 + 5)
 
         fontSize =
-            (toString boardSizes.keypadFontSize) ++ "px"
+            toString boardSizes.keypadFontSize ++ "px"
 
         state =
             model.gameState
     in
-        div []
-            [ Styles.Board.style
-            , svg [ width keypadSize, height keypadSize ]
-                [ rect
-                    [ svgClass "SvgCell SvgCellColor"
-                    , x "0"
-                    , y "0"
-                    , width keypadSize
-                    , height keypadSize
-                    ]
-                    []
-                , renderKeypadRow 0 "123*" cellSize fontSize state
-                , renderKeypadRow 1 "456#" cellSize fontSize state
-                , renderKeypadRow 2 "78^ " cellSize fontSize state
-                , renderKeypadRow 3 "9<v>" cellSize fontSize state
+    div []
+        [ Styles.Board.style
+        , svg [ width keypadSize, height keypadSize ]
+            [ rect
+                [ svgClass "SvgCell SvgCellColor"
+                , x "0"
+                , y "0"
+                , width keypadSize
+                , height keypadSize
                 ]
+                []
+            , renderKeypadRow 0 "123*" cellSize fontSize state
+            , renderKeypadRow 1 "456#" cellSize fontSize state
+            , renderKeypadRow 2 "78^ " cellSize fontSize state
+            , renderKeypadRow 3 "9<v>" cellSize fontSize state
             ]
+        ]

@@ -9,29 +9,47 @@
 --
 ----------------------------------------------------------------------
 
-module SharedTypes exposing ( SavedModel, ModelTimes, Model
-                            , emptyModelTimes, emptyGameStateTimes
-                            , modelToSavedModel, savedModelToModel
-                            , BoardSizes
-                            , Msg, Msg(..)
-                            , Selection, GameStateTimes, GameState, ExploreState
-                            , Flags, Page(..)
-                            , IntBoard, BClassMatrix, BClassBoard
-                            , Labels, LabelsBoard, Hints, HintsBoard
-                            , HelpModelDict, MaybeHelpModelDict(..)
-                            , IapProduct, IapPurchase, IapState
-                            , Platform(..)
-                            )
 
-import SimpleMatrix exposing (Matrix)
-import Styles.Board exposing (BClass)
+module SharedTypes exposing
+    ( BClassBoard
+    , BClassMatrix
+    , BoardSizes
+    , ExploreState
+    , Flags
+    , GameState
+    , GameStateTimes
+    , HelpModelDict
+    , Hints
+    , HintsBoard
+    , IapProduct
+    , IapPurchase
+    , IapState
+    , IntBoard
+    , Labels
+    , LabelsBoard
+    , MaybeHelpModelDict(..)
+    , Model
+    , ModelTimes
+    , Msg(..)
+    , Page(..)
+    , Platform(..)
+    , SavedModel
+    , Selection
+    , emptyGameStateTimes
+    , emptyModelTimes
+    , modelToSavedModel
+    , savedModelToModel
+    )
+
 import Board exposing (Board)
+import Browser.Dom as Dom exposing (Viewport)
+import Dict exposing (Dict)
 import PuzzleDB
 import Random
+import SimpleMatrix exposing (Matrix)
+import Styles.Board exposing (BClass)
 import Time exposing (Time, second)
-import Keyboard
-import Window
-import Dict exposing (Dict)
+
 
 type Page
     = MainPage
@@ -41,22 +59,27 @@ type Page
     | IapPage
     | AdvertisePage
 
+
 type Platform
     = WebPlatform
     | IosPlatform
     | AndroidPlatform
 
+
+
 -- This gets saved in the browser database.
+
 
 type alias SavedModel =
     { kind : Int
     , index : Int
-    , indices : List (Int, Int)
+    , indices : List ( Int, Int )
     , gencount : Int
     , gameState : GameState
     , page : Page
     , timestamp : Time
     }
+
 
 type alias BoardSizes =
     { boardSize : Int
@@ -68,6 +91,7 @@ type alias BoardSizes =
     , keypadFontSize : Int
     }
 
+
 type alias ModelTimes =
     { timestamp : Time
     , lastPersist : Maybe Time
@@ -75,21 +99,24 @@ type alias ModelTimes =
     , unlockHash : String
     }
 
+
 emptyModelTimes : ModelTimes
 emptyModelTimes =
     ModelTimes 0 Nothing "161231" "316966da"
+
 
 type alias Model =
     { -- on disk. Copied to and from SavedModel instance.
       kind : Int
     , index : Int
-    , indices : List (Int, Int)
+    , indices : List ( Int, Int )
     , gencount : Int
     , page : Page
     , gameState : GameState
+
     -- in-memory only
     , times : ModelTimes
-    , windowSize : Maybe Window.Size
+    , windowSize : Maybe ( Int, Int )
     , boardSizes : Maybe BoardSizes
     , seed : Maybe Random.Seed
     , awaitingCommand : Maybe String
@@ -98,11 +125,12 @@ type alias Model =
     , showStarMenu : Bool
     , helpModelDict : MaybeHelpModelDict
     , platform : Platform
-    , properties : Dict String String         --raw properties at startup
+    , properties : Dict String String --raw properties at startup
     , deviceReady : Bool
     , iapState : Maybe (Dict String IapState) --from storage
-    , iapProducts: Maybe (Maybe (List IapProduct), Maybe String) --from iap call
+    , iapProducts : Maybe ( Maybe (List IapProduct), Maybe String ) --from iap call
     }
+
 
 modelToSavedModel : Model -> SavedModel
 modelToSavedModel model =
@@ -114,6 +142,7 @@ modelToSavedModel model =
     , page = model.page
     , timestamp = model.times.timestamp
     }
+
 
 savedModelToModel : SavedModel -> Model
 savedModelToModel savedModel =
@@ -139,6 +168,7 @@ savedModelToModel savedModel =
     , iapProducts = Nothing
     }
 
+
 type Msg
     = Generate Int
     | Restart
@@ -146,9 +176,9 @@ type Msg
     | Tick Time
     | Seed Time
     | ClickCell String
-    | PressKey Keyboard.KeyCode
-    | DownKey Bool Keyboard.KeyCode
-    | UpKey Keyboard.KeyCode
+    | PressKey String
+    | DownKey Bool String
+    | UpKey String
     | ToggleHintInput
     | ToggleShowPossibilities
     | ToggleKeyClick
@@ -161,43 +191,52 @@ type Msg
     | AnswerConfirmed String Bool
     | MultiAnswerConfirmed String Int
     | PromptAnswerConfirmed String String
-    | IapProducts (Maybe (List IapProduct), Maybe String)
+    | IapProducts ( Maybe (List IapProduct), Maybe String )
     | ReloadIapProducts
     | RestoreIapPurchases
-    | IapPurchases (Maybe (List IapPurchase), Maybe String)
+    | IapPurchases ( Maybe (List IapPurchase), Maybe String )
     | NewBoardIndex String
-    | WindowSize Window.Size
+    | WindowSize Int Int
     | ShowPage Page
     | GetBoardIndex
     | DeviceReady String
     | IapBuy String
-    | IapBuyResponse (String, Maybe String, Maybe String)
+    | IapBuyResponse ( String, Maybe String, Maybe String )
     | InvokeSpecHashReceiver (String -> String -> Model -> Model) String String
     | Nop
+
 
 type alias IntBoard =
     Board Int
 
+
 type alias Labels =
     ( Int, Int )
+
 
 type alias LabelsBoard =
     Board Labels
 
+
 type alias Hints =
     List Int
+
 
 type alias HintsBoard =
     Board Hints
 
+
 type alias Selection =
     ( Int, Int )
+
 
 type alias BClassMatrix =
     Matrix (Maybe BClass)
 
+
 type alias BClassBoard =
     Board (Maybe BClass)
+
 
 type alias Flags =
     { isHintInput : Bool
@@ -206,14 +245,17 @@ type alias Flags =
     , keyClickSound : Bool
     }
 
+
 type alias GameStateTimes =
-    { timestamp: Time
-    , elapsed: Time
+    { timestamp : Time
+    , elapsed : Time
     }
+
 
 emptyGameStateTimes : GameStateTimes
 emptyGameStateTimes =
     GameStateTimes 0 0
+
 
 type alias ExploreState =
     { savedBoard : IntBoard
@@ -223,6 +265,7 @@ type alias ExploreState =
     , firstGuessSelection : Maybe Selection
     }
 
+
 type alias GameState =
     { board : IntBoard
     , labels : LabelsBoard
@@ -231,15 +274,18 @@ type alias GameState =
     , flags : Flags
     , selection : Maybe Selection
     , exploreState : Maybe ExploreState
-    , times: GameStateTimes
+    , times : GameStateTimes
     }
+
 
 type alias HelpModelDict =
     Dict String Model
 
+
 type MaybeHelpModelDict
     = Nicht
     | Javole HelpModelDict
+
 
 type alias IapProduct =
     { productId : String
@@ -248,15 +294,20 @@ type alias IapProduct =
     , price : String
     }
 
+
 type alias IapPurchase =
     { productId : String
     , transactionId : String
     , date : Time
     }
 
+
+
 -- A list of these is stored as JSON on the "kakuro-iap" property.
 -- There is currently only one, with a productId of "puzzles2".
 -- See EncodeDecode.
+
+
 type alias IapState =
     { product : IapProduct
     , purchase : IapPurchase

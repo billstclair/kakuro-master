@@ -9,23 +9,40 @@
 --
 ----------------------------------------------------------------------
 
+
 module Entities exposing (..)
 
-import String
 import Char
+import String
+
 
 stringFromCode : Int -> String
 stringFromCode code =
-    String.fromList [ (Char.fromCode code) ]
+    String.fromList [ Char.fromCode code ]
+
 
 nbsp : String
 nbsp =
-    stringFromCode 160  -- \u00A0
+    stringFromCode 160
+
+
+
+-- \u00A0
+
 
 copyright : String
 copyright =
-    stringFromCode 169  -- \u00A9
+    stringFromCode 169
+
+
+
+-- \u00A9
+
 
 checkmark : String
 checkmark =
-    stringFromCode 10004 -- \u2714
+    stringFromCode 10004
+
+
+
+-- \u2714
