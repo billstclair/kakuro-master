@@ -19,7 +19,6 @@ import Browser.Dom as Dom exposing (Viewport)
 import Browser.Events
 import Char
 import Date
-import Date.Extra as DE
 import Debug exposing (log)
 import DebuggingRender
 import Dict exposing (Dict)
@@ -1233,13 +1232,13 @@ updateUnlockDateHash unlockDate hash model =
     }
 
 
-convertTimeToUnlockDate : Time -> String
-convertTimeToUnlockDate time =
+convertTimeToUnlockDate : Posix -> String
+convertTimeToUnlockDate posix =
     let
         date =
-            Date.fromTime time
+            Date.fromPosix Time.utc posix
     in
-    DE.toFormattedString "yyMMdd" date
+    Date.format "yyMMdd" date
 
 
 timeTick : Time -> Model -> ( Model, Cmd Msg )
@@ -2783,7 +2782,7 @@ iapProductRow product purchase =
                     -- "z" doesn't work here for time zone
                     <|
                         DE.toFormattedString "d MMM y, h:mm a" <|
-                            Date.fromTime p.date
+                            Date.fromPosix p.date
             ]
         ]
     , tr []

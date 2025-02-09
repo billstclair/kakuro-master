@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Compile the application into site/elm.js
+
+elm make src/Kakuro.elm --output site/elm.js
