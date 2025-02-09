@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Compile the application into site/index.html
+# Compile the application into site/elm.js
 
-elm make src/Kakuro.elm --output site/Kakuro.js
+bin/build
 
 # For the Cordova app wrapper
 rsync -av site/kakuro.js cordova/www/

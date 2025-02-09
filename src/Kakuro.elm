@@ -2,7 +2,7 @@
 --
 -- Kakuro.elm
 -- kakuro-dojo.com main screen
--- Copyright (c) 2016-2022 Bill St. Clair <billstclair@gmail.com>
+-- Copyright (c) 2016-2025 Bill St. Clair <billstclair@gmail.com>
 -- Some rights reserved.
 -- Distributed under the MIT License
 -- See LICENSE.txt
@@ -2996,7 +2996,7 @@ footerDiv model =
         , a [ href "https://kakuro-dojo.com/" ]
             [ text "kakuro-dojo.com" ]
         , br
-        , text (copyright ++ " 2016-2017 ")
+        , text (copyright ++ " 2016-2025 ")
         , a [ href "https://GibGoyGames.com/" ]
             [ text "Gib Goy Games" ]
         , space
