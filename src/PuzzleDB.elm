@@ -26,7 +26,6 @@ import Char
 import List.Extra as LE
 import Puzzles
 import String
-import String.Extra as SE
 
 
 digits : List Char
@@ -67,16 +66,16 @@ fillBoardFromSpec row kind specTail board =
 
 boardFromSpec : Int -> String -> Board Int
 boardFromSpec kind spec =
-    fillBoardFromSpec 0 kind (SE.replace "/" "" spec) <|
+    fillBoardFromSpec 0 kind (String.replace "/" "" spec) <|
         Board.makeWithSpec kind kind 0 (Just spec)
 
 
-comparableForSpec : ( Int, Int, Int, Int, String ) -> ( Int, Int, Int, Int )
-comparableForSpec ( k, v, b, n, s ) =
-    ( k, v, b, n )
+comparableForSpec : ( Int, ( Int, Int, Int ), String ) -> ( Int, ( Int, Int, Int ) )
+comparableForSpec ( k, ( v, b, n ), s ) =
+    ( k, ( v, b, n ) )
 
 
-sortSpecs : List ( Int, Int, Int, Int, String ) -> List ( Int, Int, Int, Int, String )
+sortSpecs : List ( Int, ( Int, Int, Int ), String ) -> List ( Int, ( Int, Int, Int ), String )
 sortSpecs specs =
     List.sortBy comparableForSpec specs
 
@@ -95,7 +94,7 @@ setBoardIndex index board =
     { board | index = Just index }
 
 
-segregatePuzzles : List ( Int, Int, Int, Int, String ) -> List ( Int, List (Board Int) ) -> List ( Int, List (Board Int) )
+segregatePuzzles : List ( Int, ( Int, Int, Int ), String ) -> List ( Int, List (Board Int) ) -> List ( Int, List (Board Int) )
 segregatePuzzles specs res =
     case specs of
         [] ->
@@ -114,7 +113,7 @@ segregatePuzzles specs res =
             in
             LE.zip kinds tupless
 
-        ( k, v, b, n, s ) :: tail ->
+        ( k, ( v, b, n ), s ) :: tail ->
             let
                 board =
                     boardFromSpec k s
@@ -131,7 +130,7 @@ segregatePuzzles specs res =
                             ( k, [ board ] ) :: res
 
                         Just ( k3, boards ) ->
-                            LE.replaceIf pred ( k, board :: boards ) res
+                            LE.setIf pred ( k, board :: boards ) res
             in
             segregatePuzzles tail newres
 

@@ -168,8 +168,8 @@ getRow row board =
         Nothing ->
             makeRow board.cols board.defaultValue
 
-        Just row ->
-            row
+        Just r ->
+            r
 
 
 {-| Set row in board to rowArray. Do nothing if row is out of range.

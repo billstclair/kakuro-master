@@ -48,7 +48,7 @@ import PuzzleDB
 import Random
 import SimpleMatrix exposing (Matrix)
 import Styles.Board exposing (BClass)
-import Time exposing (Time, second)
+import Time exposing (Posix)
 
 
 type Page
@@ -77,7 +77,7 @@ type alias SavedModel =
     , gencount : Int
     , gameState : GameState
     , page : Page
-    , timestamp : Time
+    , timestamp : Int
     }
 
 
@@ -93,8 +93,8 @@ type alias BoardSizes =
 
 
 type alias ModelTimes =
-    { timestamp : Time
-    , lastPersist : Maybe Time
+    { timestamp : Int
+    , lastPersist : Maybe Int
     , unlockDate : String
     , unlockHash : String
     }
@@ -173,8 +173,8 @@ type Msg
     = Generate Int
     | Restart
     | ChangeKind Int
-    | Tick Time
-    | Seed Time
+    | Tick Posix
+    | Seed Posix
     | ClickCell String
     | PressKey String
     | DownKey Bool String
@@ -247,8 +247,8 @@ type alias Flags =
 
 
 type alias GameStateTimes =
-    { timestamp : Time
-    , elapsed : Time
+    { timestamp : Int
+    , elapsed : Int
     }
 
 
@@ -298,7 +298,7 @@ type alias IapProduct =
 type alias IapPurchase =
     { productId : String
     , transactionId : String
-    , date : Time
+    , date : Int
     }
 
 

@@ -129,7 +129,7 @@ stylesheet =
 
 
 style =
-    Css.style [ Html.Attributes.scoped True ] stylesheet
+    Css.style [ Html.Attributes.style "scoped" "true" ] stylesheet
 
 
 

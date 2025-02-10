@@ -68,7 +68,6 @@ import Svg.Attributes
         , y1
         , y2
         )
-import Window
 
 
 
@@ -781,7 +780,7 @@ render model =
         ]
 
 
-renderHelp : String -> Model -> Window.Size -> Html Msg
+renderHelp : String -> Model -> ( Int, Int ) -> Html Msg
 renderHelp name model windowSize =
     let
         m =

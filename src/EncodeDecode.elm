@@ -42,7 +42,6 @@ import SharedTypes
         , SavedModel
         , Selection
         )
-import Time exposing (Time)
 import VersionedJson
     exposing
         ( ConverterDict
@@ -336,10 +335,10 @@ twoListToPairDecoder : List Int -> Decoder ( Int, Int )
 twoListToPairDecoder list =
     case list of
         [ a, b ] ->
-            JD.map2 (\a b -> ( a, b )) (JD.succeed a) (JD.succeed b)
+            JD.map2 (\aa bb -> ( aa, bb )) (JD.succeed a) (JD.succeed b)
 
         _ ->
-            JD.fail <| "Malformed integer pair: " ++ toString list
+            JD.fail <| "Malformed integer pair: " ++ List.map String.fromInt list
 
 
 indicesDecoder : Decoder (List ( Int, Int ))
@@ -388,9 +387,9 @@ decodeGameState0 json =
             if gameState.version /= version0 then
                 Err <|
                     "GameState version mismatch. Expecting: "
-                        ++ toString version0
+                        ++ String.fromInt version0
                         ++ ", was: "
-                        ++ toString gameState.version
+                        ++ String.fromInt gameState.version
 
             else
                 Ok gameState
@@ -402,7 +401,7 @@ type alias SavedModel0 =
     , index : Int
     , gencount : Int
     , gameState : GameState0
-    , time : Time
+    , time : Int
     }
 
 
@@ -458,9 +457,9 @@ decodeSavedModel0 json =
             if model.version /= version0 then
                 Err <|
                     "SavedModel version mismatch. Expecting: "
-                        ++ toString version0
+                        ++ String.fromInt version0
                         ++ ", was: "
-                        ++ toString model.version
+                        ++ String.fromInt model.version
 
             else
                 Ok model
@@ -489,7 +488,7 @@ type alias SavedModel1 =
     , index : Int
     , gencount : Int
     , gameState : GameState1
-    , time : Time
+    , time : Int
     }
 
 
@@ -554,8 +553,8 @@ savedModel0To1 savedModel =
 
 
 type alias GameStateTimes2 =
-    { timestamp : Time
-    , elapsed : Time
+    { timestamp : Int
+    , elapsed : Int
     }
 
 
@@ -588,7 +587,7 @@ type alias SavedModel2 =
     , index : Int
     , gencount : Int
     , gameState : GameState2
-    , timestamp : Time
+    , timestamp : Int
     }
 
 
@@ -598,7 +597,7 @@ type alias SavedModel3 =
     , gencount : Int
     , gameState : GameState2
     , page : Page
-    , timestamp : Time
+    , timestamp : Int
     }
 
 
@@ -609,7 +608,7 @@ type alias SavedModel4 =
     , gencount : Int
     , gameState : GameState2
     , page : Page
-    , timestamp : Time
+    , timestamp : Int
     }
 
 
@@ -620,7 +619,7 @@ type alias SavedModel5 =
     , gencount : Int
     , gameState : GameState3
     , page : Page
-    , timestamp : Time
+    , timestamp : Int
     }
 
 
