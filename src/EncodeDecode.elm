@@ -79,10 +79,7 @@ xBoardEncoder xEncoder board =
                     JE.int index
           )
         , ( "array"
-          , JE.array <|
-                Array.map
-                    (\x -> JE.array <| Array.map xEncoder x)
-                    board.array
+          , JE.array (\x -> JE.array xEncoder x) board.array
           )
         ]
 
@@ -98,7 +95,7 @@ labelsEncoder labels =
         ( x, y ) =
             labels
     in
-    JE.list [ JE.int x, JE.int y ]
+    JE.list JE.int [ x, y ]
 
 
 labelsBoardEncoder : LabelsBoard -> Value
@@ -108,7 +105,7 @@ labelsBoardEncoder board =
 
 hintsEncoder : Hints -> Value
 hintsEncoder hints =
-    JE.list <| List.map JE.int hints
+    JE.list JE.int hints
 
 
 hintsBoardEncoder : HintsBoard -> Value
@@ -133,7 +130,7 @@ selectionEncoder maybeSelection =
             JE.null
 
         Just ( x, y ) ->
-            JE.list [ JE.int x, JE.int y ]
+            JE.list JE.int [ x, y ]
 
 
 exploreStateEncoder : Maybe ExploreState -> Value
@@ -155,8 +152,8 @@ exploreStateEncoder maybeExploreState =
 gameStateTimesEncoder : GameStateTimes2 -> Value
 gameStateTimesEncoder times =
     JE.object
-        [ ( "timestamp", JE.float times.timestamp )
-        , ( "elapsed", JE.float times.elapsed )
+        [ ( "timestamp", JE.int times.timestamp )
+        , ( "elapsed", JE.int times.elapsed )
         ]
 
 
@@ -180,12 +177,12 @@ pairEncoder pair =
         ( x, y ) =
             pair
     in
-    JE.list [ JE.int x, JE.int y ]
+    JE.list JE.int [ x, y ]
 
 
 indicesEncoder : List ( Int, Int ) -> Value
 indicesEncoder indices =
-    JE.list <| List.map pairEncoder indices
+    JE.list pairEncoder indices
 
 
 savedModelEncoder : SavedModel5 -> Value
@@ -197,7 +194,7 @@ savedModelEncoder model =
         , ( "gencount", JE.int model.gencount )
         , ( "page", pageEncoder model.page )
         , ( "gameState", gameStateEncoder model.gameState )
-        , ( "timestamp", JE.float model.timestamp )
+        , ( "timestamp", JE.int model.timestamp )
         ]
 
 
@@ -338,7 +335,12 @@ twoListToPairDecoder list =
             JD.map2 (\aa bb -> ( aa, bb )) (JD.succeed a) (JD.succeed b)
 
         _ ->
-            JD.fail <| "Malformed integer pair: " ++ List.map String.fromInt list
+            JD.fail <|
+                "Malformed integer pair: "
+                    ++ (List.map String.fromInt list
+                            |> List.intersperse ", "
+                            |> String.concat
+                       )
 
 
 indicesDecoder : Decoder (List ( Int, Int ))
@@ -627,8 +629,8 @@ gameStateTimes2Decoder : Decoder GameStateTimes2
 gameStateTimes2Decoder =
     JD.map2
         GameStateTimes2
-        (field "timestamp" JD.float)
-        (field "elapsed" JD.float)
+        (field "timestamp" JD.int)
+        (field "elapsed" JD.int)
 
 
 gameState2Decoder : Decoder GameState2
@@ -773,7 +775,7 @@ savedModel2Decoder =
         (field "index" JD.int)
         (field "gencount" JD.int)
         (field "gameState" gameState2Decoder)
-        (field "timestamp" JD.float)
+        (field "timestamp" JD.int)
 
 
 decodeSavedModel2 : String -> Result String SavedModel2
@@ -805,7 +807,7 @@ savedModel3Decoder =
         (field "gencount" JD.int)
         (field "gameState" gameState2Decoder)
         (field "page" pageDecoder)
-        (field "timestamp" JD.float)
+        (field "timestamp" JD.int)
 
 
 decodeSavedModel3 : String -> Result String SavedModel3
@@ -844,7 +846,7 @@ savedModel4Decoder =
         (field "gencount" JD.int)
         (field "gameState" gameState2Decoder)
         (field "page" pageDecoder)
-        (field "timestamp" JD.float)
+        (field "timestamp" JD.int)
 
 
 decodeSavedModel4 : String -> Result String SavedModel4
@@ -889,7 +891,7 @@ savedModel5Decoder =
         (field "gencount" JD.int)
         (field "gameState" gameState3Decoder)
         (field "page" pageDecoder)
-        (field "timestamp" JD.float)
+        (field "timestamp" JD.int)
 
 
 decodeSavedModel5 : String -> Result String SavedModel5
@@ -1067,7 +1069,7 @@ iapPurchaseEncoder purchase =
     JE.object
         [ ( "productId", JE.string purchase.productId )
         , ( "transactionId", JE.string purchase.transactionId )
-        , ( "date", JE.float purchase.date )
+        , ( "date", JE.int purchase.date )
         ]
 
 
@@ -1081,7 +1083,7 @@ iapStateEncoder state =
 
 iapStatesEncoder : List IapState -> Value
 iapStatesEncoder states =
-    JE.list <| List.map iapStateEncoder states
+    JE.list iapStateEncoder states
 
 
 
@@ -1102,7 +1104,7 @@ iapPurchaseDecoder =
     JD.map3 IapPurchase
         (JD.field "productId" JD.string)
         (JD.field "transactionId" JD.string)
-        (JD.field "date" JD.float)
+        (JD.field "date" JD.int)
 
 
 iapStateDecoder : Decoder IapState
