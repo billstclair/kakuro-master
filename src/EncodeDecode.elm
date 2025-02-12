@@ -12,13 +12,10 @@
 
 module EncodeDecode exposing
     ( decodeGameState
-    , decodeIapStates
     , decodeSavedModel
     , encodeGameState
-    , encodeIapStates
     , encodeSavedModel
     , gameStateDecoder
-    , iapStatesDecoder
     , savedModelDecoder
     )
 
@@ -33,12 +30,8 @@ import SharedTypes
         ( ExploreState
         , Flags
         , GameState
-        , GameStateTimes
         , Hints
         , HintsBoard
-        , IapProduct
-        , IapPurchase
-        , IapState
         , IntBoard
         , Labels
         , LabelsBoard
@@ -175,12 +168,6 @@ encodePage page =
 
         CreditsPage ->
             JE.string "credits"
-
-        IapPage ->
-            JE.string "purchases"
-
-        AdvertisePage ->
-            JE.string "advertise"
 
 
 
@@ -358,12 +345,6 @@ pageHelp page =
         "credits" ->
             JD.succeed CreditsPage
 
-        "purchases" ->
-            JD.succeed IapPage
-
-        "advertise" ->
-            JD.succeed AdvertisePage
-
         _ ->
             JD.fail <| "Bad page name: " ++ page
 
@@ -390,14 +371,6 @@ exploreStateDecoder =
 --
 
 
-encodeGameStateTimes : GameStateTimes -> Value
-encodeGameStateTimes times =
-    JE.object
-        [ ( "timestamp", JE.int times.timestamp )
-        , ( "elapsed", JE.int times.elapsed )
-        ]
-
-
 encodeGameState : GameState -> Value
 encodeGameState gameState =
     JE.object
@@ -408,7 +381,6 @@ encodeGameState gameState =
         , ( "flags", encodeFlags gameState.flags )
         , ( "selection", encodeSelection gameState.selection )
         , ( "exploreState", encodeExploreState gameState.exploreState )
-        , ( "times", encodeGameStateTimes gameState.times )
         ]
 
 
@@ -421,44 +393,7 @@ encodeSavedModel model =
         , ( "gencount", JE.int model.gencount )
         , ( "gameState", encodeGameState model.gameState )
         , ( "page", encodePage model.page )
-        , ( "timestamp", JE.int model.timestamp )
         ]
-
-
-type alias GameStateOld =
-    { timestamp : Float
-    , elapsed : Float
-    }
-
-
-gameStateTimesDecoderOld : Decoder GameStateTimes
-gameStateTimesDecoderOld =
-    (JD.succeed GameStateOld
-        |> required "timestamp" JD.float
-        |> required "elapsed" JD.float
-    )
-        |> JD.andThen
-            (\{ timestamp, elapsed } ->
-                JD.succeed
-                    { timestamp = round timestamp
-                    , elapsed = round elapsed
-                    }
-            )
-
-
-gameStateTimesDecoder : Decoder GameStateTimes
-gameStateTimesDecoder =
-    JD.oneOf
-        [ gameStateTimesDecoder2
-        , maybeVersionedDecoder gameStateTimesDecoderOld
-        ]
-
-
-gameStateTimesDecoder2 : Decoder GameStateTimes
-gameStateTimesDecoder2 =
-    JD.succeed GameStateTimes
-        |> required "timestamp" JD.int
-        |> required "elapsed" JD.int
 
 
 decodeGameState : String -> Result JD.Error GameState
@@ -481,7 +416,6 @@ gameStateDecoder2 =
         |> required "flags" flagsDecoder
         |> required "selection" maybeSelectionDecoder
         |> required "exploreState" maybeExploreStateDecoder
-        |> required "times" gameStateTimesDecoder
 
 
 decodeSavedModel : String -> Result JD.Error SavedModel
@@ -511,81 +445,3 @@ savedModelDecoder2 =
         |> required "gencount" JD.int
         |> required "gameState" gameStateDecoder
         |> required "page" pageDecoder
-        |> required "timestamp" floatToIntDecoder
-
-
-
----
---- In-App Purchase state
----
--- Encoders
-
-
-encodeIapProduct : IapProduct -> Value
-encodeIapProduct product =
-    JE.object
-        [ ( "productId", JE.string product.productId )
-        , ( "title", JE.string product.title )
-        , ( "description", JE.string product.description )
-        , ( "price", JE.string product.price )
-        ]
-
-
-encodeIapPurchase : IapPurchase -> Value
-encodeIapPurchase purchase =
-    JE.object
-        [ ( "productId", JE.string purchase.productId )
-        , ( "transactionId", JE.string purchase.transactionId )
-        , ( "date", JE.int purchase.date )
-        ]
-
-
-encodeIapState : IapState -> Value
-encodeIapState state =
-    JE.object
-        [ ( "product", encodeIapProduct state.product )
-        , ( "purchase", encodeIapPurchase state.purchase )
-        ]
-
-
-encodeIapStates : List IapState -> Value
-encodeIapStates states =
-    JE.list encodeIapState states
-
-
-
--- decoders
-
-
-iapProductDecoder : Decoder IapProduct
-iapProductDecoder =
-    JD.succeed IapProduct
-        |> required "productId" JD.string
-        |> required "title" JD.string
-        |> required "description" JD.string
-        |> required "price" JD.string
-
-
-iapPurchaseDecoder : Decoder IapPurchase
-iapPurchaseDecoder =
-    JD.succeed IapPurchase
-        |> required "productId" JD.string
-        |> required "transactionId" JD.string
-        |> required "date" JD.int
-
-
-iapStateDecoder : Decoder IapState
-iapStateDecoder =
-    JD.succeed IapState
-        |> required "product" iapProductDecoder
-        |> required "purchase" iapPurchaseDecoder
-
-
-decodeIapStates : String -> Result JD.Error (List IapState)
-decodeIapStates json =
-    JD.decodeString iapStatesDecoder json
-
-
-iapStatesDecoder : Decoder (List IapState)
-iapStatesDecoder =
-    JD.list iapStateDecoder

@@ -12,10 +12,9 @@
 
    TODO:
 
-   Rip out the purchase stuff.
+   What's with the saveGame & requestGame ports? Are they needed.
 
-   Don't save timestamps, so we're not constantly hitting the disk.
-
+   Clearing all games should leave LocalStorage empty.
 -}
 
 
@@ -35,10 +34,8 @@ import Dict exposing (Dict)
 import EncodeDecode
     exposing
         ( decodeGameState
-        , decodeIapStates
         , decodeSavedModel
         , encodeGameState
-        , encodeIapStates
         , encodeSavedModel
         )
 import Entities exposing (copyright, nbsp)
@@ -101,9 +98,6 @@ import SharedTypes
         , Flags
         , GameState
         , HintsBoard
-        , IapProduct
-        , IapPurchase
-        , IapState
         , IntBoard
         , MaybeHelpModelDict(..)
         , Model
@@ -128,20 +122,6 @@ main =
         , update = updateWithStorage
         , subscriptions = subscriptions
         }
-
-
-
--- (reason, string)
-
-
-port specHash : ( String, String ) -> Cmd a
-
-
-
--- (reason, string, hash)
-
-
-port receiveSpecHash : (( String, String, String ) -> msg) -> Sub msg
 
 
 port setStorage : Maybe String -> Cmd a
@@ -203,44 +183,6 @@ port promptDialog : ( String, String ) -> Cmd msg
 port promptAnswer : (( String, String ) -> msg) -> Sub msg
 
 
-
--- productIds
-
-
-port iapGetProducts : List String -> Cmd msg
-
-
-
--- (products, error)
-
-
-port iapProducts : (( Maybe (List IapProduct), Maybe String ) -> msg) -> Sub msg
-
-
-
--- productId
-
-
-port iapBuy : String -> Cmd msg
-
-
-
--- (productId, transactionId, error)
-
-
-port iapBuyResponse : (( String, Maybe String, Maybe String ) -> msg) -> Sub msg
-
-
-port iapRestorePurchases : () -> Cmd msg
-
-
-
--- (purchases, error)
-
-
-port iapPurchases : (( Maybe (List IapPurchase), Maybe String ) -> msg) -> Sub msg
-
-
 port makeClickSound : () -> Cmd msg
 
 
@@ -255,7 +197,7 @@ updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
 updateWithStorage msg model =
     let
         ( newModel, cmds ) =
-            update msg model
+            update (Debug.log "updateWithStorage, msg" msg) model
 
         savedModel =
             SharedTypes.modelToSavedModel newModel
@@ -299,56 +241,6 @@ seedCmd =
     Task.perform (\posix -> Seed posix) Time.now
 
 
-iapStatePropertyName : String
-iapStatePropertyName =
-    "iapStates"
-
-
-propertiesToIapState : Dict String String -> Result String (Maybe (Dict String IapState))
-propertiesToIapState properties =
-    case Dict.get iapStatePropertyName properties of
-        Nothing ->
-            Ok Nothing
-
-        Just json ->
-            case decodeIapStates json of
-                Err msg ->
-                    Err <| JD.errorToString msg
-
-                Ok states ->
-                    List.map (\x -> ( x.product.productId, x )) states
-                        |> Dict.fromList
-                        |> Just
-                        |> Ok
-
-
-updateIapState : IapState -> Model -> ( Model, Cmd Msg )
-updateIapState state model =
-    let
-        productId =
-            state.product.productId
-
-        dict =
-            case model.iapState of
-                Nothing ->
-                    Dict.empty
-
-                Just d ->
-                    d
-
-        dict2 =
-            Dict.insert productId state dict
-
-        json =
-            encodeIapStates <|
-                List.map Tuple.second <|
-                    Dict.toList dict2
-    in
-    ( { model | iapState = Just dict2 }
-    , setProperty ( iapStatePropertyName, Just <| JE.encode 0 json )
-    )
-
-
 decodePlatform : String -> Platform
 decodePlatform name =
     case name of
@@ -387,25 +279,12 @@ init state =
         propertiesDict =
             Dict.fromList properties
 
-        iapRes =
-            propertiesToIapState propertiesDict
-
-        ( iapState, message ) =
-            case iapRes of
-                Err msg ->
-                    ( Nothing, Just msg )
-
-                Ok st ->
-                    ( st, Nothing )
-
         mod =
             case savedModel of
                 Nothing ->
                     { initialModel
                         | platform = platform
                         , properties = propertiesDict
-                        , iapState = iapState
-                        , message = message
                     }
 
                 Just m ->
@@ -417,8 +296,6 @@ init state =
                         | helpModelDict = Javole helpBoards
                         , platform = platform
                         , properties = propertiesDict
-                        , iapState = iapState
-                        , message = message
                     }
     in
     ( mod
@@ -426,7 +303,6 @@ init state =
         [ Task.perform SetWindowSize Dom.getViewport
         , setTitle pageTitle
         , seedCmd
-        , maybeFetchProducts mod.page mod
         ]
     )
 
@@ -449,7 +325,6 @@ initialModel =
     , gencount = 0
     , page = HelpPage
     , gameState = state
-    , times = SharedTypes.emptyModelTimes
     , windowSize = Nothing
     , boardSizes = Nothing
     , seed = Nothing
@@ -461,8 +336,6 @@ initialModel =
     , platform = WebPlatform
     , properties = Dict.fromList []
     , deviceReady = False
-    , iapState = Nothing
-    , iapProducts = Nothing
     }
 
 
@@ -922,19 +795,7 @@ getBoard kind index model =
         board =
             PuzzleDB.getBoardOfKind kind index_
     in
-    if forbidBoard board model then
-        let
-            m2 =
-                { model | page = AdvertisePage }
-        in
-        if forbidBoard m2.gameState.board m2 then
-            getBoard 6 1 m2
-
-        else
-            ( m2, Cmd.none )
-
-    else
-        gotoBoard board model
+    gotoBoard board model
 
 
 gotoBoard : IntBoard -> Model -> ( Model, Cmd a )
@@ -1203,99 +1064,9 @@ receiveGameJson maybeJson model =
                     )
 
 
-unlockDateReason : String
-unlockDateReason =
-    "unlockDate"
-
-
-specHashDict : Dict String (String -> String -> Model -> Model)
-specHashDict =
-    Dict.fromList
-        [ ( unlockDateReason, updateUnlockDateHash )
-        ]
-
-
-specHashReceiver : ( String, String, String ) -> Msg
-specHashReceiver ( reason, string, hash ) =
-    case Dict.get reason specHashDict of
-        Nothing ->
-            Nop
-
-        Just r ->
-            InvokeSpecHashReceiver r string hash
-
-
-updateUnlockDateHash : String -> String -> Model -> Model
-updateUnlockDateHash unlockDate hash model =
-    let
-        times =
-            model.times
-    in
-    { model
-        | times =
-            { times
-                | unlockDate = unlockDate
-                , unlockHash = hash
-            }
-    }
-
-
-convertTimeToUnlockDate : Posix -> String
-convertTimeToUnlockDate posix =
-    formatPosix "yyMMdd" posix
-
-
 formatPosix : String -> Posix -> String
 formatPosix format posix =
     Date.format format <| Date.fromPosix Time.utc posix
-
-
-timeTick : Posix -> Model -> ( Model, Cmd Msg )
-timeTick posix model =
-    let
-        times =
-            model.times
-
-        unlockDate =
-            convertTimeToUnlockDate posix
-
-        cmd =
-            if unlockDate /= times.unlockDate then
-                specHash ( unlockDateReason, unlockDate )
-
-            else
-                Cmd.none
-    in
-    ( { model
-        | times = { times | timestamp = Time.posixToMillis posix }
-      }
-    , cmd
-    )
-
-
-timePlayTick : Posix -> Model -> ( Model, Cmd Msg )
-timePlayTick posix model =
-    let
-        ( model2, cmd ) =
-            timeTick posix model
-
-        gameState =
-            model2.gameState
-
-        gameStateTimes =
-            gameState.times
-    in
-    ( { model2
-        | gameState =
-            { gameState
-                | times =
-                    { gameStateTimes
-                        | elapsed = gameStateTimes.elapsed + 1
-                    }
-            }
-      }
-    , cmd
-    )
 
 
 updateWindowSize : Int -> Int -> Model -> ( Model, Cmd Msg )
@@ -1343,13 +1114,7 @@ gotDeviceReady model platformName =
         m2 =
             addBoardSizesToModel m
     in
-    ( m2
-    , if m2.page == IapPage then
-        iapGetProducts iapProductIds
-
-      else
-        Cmd.none
-    )
+    ( m2, Cmd.none )
 
 
 extraPuzzlesProductId : String
@@ -1357,191 +1122,16 @@ extraPuzzlesProductId =
     "puzzles2"
 
 
-
--- This must match the App Store setup
--- You can't simply add IDs here.
--- iapPageDiv assumes there is only one product.
--- I was too lazy to do it right, since I don't expect there to ever
--- be another one.
-
-
-iapProductIds : List String
-iapProductIds =
-    [ extraPuzzlesProductId
-    ]
-
-
-maybeFetchProducts : Page -> Model -> Cmd Msg
-maybeFetchProducts page model =
-    if
-        page
-            == IapPage
-            && model.iapProducts
-            == Nothing
-            && model.iapState
-            == Nothing
-            && model.deviceReady
-    then
-        iapGetProducts iapProductIds
-
-    else
-        Cmd.none
-
-
-iapProductsDict : Model -> Dict String IapProduct
-iapProductsDict model =
-    case model.iapProducts of
-        Nothing ->
-            Dict.empty
-
-        Just ( products, _ ) ->
-            case products of
-                Nothing ->
-                    Dict.empty
-
-                Just list ->
-                    Dict.fromList <|
-                        List.map (\x -> ( x.productId, x )) list
-
-
-processIapBuy : Model -> String -> Maybe String -> Maybe String -> ( Model, Cmd Msg )
-processIapBuy model productId transactionId error =
-    let
-        m =
-            { model | message = Nothing }
-    in
-    case transactionId of
-        Nothing ->
-            doIapBuy model Nothing error
-
-        Just tid ->
-            doIapBuy
-                model
-                (Just <| IapPurchase productId tid model.times.timestamp)
-                Nothing
-
-
-doIapBuy : Model -> Maybe IapPurchase -> Maybe String -> ( Model, Cmd Msg )
-doIapBuy model purchase error =
-    case purchase of
-        Nothing ->
-            ( { model | message = error }, Cmd.none )
-
-        Just p ->
-            let
-                { productId, transactionId, date } =
-                    p
-            in
-            case Dict.get productId <| iapProductsDict model of
-                Nothing ->
-                    ( { model
-                        | message = Just ("productId not found: \"" ++ productId ++ "\"")
-                      }
-                    , Cmd.none
-                    )
-
-                Just product ->
-                    let
-                        state =
-                            { product = product
-                            , purchase = p
-                            }
-                    in
-                    updateIapState state model
-
-
-receiveProducts : ( Maybe (List IapProduct), Maybe String ) -> Model -> Model
-receiveProducts prodsAndErr model =
-    let
-        ( prods, err ) =
-            prodsAndErr
-    in
-    case err of
-        Just str ->
-            { model
-                | iapProducts = Just ( Nothing, err )
-            }
-
-        Nothing ->
-            case prods of
-                Nothing ->
-                    { model
-                        | iapProducts = Just ( Nothing, Just "Missing products." )
-                    }
-
-                Just products ->
-                    case List.filter (\x -> x.productId /= "") products of
-                        [] ->
-                            { model
-                                | iapProducts =
-                                    Just ( Nothing, Just "No products returned." )
-                            }
-
-                        mps ->
-                            { model
-                                | iapProducts = Just ( Just mps, Nothing )
-                            }
-
-
-iapPurchasesLoop : List IapPurchase -> Model -> Cmd Msg -> ( Model, Cmd Msg )
-iapPurchasesLoop purchases model cmd =
-    case purchases of
-        [] ->
-            ( model, cmd )
-
-        p :: tail ->
-            let
-                ( m, c ) =
-                    doIapBuy model (Just p) Nothing
-            in
-            iapPurchasesLoop tail m <|
-                if c == Cmd.none then
-                    cmd
-
-                else
-                    c
-
-
-processIapPurchases : Model -> Maybe (List IapPurchase) -> Maybe String -> ( Model, Cmd Msg )
-processIapPurchases model purchases error =
-    let
-        m =
-            { model | message = Nothing }
-    in
-    case purchases of
-        Nothing ->
-            doIapBuy model Nothing error
-
-        Just [] ->
-            doIapBuy model Nothing (Just "You have no purchases to restore.")
-
-        Just mps ->
-            iapPurchasesLoop mps model Cmd.none
-
-
 updateHelpPage : Msg -> Model -> ( Model, Cmd Msg )
 updateHelpPage msg model =
     case msg of
         ShowPage page ->
             ( { model | page = page, message = Nothing }
-            , maybeFetchProducts page model
+            , Cmd.none
             )
 
         ReceiveGame maybeJson ->
             receiveGameJson maybeJson model
-
-        ReloadIapProducts ->
-            ( { model | iapProducts = Nothing }
-            , iapGetProducts iapProductIds
-            )
-
-        RestoreIapPurchases ->
-            ( model
-            , iapRestorePurchases ()
-            )
-
-        Tick posix ->
-            timeTick posix model
 
         Seed posix ->
             doSeed posix model
@@ -1557,27 +1147,6 @@ updateHelpPage msg model =
 
         DeviceReady platformName ->
             gotDeviceReady model platformName
-
-        IapProducts products ->
-            ( receiveProducts products model
-            , Cmd.none
-            )
-
-        IapBuy productId ->
-            ( { model | message = Nothing }
-            , iapBuy productId
-            )
-
-        IapBuyResponse ( productId, transactionId, error ) ->
-            processIapBuy model productId transactionId error
-
-        IapPurchases ( purchases, error ) ->
-            processIapPurchases model purchases error
-
-        InvokeSpecHashReceiver receiver string hash ->
-            ( receiver string hash model
-            , Cmd.none
-            )
 
         _ ->
             ( model
@@ -1655,12 +1224,9 @@ multiRestartQuery =
 resetAllGameStates : Model -> ( Model, Cmd Msg )
 resetAllGameStates oldModel =
     ( { initialModel
-        | times = oldModel.times
-        , windowSize = oldModel.windowSize
+        | windowSize = oldModel.windowSize
         , seed = oldModel.seed
         , platform = oldModel.platform
-        , iapState = oldModel.iapState
-        , iapProducts = oldModel.iapProducts
       }
     , setStorage Nothing
     )
@@ -1767,35 +1333,7 @@ enableAllBoardsWithoutPurchase =
 
 restrictBoards : Model -> Bool
 restrictBoards model =
-    if enableAllBoardsWithoutPurchase then
-        False
-
-    else
-        case model.iapState of
-            Nothing ->
-                True
-
-            Just dict ->
-                case Dict.get extraPuzzlesProductId dict of
-                    Nothing ->
-                        True
-
-                    Just _ ->
-                        False
-
-
-forbidBoard : IntBoard -> Model -> Bool
-forbidBoard board model =
-    case board.index of
-        Nothing ->
-            False
-
-        Just index ->
-            let
-                kind =
-                    board.rows
-            in
-            restrictBoards model && (kind > 8 || index > 5)
+    False
 
 
 doSeed : Posix -> Model -> ( Model, Cmd Msg )
@@ -1807,7 +1345,7 @@ doSeed posix model =
                     Just <| Random.initialSeed (Time.posixToMillis posix)
             }
     in
-    timeTick posix model
+    ( m, Cmd.none )
 
 
 processNewBoardIndex : String -> Model -> ( Model, Cmd Msg )
@@ -1840,29 +1378,13 @@ processNewBoardIndex indexStr model =
             getBoard model.kind idx model
 
 
-maybeLogMsg : Msg -> Msg
-maybeLogMsg msg =
-    case msg of
-        Tick _ ->
-            msg
-
-        _ ->
-            Debug.log "Update, msg" msg
-
-
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
-    case maybeLogMsg msg of
+    case msg of
         ShowPage page ->
             ( { model | page = page, message = Nothing }
-            , maybeFetchProducts page model
+            , Cmd.none
             )
-
-        ReloadIapProducts ->
-            ( model, Cmd.none )
-
-        RestoreIapPurchases ->
-            ( model, Cmd.none )
 
         ChangeKind kind ->
             getBoard kind (getKindIndex kind model) model
@@ -1875,9 +1397,6 @@ updateMainPage msg model =
 
         Restart ->
             ( model, restartDialog model )
-
-        Tick time ->
-            timePlayTick time model
 
         Seed time ->
             doSeed time model
@@ -1939,27 +1458,6 @@ updateMainPage msg model =
         DeviceReady platformName ->
             gotDeviceReady model platformName
 
-        IapProducts products ->
-            ( receiveProducts products model
-            , Cmd.none
-            )
-
-        IapBuy productId ->
-            ( { model | message = Nothing }
-            , iapBuy productId
-            )
-
-        IapBuyResponse ( productId, transactionId, error ) ->
-            processIapBuy model productId transactionId error
-
-        IapPurchases ( purchases, error ) ->
-            processIapPurchases model purchases error
-
-        InvokeSpecHashReceiver receiver string hash ->
-            ( receiver string hash model
-            , Cmd.none
-            )
-
         SetWindowSize viewport ->
             processWindowSize model viewport
 
@@ -2014,8 +1512,7 @@ keyDecoder wrapper =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every 1000 Tick
-        , Events.onKeyDown <| keyDecoder (DownKey False)
+        [ Events.onKeyDown <| keyDecoder (DownKey False)
         , Events.onKeyUp <| keyDecoder UpKey
         , Events.onKeyPress <| keyDecoder PressKey
         , confirmAnswer answerConfirmed
@@ -2023,10 +1520,6 @@ subscriptions model =
         , promptAnswer promptAnswerConfirmed
         , receiveGame ReceiveGame
         , deviceReady DeviceReady
-        , iapProducts IapProducts
-        , iapBuyResponse IapBuyResponse
-        , iapPurchases IapPurchases
-        , receiveSpecHash specHashReceiver
         , Events.onResize UpdateWindowSize
         ]
 
@@ -2114,12 +1607,6 @@ view model =
 
             CreditsPage ->
                 creditsPageDiv model
-
-            IapPage ->
-                iapPageDiv model
-
-            AdvertisePage ->
-                advertisePageDiv model
         ]
 
 
@@ -2514,7 +2001,6 @@ textPageSpecs =
     [ ( "Help", HelpPage, "Show the Help page." )
     , ( "Tactics", TacticsPage, "Show the Tactics page." )
     , ( "Credits", CreditsPage, "Show the Credits page." )
-    , ( "Purchases", IapPage, "Show the Purchases page." )
     ]
 
 
@@ -2734,299 +2220,6 @@ creditsPageDiv model =
             , "[js-sha256] is a [JavaScript] library that computes the SHA256 cryptographic hash of a string. It is copyright Yi-Cyuan Chen and distributed under the MIT License."
             ]
         ]
-
-
-mergePurchasesIntoProducts : List ( String, IapState ) -> List IapProduct -> List IapProduct
-mergePurchasesIntoProducts purchases products =
-    case purchases of
-        [] ->
-            products
-
-        ( productId, state ) :: tail ->
-            case LE.find (\x -> productId == x.productId) products of
-                Nothing ->
-                    mergePurchasesIntoProducts
-                        tail
-                    <|
-                        state.product
-                            :: products
-
-                Just _ ->
-                    mergePurchasesIntoProducts tail products
-
-
-getIapState : Model -> ( List IapProduct, Dict String IapPurchase, Maybe String )
-getIapState model =
-    let
-        stateDict =
-            case model.iapState of
-                Nothing ->
-                    Dict.empty
-
-                Just d ->
-                    d
-
-        ( products, error ) =
-            case model.iapProducts of
-                Nothing ->
-                    ( [], Nothing )
-
-                Just mps ->
-                    case mps of
-                        ( Nothing, err ) ->
-                            case err of
-                                Nothing ->
-                                    ( [], Just "No products found." )
-
-                                x ->
-                                    ( [], x )
-
-                        ( Just ms, _ ) ->
-                            ( ms, Nothing )
-
-        purchaseDict =
-            Dict.toList stateDict
-                |> List.map
-                    (\x ->
-                        ( Tuple.first x
-                        , .purchase <| Tuple.second x
-                        )
-                    )
-                |> Dict.fromList
-    in
-    ( mergePurchasesIntoProducts (Dict.toList stateDict) products
-    , purchaseDict
-    , error
-    )
-
-
-iapProductRow : IapProduct -> Maybe IapPurchase -> List (Html Msg)
-iapProductRow product purchase =
-    [ tr []
-        [ td []
-            [ text product.title
-            ]
-        , td []
-            [ text product.price ]
-        , td []
-            [ case purchase of
-                Nothing ->
-                    button
-                        [ onClick <| IapBuy product.productId
-                        , class ControlsClass
-                        , title "Buy this product."
-                        ]
-                        [ text "Buy" ]
-
-                Just p ->
-                    text
-                    -- "z" doesn't work here for time zone
-                    <|
-                        formatPosix "d MMM y, h:mm a" <|
-                            Time.millisToPosix p.date
-            ]
-        ]
-    , tr []
-        [ td [ colspan 3 ]
-            [ text product.description ]
-        ]
-    ]
-
-
-iapPageDiv : Model -> Html Msg
-iapPageDiv model =
-    let
-        ( products, purchaseDict, error ) =
-            getIapState model
-
-        productsPurchased =
-            Dict.size purchaseDict > 0
-    in
-    textPageDiv "Purchases" model <|
-        case model.platform of
-            WebPlatform ->
-                webIapElements model productsPurchased
-
-            _ ->
-                appIapElements model products purchaseDict error productsPurchased
-
-
-rawPuzzleEnablerLink : Model -> String
-rawPuzzleEnablerLink model =
-    let
-        hash =
-            model.times.unlockHash
-    in
-    "kakuro-dojo.com/unlock/?hash=" ++ hash
-
-
-puzzleEnablerLink : Model -> Html Msg
-puzzleEnablerLink model =
-    let
-        link =
-            rawPuzzleEnablerLink model
-    in
-    a [ href <| "https://" ++ link ]
-        [ text link ]
-
-
-webIapElements : Model -> Bool -> List (Html Msg)
-webIapElements model productsPurchased =
-    if enableAllBoardsWithoutPurchase || productsPurchased then
-        [ p [ class HelpTextClass ]
-            [ text "You have enabled all the puzzles."
-            , br
-            , text "To enable them in another browser, visit this link in that browser:"
-            , br
-            , puzzleEnablerLink model
-            ]
-        , p [ class HelpTextClass ]
-            [ text "The link will only work today and tomorrow. Revisit this page after that, in this browser, to get a new link."
-            ]
-        , appStoreBlurb model
-        ]
-
-    else
-        [ ps
-            [ "You are using a web demo of the Kakuro Dojo app. The demo gives you only 10 puzzles, in 6x6 and 8x8 layouts. The app allows you to purchase 190 additional puzzles, in 6x6, 8x8, and 10x10 layouts, and will provide a link with which you can enable those additional puzzles in this web version."
-            , "If you [Paypal] $0.99 (or more) to bill@billstclair.com, along with an email address, I'll send you a link to enable the additional puzzles."
-            ]
-        , appStoreBlurb model
-        ]
-
-
-appIapElements : Model -> List IapProduct -> Dict String IapPurchase -> Maybe String -> Bool -> List (Html Msg)
-appIapElements model products purchaseDict error productsPurchased =
-    let
-        canRestore =
-            case model.iapProducts of
-                Just ( Just _, _ ) ->
-                    True
-
-                _ ->
-                    False
-    in
-    [ p []
-        [ case model.iapProducts of
-            Nothing ->
-                text <|
-                    if productsPurchased then
-                        ""
-
-                    else
-                        "Fetching products..."
-
-            Just ( prods, e ) ->
-                case e of
-                    Just msg ->
-                        span []
-                            [ text <| "Error loading products: " ++ msg
-                            , br
-                            , button
-                                [ onClick ReloadIapProducts
-                                , class ControlsClass
-                                ]
-                                [ text "Reload" ]
-                            ]
-
-                    Nothing ->
-                        text ""
-        ]
-    , table [ class PrettyTable ]
-        (tr []
-            [ th [] [ text "Product" ]
-            , th [] [ text "Price" ]
-            , th [] [ text "Purchase" ]
-            ]
-            :: List.concat
-                (List.map
-                    (\x -> iapProductRow x (Dict.get x.productId purchaseDict))
-                    products
-                )
-        )
-    , if productsPurchased || not canRestore then
-        if productsPurchased then
-            div [ class HelpTextClass ]
-                [ p []
-                    [ text "Thank you for purchasing the additional puzzles. You may use them on other devices by pressing the \"Restore Purchases\" button that appears on this page on a device with a newly-installed version of Kakuro Dojo."
-                    ]
-                , p []
-                    [ text "To enable all the puzzles in a web browser, visit this link in that browser:"
-                    , br
-                    , puzzleEnablerLink model
-                    ]
-                , p []
-                    [ text "The link will only work today and tomorrow. Revisit this page after that to get a new link."
-                    ]
-                ]
-
-        else
-            text ""
-
-      else
-        p [ class HelpTextClass ]
-            [ text "Click the button below to restore purchases you made on another device or that you lost on this device by deleting the Kakuro Dojo app."
-            , br
-            , br
-            , button
-                [ onClick RestoreIapPurchases
-                , class ControlsClass
-                ]
-                [ text "Restore Purchases" ]
-            ]
-    ]
-
-
-advertisePageDiv : Model -> Html Msg
-advertisePageDiv model =
-    textPageDiv "Commercial Message"
-        model
-        [ ps
-            [ "This game is free to play for five boards of each of the 6x6 and 8x8 layouts. For a small fee, you can get 190 more boards, split between 6x6, 8x8, and 10x10 layouts."
-            ]
-        , p []
-            [ button
-                [ onClick <| ShowPage IapPage
-                , class ControlsClass
-                ]
-                [ text "Go to Purchases Page" ]
-            ]
-        , appStoreBlurb model
-        ]
-
-
-appStoreBlurb : Model -> Html Msg
-appStoreBlurb model =
-    if model.platform /= WebPlatform then
-        text ""
-
-    else
-        div [ class HelpTextClass ]
-            [ p []
-                [ text "The game is also available as an app, for your portable device. Click a button below to go to the relevant App Store page. You can purchase the additional puzzles in the app."
-                ]
-            , p []
-                [ a [ href "https://itunes.apple.com/us/app/kakuro-dojo/id1191778737?mt=8" ]
-                    [ img
-                        [ src "images/Download_on_the_App_Store_Badge_US-UK_135x40.svg"
-                        , alt "Download on the App Store"
-                        , width 135
-                        , height 40
-                        ]
-                        []
-                    ]
-                , text (nbsp ++ nbsp)
-                , a [ href "https://play.google.com/store/apps/details?id=com.gibgoygames.kakuro" ]
-                    [ img
-                        [ src "images/google-play-badge.png"
-                        , alt "Get it on Google Play"
-                        , width 137
-                        , height 40
-                        ]
-                        []
-                    ]
-                ]
-            ]
 
 
 footerDiv : Model -> Html Msg

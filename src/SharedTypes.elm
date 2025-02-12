@@ -17,27 +17,20 @@ module SharedTypes exposing
     , ExploreState
     , Flags
     , GameState
-    , GameStateTimes
     , HelpModelDict
     , Hints
     , HintsBoard
-    , IapProduct
-    , IapPurchase
-    , IapState
     , IntBoard
     , Labels
     , LabelsBoard
     , MaybeHelpModelDict(..)
     , Model
-    , ModelTimes
     , Msg(..)
     , Page(..)
     , Platform(..)
     , SavedModel
     , Selection
     , WindowSize
-    , emptyGameStateTimes
-    , emptyModelTimes
     , modelToSavedModel
     , savedModelToModel
     )
@@ -57,8 +50,6 @@ type Page
     | HelpPage
     | TacticsPage
     | CreditsPage
-    | IapPage
-    | AdvertisePage
 
 
 type Platform
@@ -78,7 +69,6 @@ type alias SavedModel =
     , gencount : Int
     , gameState : GameState
     , page : Page
-    , timestamp : Int
     }
 
 
@@ -91,19 +81,6 @@ type alias BoardSizes =
     , keypadSize : Int
     , keypadFontSize : Int
     }
-
-
-type alias ModelTimes =
-    { timestamp : Int
-    , lastPersist : Maybe Int
-    , unlockDate : String
-    , unlockHash : String
-    }
-
-
-emptyModelTimes : ModelTimes
-emptyModelTimes =
-    ModelTimes 0 Nothing "161231" "316966da"
 
 
 type alias WindowSize =
@@ -122,7 +99,6 @@ type alias Model =
     , gameState : GameState
 
     -- in-memory only
-    , times : ModelTimes
     , windowSize : Maybe WindowSize
     , boardSizes : Maybe BoardSizes
     , seed : Maybe Random.Seed
@@ -134,8 +110,6 @@ type alias Model =
     , platform : Platform
     , properties : Dict String String --raw properties at startup
     , deviceReady : Bool
-    , iapState : Maybe (Dict String IapState) --from storage
-    , iapProducts : Maybe ( Maybe (List IapProduct), Maybe String ) --from iap call
     }
 
 
@@ -147,7 +121,6 @@ modelToSavedModel model =
     , gencount = model.gencount
     , gameState = model.gameState
     , page = model.page
-    , timestamp = model.times.timestamp
     }
 
 
@@ -159,7 +132,6 @@ savedModelToModel savedModel =
     , gencount = savedModel.gencount
     , gameState = savedModel.gameState
     , page = savedModel.page
-    , times = emptyModelTimes
     , boardSizes = Nothing
     , windowSize = Nothing
     , seed = Nothing
@@ -171,8 +143,6 @@ savedModelToModel savedModel =
     , platform = WebPlatform
     , properties = Dict.fromList []
     , deviceReady = False
-    , iapState = Nothing
-    , iapProducts = Nothing
     }
 
 
@@ -180,7 +150,6 @@ type Msg
     = Generate Int
     | Restart
     | ChangeKind Int
-    | Tick Posix
     | Seed Posix
     | ClickCell String
     | PressKey String
@@ -198,19 +167,12 @@ type Msg
     | AnswerConfirmed String Bool
     | MultiAnswerConfirmed String Int
     | PromptAnswerConfirmed String String
-    | IapProducts ( Maybe (List IapProduct), Maybe String )
-    | ReloadIapProducts
-    | RestoreIapPurchases
-    | IapPurchases ( Maybe (List IapPurchase), Maybe String )
     | NewBoardIndex String
     | SetWindowSize Viewport
     | UpdateWindowSize Int Int
     | ShowPage Page
     | GetBoardIndex
     | DeviceReady String
-    | IapBuy String
-    | IapBuyResponse ( String, Maybe String, Maybe String )
-    | InvokeSpecHashReceiver (String -> String -> Model -> Model) String String
     | Nop
 
 
@@ -254,17 +216,6 @@ type alias Flags =
     }
 
 
-type alias GameStateTimes =
-    { timestamp : Int
-    , elapsed : Int
-    }
-
-
-emptyGameStateTimes : GameStateTimes
-emptyGameStateTimes =
-    GameStateTimes 0 0
-
-
 type alias ExploreState =
     { savedBoard : IntBoard
     , savedHints : HintsBoard
@@ -282,7 +233,6 @@ type alias GameState =
     , flags : Flags
     , selection : Maybe Selection
     , exploreState : Maybe ExploreState
-    , times : GameStateTimes
     }
 
 
@@ -293,30 +243,3 @@ type alias HelpModelDict =
 type MaybeHelpModelDict
     = Nicht
     | Javole HelpModelDict
-
-
-type alias IapProduct =
-    { productId : String
-    , title : String
-    , description : String
-    , price : String
-    }
-
-
-type alias IapPurchase =
-    { productId : String
-    , transactionId : String
-    , date : Int
-    }
-
-
-
--- A list of these is stored as JSON on the "kakuro-iap" property.
--- There is currently only one, with a productId of "puzzles2".
--- See EncodeDecode.
-
-
-type alias IapState =
-    { product : IapProduct
-    , purchase : IapPurchase
-    }

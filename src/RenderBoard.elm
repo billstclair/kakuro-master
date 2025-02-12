@@ -262,7 +262,6 @@ makeGameState board =
     , flags = defaultFlags
     , selection = Nothing
     , exploreState = Nothing
-    , times = SharedTypes.emptyGameStateTimes
     }
 
 

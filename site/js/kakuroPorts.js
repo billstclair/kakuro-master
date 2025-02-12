@@ -14,49 +14,13 @@ var kakuroPorts = {};
 (function () {
 
   var storageName = 'kakuro-dojo';
-  var propertiesName = 'kakuro-properties';
 
   kakuroPorts.init = init;
-  kakuroPorts.specHoash = specHash;
   kakuroPorts.storageName = storageName;
-  kakuroPorts.propertiesName = propertiesName;
-  kakuroPorts.getProperties = getProperties;
-  kakuroPorts.setProperty = setProperty;
-  kakuroPorts.getProperty = getProperty;
 
-  function specHash(spec) {
-    var hash = sha256(spec);      // Defined in sha256.js
-    return hash.substring(0, 8);
-  }
 
   function log (x) {
     console.log(x+"\n");
-  }
-
-  function getProperties() {
-    var json = localStorage.getItem(propertiesName);
-    return json ? JSON.parse(json) : {};
-  }
-
-  function setProperties(properties) {
-    localStorage.setItem(propertiesName, JSON.stringify(properties));
-  }
-
-  // This isn't used by the Elm code, but is useful for debugging
-  // in the JavaScript console.
-  function getProperty(property) {
-    var props = getProperties();
-    return props[property];
-  }
-
-  function setProperty(property, value) {
-    var props = getProperties();
-    if (value == null) {
-      delete props[property];
-    } else {
-      props[property] = value;
-    }
-    setProperties(props);
   }
 
   function attachFastClick() {
@@ -76,10 +40,6 @@ var kakuroPorts = {};
     log("storedState: " + storedState + "\n")
 
     var alist = [];
-    var properties = getProperties();
-    for (key in properties) {
-      alist.push([key, properties[key]]);
-    };
 
     // The platform isn't valid in Cordova until device ready
     var kakuro = Elm.Kakuro.init({
@@ -88,18 +48,11 @@ var kakuroPorts = {};
     });
     kakuroPorts.kakuro = kakuro;
 
-    kakuro.ports.specHash.subscribe(function(reasonAndString) {
-      var reason = reasonAndString[0];
-      var string = reasonAndString[1];
-      kakuro.ports.receiveSpecHash.send([reason, string, specHash(string)]);
-    });
 
     kakuro.ports.setStorage.subscribe(function(json) {
       //log("setStorage: " + json + "\n")
       if (json === null) {
-        properties = getProperties();
         localStorage.clear();        // Bye,  bye, birdy.
-        setProperties(properties);
       } else {
         localStorage.setItem(storageName, json);
       }
@@ -112,7 +65,6 @@ var kakuroPorts = {};
     kakuro.ports.saveGame.subscribe(function(specAndState) {
       var spec = specAndState[0]
       var json = specAndState[1]
-      var hash = specHash(spec);
       //log("Saving: " + hash + ", from: " + spec + " as: " + json);
       localStorage.setItem(hash, json);
     });
@@ -122,10 +74,6 @@ var kakuroPorts = {};
       var json = localStorage.getItem(hash);
       //log ("Restored: " + hash + " from: " + spec + " as: " + json);
       kakuro.ports.receiveGame.send(json);
-    });
-
-    kakuro.ports.setProperty.subscribe(function(pv) {
-      setProperty(pv[0], pv[1])
     });
 
     kakuro.ports.confirmDialog.subscribe(function(query) {
@@ -153,106 +101,6 @@ var kakuroPorts = {};
 //      app.promptDialog(question, default, function(answer) {
 //        kakuro.ports.promptAnswer.send([question, answer]);
 //      });
-    });
-
-    kakuro.ports.iapGetProducts.subscribe(function(pids) {
-      app.iapGetProducts(pids, function(res) {
-        if (typeof(res) == 'string') {
-            res =  [null, res];
-        } else if (typeof(res) == 'object') {
-          var msg = res.errorMessage;
-          if (msg) {
-            var code = res.errorCode;
-            if (code) {
-              msg = msg + ", code: " + code;
-            }
-            res = [null, msg];
-          } else {
-            var prods = [];
-            // Not really necessary, but avoids conversion-to-Elm runtime error,
-            // if return value isn't the correct shape.
-            for (var prod in res) {
-              prod = res[prod];
-              prods.push({ productId: prod.productId || "",
-                           title: prod.title || "",
-                           description: prod.description || "",
-                           price: prod.price || "" })
-            }
-            res = [prods, null]
-          }
-        } else {
-          res = [null, "Bad return from iapGetProducts: " + JSON.stringify(res)];
-        }
-        kakuro.ports.iapProducts.send(res);
-      });
-    });
-
-    kakuro.ports.iapBuy.subscribe(function(pid) {
-      app.iapBuy(pid, function(res) {
-        console.log("iapBuy result: " + JSON.stringify(res));
-        if (typeof(res) == 'string') {
-          res = [pid, null, res];
-        } else {
-          var msg = res.errorMessage;
-          if (msg) {
-            var code = res.errorCode;
-            if (code == 2) return; // user cancelled password dialog
-            if (code) {
-              msg = msg + ", code: " + code;
-            }
-            res = [pid, null, msg];
-          } else {
-            res = [pid, res.transactionId || null, null];
-          }
-        }
-        kakuro.ports.iapBuyResponse.send(res);
-      });
-    });
-
-    kakuro.ports.iapRestorePurchases.subscribe(function() {
-      app.iapRestorePurchases(function(res) {
-        //console.log("iapPurchases: " + JSON.stringify(res));
-        if (typeof(res) == 'string') {
-            res = [null, res];
-        } else {
-          var msg = res.errorMessage;
-          if (msg) {
-            var code = res.errorCode;
-            if (code == 2) return; // user cancelled password dialog
-            if (code) {
-              msg = msg + ", code: " + code;
-            }
-            res = [null, msg];
-          } else {
-            // Must match IapPurchase in SharedTypes.elm
-            var purchases = [];
-            var now = new Date();
-            now = now.getTime();
-            for (var purchase in res) {
-              purchase = res[purchase];
-              var time = purchase.date;
-              if (typeof(time) == 'string') {
-                var d = new Date(time);
-                time = d.getTime();
-                if (isNaN(time)) {
-                  time = now;
-                }
-              } else if (typeof(time) != 'number') {
-                time = now;
-              }
-              purchase = { productId: purchase.productId || "",
-                           transactionId: purchase.transactionId || "",
-                           date: time
-                         };
-              purchases.push(purchase);
-            }
-            //console.log("Sending purchases: " + JSON.stringify(res));
-            res = [purchases, null];
-            //res = [null, "raw: " + JSON.stringify(res) + ", processed: " + JSON.stringify(purchases)];
-          }
-        }
-        kakuro.ports.iapPurchases.send(res);
-      });
     });
 
     kakuro.ports.makeClickSound.subscribe(function() {

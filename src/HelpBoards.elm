@@ -60,7 +60,6 @@ makeSavedModel board guesses hints =
     , gencount = 1
     , page = HelpPage
     , gameState = makeGameState board guesses hints
-    , timestamp = 0
     }
 
 
