@@ -203,7 +203,8 @@ type Msg
     | RestoreIapPurchases
     | IapPurchases ( Maybe (List IapPurchase), Maybe String )
     | NewBoardIndex String
-    | SetWindowSize Int Int
+    | SetWindowSize Viewport
+    | UpdateWindowSize Int Int
     | ShowPage Page
     | GetBoardIndex
     | DeviceReady String

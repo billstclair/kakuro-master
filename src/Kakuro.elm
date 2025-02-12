@@ -1,4 +1,4 @@
-----------------------------------------------------------------------
+---------------------------------------------------------------------
 --
 -- Kakuro.elm
 -- kakuro-dojo.com main screen
@@ -15,8 +15,9 @@ port module Kakuro exposing (main)
 import Array exposing (Array)
 import Board exposing (Board)
 import BoardSize
+import Browser
 import Browser.Dom as Dom exposing (Viewport)
-import Browser.Events
+import Browser.Events as Events
 import Char
 import Date
 import Debug exposing (log)
@@ -77,6 +78,8 @@ import Html.Attributes
         , width
         )
 import Html.Events exposing (onClick, onInput)
+import Json.Decode as JD exposing (Decoder)
+import Json.Encode as JE exposing (Value)
 import List
 import List.Extra as LE
 import ModalDialog exposing (modalDiv)
@@ -253,7 +256,7 @@ updateWithStorage msg model =
     in
     ( newModel
     , Cmd.batch
-        [ setStorage <| Just json
+        [ setStorage <| Just <| JE.encode 0 json
         , cmds
         ]
     )
@@ -301,7 +304,7 @@ propertiesToIapState properties =
         Just json ->
             case decodeIapStates json of
                 Err msg ->
-                    Err msg
+                    Err <| JD.errorToString msg
 
                 Ok states ->
                     List.map (\x -> ( x.product.productId, x )) states
@@ -333,7 +336,7 @@ updateIapState state model =
                     Dict.toList dict2
     in
     ( { model | iapState = Just dict2 }
-    , setProperty ( iapStatePropertyName, Just json )
+    , setProperty ( iapStatePropertyName, Just <| JE.encode 0 json )
     )
 
 
@@ -383,8 +386,8 @@ init state =
                 Err msg ->
                     ( Nothing, Just msg )
 
-                Ok state ->
-                    ( state, Nothing )
+                Ok st ->
+                    ( st, Nothing )
 
         mod =
             case savedModel of
@@ -458,7 +461,7 @@ initialModel =
 -- UPDATE
 
 
-stringToDigit : String -> String -> Int
+stringToDigit : Int -> String -> Int
 stringToDigit default string =
     case String.toInt string of
         Nothing ->
@@ -480,10 +483,10 @@ toInt s =
 
         Just string ->
             case String.toInt string of
-                Ok int ->
+                Just int ->
                     int
 
-                Err _ ->
+                Nothing ->
                     -1
 
 
@@ -552,11 +555,6 @@ updateSelectedCell idStr model =
 
     else
         model
-
-
-keyCodeToDigit : Int -> Int -> Int
-keyCodeToDigit default keyCode =
-    charToDigit default (Char.fromCode keyCode)
 
 
 type Direction
@@ -713,7 +711,7 @@ processMovementKeys : String -> Model -> Maybe Model
 processMovementKeys key model =
     let
         char =
-            String.toLower keyCode
+            String.toLower key
     in
     case LE.find (\x -> Tuple.first x == char) movementKeyDirections of
         Nothing ->
@@ -838,7 +836,7 @@ shiftKey =
 
 processKeyUp : String -> Model -> Model
 processKeyUp key model =
-    if keyCode == shiftKey then
+    if key == shiftKey then
         { model | shifted = False }
 
     else
@@ -858,8 +856,8 @@ processKeyDown key model =
             Nothing ->
                 processDigitKeys key model
 
-            Just model ->
-                model
+            Just mdl ->
+                mdl
 
 
 processKeyPress : String -> Model -> Model
@@ -976,7 +974,7 @@ gotoBoard board model =
                                     json =
                                         encodeGameState currentGameState
                                 in
-                                [ saveGame ( currentSpec, json ) ]
+                                [ saveGame ( currentSpec, JE.encode 0 json ) ]
                        )
                 )
             )
@@ -1235,11 +1233,12 @@ updateUnlockDateHash unlockDate hash model =
 
 convertTimeToUnlockDate : Posix -> String
 convertTimeToUnlockDate posix =
-    let
-        date =
-            Date.fromPosix Time.utc posix
-    in
-    Date.format "yyMMdd" date
+    formatPosix "yyMMdd" posix
+
+
+formatPosix : String -> Posix -> String
+formatPosix format posix =
+    Date.format format <| Date.fromPosix Time.utc posix
 
 
 timeTick : Posix -> Model -> ( Model, Cmd Msg )
@@ -1259,7 +1258,7 @@ timeTick posix model =
                 Cmd.none
     in
     ( { model
-        | times = { times | timestamp = time }
+        | times = { times | timestamp = Time.posixToMillis posix }
       }
     , cmd
     )
@@ -1290,15 +1289,24 @@ timePlayTick posix model =
     )
 
 
+updateWindowSize : Int -> Int -> Model -> ( Model, Cmd Msg )
+updateWindowSize w h model =
+    ( addBoardSizesToModel
+        { model
+            | windowSize =
+                Just { width = w, height = h }
+        }
+    , Cmd.none
+    )
+
+
 processWindowSize : Model -> Viewport -> ( Model, Cmd Msg )
 processWindowSize model viewport =
     let
         vp =
             viewport.viewport
     in
-    ( addBoardSizesToModel { model | windowSize = ( vp.width, vp.height ) }
-    , Cmd.none
-    )
+    updateWindowSize (round vp.width) (round vp.height) model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -1460,9 +1468,9 @@ receiveProducts prodsAndErr model =
                                     Just ( Nothing, Just "No products returned." )
                             }
 
-                        ps ->
+                        mps ->
                             { model
-                                | iapProducts = Just ( Just ps, Nothing )
+                                | iapProducts = Just ( Just mps, Nothing )
                             }
 
 
@@ -1498,8 +1506,8 @@ processIapPurchases model purchases error =
         Just [] ->
             doIapBuy model Nothing (Just "You have no purchases to restore.")
 
-        Just ps ->
-            iapPurchasesLoop ps model Cmd.none
+        Just mps ->
+            iapPurchasesLoop mps model Cmd.none
 
 
 updateHelpPage : Msg -> Model -> ( Model, Cmd Msg )
@@ -1534,6 +1542,9 @@ updateHelpPage msg model =
 
         SetWindowSize viewport ->
             processWindowSize model viewport
+
+        UpdateWindowSize w h ->
+            updateWindowSize w h model
 
         DeviceReady platformName ->
             gotDeviceReady model platformName
@@ -1701,10 +1712,10 @@ boardIndexQuery =
 processBoardIndexQuery : String -> Model -> ( Model, Cmd Msg )
 processBoardIndexQuery idxString model =
     case String.toInt idxString of
-        Err _ ->
+        Nothing ->
             ( model, Cmd.none )
 
-        Ok idx ->
+        Just idx ->
             getBoard model.kind idx model
 
 
@@ -1727,7 +1738,7 @@ doPromptAnswerConfirmed question answer model =
 
 getBoardIndex : Model -> ( Model, Cmd Msg )
 getBoardIndex model =
-    ( model, promptDialog ( boardIndexQuery, toString model.index ) )
+    ( model, promptDialog ( boardIndexQuery, String.fromInt model.index ) )
 
 
 getKindIndex : Int -> Model -> Int
@@ -1793,10 +1804,10 @@ doSeed posix model =
 processNewBoardIndex : String -> Model -> ( Model, Cmd Msg )
 processNewBoardIndex indexStr model =
     case String.toInt <| String.right 2 indexStr of
-        Err _ ->
+        Nothing ->
             ( model, Cmd.none )
 
-        Ok index ->
+        Just index ->
             let
                 maxidx =
                     PuzzleDB.numberOfBoardsOfKind model.kind
@@ -1804,10 +1815,10 @@ processNewBoardIndex indexStr model =
                 idx =
                     if index >= maxidx then
                         case String.toInt <| String.right 1 indexStr of
-                            Err _ ->
+                            Nothing ->
                                 index
 
-                            Ok i ->
+                            Just i ->
                                 if i < 1 then
                                     1
 
@@ -1930,8 +1941,11 @@ updateMainPage msg model =
             , Cmd.none
             )
 
-        WindowSize viewport ->
+        SetWindowSize viewport ->
             processWindowSize model viewport
+
+        UpdateWindowSize w h ->
+            updateWindowSize w h model
 
         GetBoardIndex ->
             getBoardIndex model
@@ -1973,7 +1987,7 @@ promptAnswerConfirmed result =
 
 
 keyDecoder : (String -> Msg) -> Decoder Msg
-keyDecoder wrapper keyDown =
+keyDecoder wrapper =
     JD.field "key" JD.string
         |> JD.map wrapper
 
@@ -1984,7 +1998,7 @@ subscriptions model =
         [ Time.every 1000 Tick
         , Events.onKeyDown <| keyDecoder (DownKey False)
         , Events.onKeyUp <| keyDecoder UpKey
-        , Keyboard.onKeyPress <| keyDecoder PressKey
+        , Events.onKeyPress <| keyDecoder PressKey
         , confirmAnswer answerConfirmed
         , multiConfirmAnswer multiAnswerConfirmed
         , promptAnswer promptAnswerConfirmed
@@ -1994,7 +2008,7 @@ subscriptions model =
         , iapBuyResponse IapBuyResponse
         , iapPurchases IapPurchases
         , receiveSpecHash specHashReceiver
-        , Window.resizes WindowSize
+        , Events.onResize UpdateWindowSize
         ]
 
 
@@ -2020,9 +2034,12 @@ logoLink url img name size =
         [ sqrimg ("images/" ++ img) name size ]
 
 
-showValue : a -> Html Msg
-showValue seed =
-    div [] [ text <| toString seed ]
+
+{-
+   showValue : a -> Html Msg
+   showValue seed =
+       div [] [ text <| Debug.toString seed ]
+-}
 
 
 br : Html a
@@ -2169,7 +2186,7 @@ renderStarMenu model =
                 Just sizes ->
                     let
                         pixels =
-                            toString sizes.boardSize ++ "px"
+                            String.fromInt sizes.boardSize ++ "px"
                     in
                     [ ( "margin", pixels ++ " auto" )
                     , ( "width", "15em" )
@@ -2177,7 +2194,7 @@ renderStarMenu model =
     in
     modalDiv CloseStarMenu
         []
-        [ style topStyles ]
+        (List.map (\( name, value ) -> style name value) topStyles)
         (List.concat
             [ [ possibilitiesButton ]
             , keyClickButton
@@ -2190,7 +2207,8 @@ renderStarMenu model =
 mainPageDiv : Model -> Html Msg
 mainPageDiv model =
     div
-        [ style "margin-top" ((toString <| BoardSize.iosTopPad model) ++ "px")
+        [ style "margin-top"
+            ((String.fromInt <| BoardSize.iosTopPad model) ++ "px")
         ]
         [ div [ id TopInputId ]
             [ text " "
@@ -2229,7 +2247,7 @@ mainPageDiv model =
                 [ text <| "Help" ]
             , text " | Board Number: "
             , input
-                [ value <| toString model.index
+                [ value <| String.fromInt model.index
                 , disabled <| restrictBoards model
                 , type_ "number"
                 , size 3
@@ -2407,8 +2425,8 @@ helpWindowSize num denom model =
                 Nothing ->
                     { width = 256, height = 512 }
 
-                Just size ->
-                    size
+                Just sz ->
+                    sz
 
         width =
             min windowSize.width windowSize.height
@@ -2482,7 +2500,7 @@ textPageSpecs =
 
 
 pageLinksLoop : String -> List PageSpec -> List (Html Msg) -> List (Html Msg)
-pageLinksLoop pageTitle specsTail res =
+pageLinksLoop pTitle specsTail res =
     case specsTail of
         [] ->
             List.intersperse space <| List.reverse res
@@ -2492,25 +2510,25 @@ pageLinksLoop pageTitle specsTail res =
                 ( title, page, description ) =
                     head
             in
-            if title /= pageTitle then
+            if title /= pTitle then
                 pageLinksLoop
-                    pageTitle
+                    pTitle
                     tail
                 <|
                     pageLink page title description
                         :: res
 
             else
-                pageLinksLoop pageTitle tail <|
+                pageLinksLoop pTitle tail <|
                     text title
                         :: res
 
 
 textPageDiv : String -> Model -> List (Html Msg) -> Html Msg
-textPageDiv pageTitle model body =
+textPageDiv pTitle model body =
     let
         pageLinks =
-            pageLinksLoop pageTitle textPageSpecs []
+            pageLinksLoop pTitle textPageSpecs []
     in
     div []
         [ h2 [] [ text "Kakuro Dojo" ]
@@ -2519,7 +2537,7 @@ textPageDiv pageTitle model body =
                 [ errorMessageHtml model
                 , p [] <|
                     List.append [ playButton, br, br ] pageLinks
-                , h3 [] [ text pageTitle ]
+                , h3 [] [ text pTitle ]
                 ]
              <|
                 List.append body
@@ -2744,8 +2762,8 @@ getIapState model =
                                 x ->
                                     ( [], x )
 
-                        ( Just ps, _ ) ->
-                            ( ps, Nothing )
+                        ( Just ms, _ ) ->
+                            ( ms, Nothing )
 
         purchaseDict =
             Dict.toList stateDict
@@ -2785,8 +2803,8 @@ iapProductRow product purchase =
                     text
                     -- "z" doesn't work here for time zone
                     <|
-                        DE.toFormattedString "d MMM y, h:mm a" <|
-                            Date.fromPosix p.date
+                        formatPosix "d MMM y, h:mm a" <|
+                            Time.millisToPosix p.date
             ]
         ]
     , tr []
@@ -2879,8 +2897,8 @@ appIapElements model products purchaseDict error productsPurchased =
                     else
                         "Fetching products..."
 
-            Just ( prods, error ) ->
-                case error of
+            Just ( prods, e ) ->
+                case e of
                     Just msg ->
                         span []
                             [ text <| "Error loading products: " ++ msg
