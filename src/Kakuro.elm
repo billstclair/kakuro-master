@@ -105,12 +105,12 @@ import SharedTypes
 import String
 import Styles.Page exposing (PClass(..), PId(..), class, id)
 import Task
-import Time exposing (Time, second)
+import Time exposing (Posix)
 
 
 main : Program ( String, List ( String, String ), Maybe String ) Model Msg
 main =
-    Html.programWithFlags
+    Browser.element
         { init = init
         , view = view
         , update = updateWithStorage
@@ -284,7 +284,7 @@ pageTitle =
 
 seedCmd : Cmd Msg
 seedCmd =
-    Task.perform (\x -> Seed x) Time.now
+    Task.perform (\posix -> Seed posix) Time.now
 
 
 iapStatePropertyName : String
@@ -329,7 +329,7 @@ updateIapState state model =
 
         json =
             encodeIapStates <|
-                List.map (\( _, state ) -> state) <|
+                List.map Tuple.second <|
                     Dict.toList dict2
     in
     ( { model | iapState = Just dict2 }
@@ -369,8 +369,8 @@ init state =
                         Err _ ->
                             Nothing
 
-                        Ok savedModel ->
-                            Just savedModel
+                        Ok sm ->
+                            Just sm
 
         propertiesDict =
             Dict.fromList properties
@@ -462,7 +462,7 @@ stringToDigit : String -> String -> Int
 stringToDigit default string =
     case String.toInt string of
         Nothing ->
-            Default
+            default
 
         Just res ->
             if res >= 0 && res <= 9 then
@@ -1242,14 +1242,14 @@ convertTimeToUnlockDate posix =
     Date.format "yyMMdd" date
 
 
-timeTick : Time -> Model -> ( Model, Cmd Msg )
-timeTick time model =
+timeTick : Posix -> Model -> ( Model, Cmd Msg )
+timeTick posix model =
     let
         times =
             model.times
 
         unlockDate =
-            convertTimeToUnlockDate time
+            convertTimeToUnlockDate posix
 
         cmd =
             if unlockDate /= times.unlockDate then
@@ -1265,11 +1265,11 @@ timeTick time model =
     )
 
 
-timePlayTick : Time -> Model -> ( Model, Cmd Msg )
-timePlayTick time model =
+timePlayTick : Posix -> Model -> ( Model, Cmd Msg )
+timePlayTick posix model =
     let
         ( model2, cmd ) =
-            timeTick time model
+            timeTick posix model
 
         gameState =
             model2.gameState
@@ -1523,11 +1523,11 @@ updateHelpPage msg model =
             , iapRestorePurchases ()
             )
 
-        Tick time ->
-            timeTick time model
+        Tick posix ->
+            timeTick posix model
 
-        Seed time ->
-            doSeed time model
+        Seed posix ->
+            doSeed posix model
 
         ClickCell id ->
             ( updateSelectedCell id model, maybeMakeClickSound model )
@@ -1778,13 +1778,16 @@ forbidBoard board model =
             restrictBoards model && (kind > 8 || index > 5)
 
 
-doSeed : Time -> Model -> ( Model, Cmd Msg )
-doSeed time model =
+doSeed : Posix -> Model -> ( Model, Cmd Msg )
+doSeed posix model =
     let
         m =
-            { model | seed = Just <| Random.initialSeed (round time) }
+            { model
+                | seed =
+                    Just <| Random.initialSeed (Time.posixToMillis posix)
+            }
     in
-    timeTick time model
+    timeTick posix model
 
 
 processNewBoardIndex : String -> Model -> ( Model, Cmd Msg )
@@ -1978,7 +1981,7 @@ keyDecoder wrapper keyDown =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every second Tick
+        [ Time.every 1000 Tick
         , Events.onKeyDown <| keyDecoder (DownKey False)
         , Events.onKeyUp <| keyDecoder UpKey
         , Keyboard.onKeyPress <| keyDecoder PressKey

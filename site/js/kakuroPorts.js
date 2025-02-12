@@ -17,7 +17,7 @@ var kakuroPorts = {};
   var propertiesName = 'kakuro-properties';
 
   kakuroPorts.init = init;
-  kakuroPorts.specHash = specHash;
+  kakuroPorts.specHoash = specHash;
   kakuroPorts.storageName = storageName;
   kakuroPorts.propertiesName = propertiesName;
   kakuroPorts.getProperties = getProperties;
@@ -73,7 +73,7 @@ var kakuroPorts = {};
     attachFastClick();
     var storedState = localStorage.getItem(storageName);
 
-    //log("storedState: " + storedState + "\n")
+    log("storedState: " + storedState + "\n")
 
     var alist = [];
     var properties = getProperties();
@@ -82,7 +82,10 @@ var kakuroPorts = {};
     };
 
     // The platform isn't valid in Cordova until device ready
-    var kakuro = Elm.Kakuro.fullscreen([app.platform(), alist, storedState]);
+    var kakuro = Elm.Kakuro.init({
+        node: document.getElementById("elm-node"),
+        flags: [app.platform(), alist, storedState]
+    });
     kakuroPorts.kakuro = kakuro;
 
     kakuro.ports.specHash.subscribe(function(reasonAndString) {

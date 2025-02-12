@@ -11,7 +11,10 @@
 
 
 module EncodeDecode exposing
-    ( encodeGameState
+    ( decodeGameState
+    , decodeIapStates
+    , decodeSavedModel
+    , encodeGameState
     , encodeIapStates
     , encodeSavedModel
     , gameStateDecoder
@@ -464,6 +467,11 @@ gameStateTimesDecoder2 =
         |> required "elapsed" JD.int
 
 
+decodeGameState : String -> Result JD.Error GameState
+decodeGameState json =
+    JD.decodeString gameStateDecoder json
+
+
 gameStateDecoder : Decoder GameState
 gameStateDecoder =
     maybeVersionedDecoder gameStateDecoder2
@@ -480,6 +488,11 @@ gameStateDecoder2 =
         |> required "selection" maybeSelectionDecoder
         |> required "exploreState" maybeExploreStateDecoder
         |> required "times" gameStateTimesDecoder
+
+
+decodeSavedModel : String -> Result JD.Error SavedModel
+decodeSavedModel json =
+    JD.decodeString savedModelDecoder json
 
 
 savedModelDecoder : Decoder SavedModel
@@ -572,6 +585,11 @@ iapStateDecoder =
     JD.succeed IapState
         |> required "product" iapProductDecoder
         |> required "purchase" iapPurchaseDecoder
+
+
+decodeIapStates : String -> Result JD.Error (List IapState)
+decodeIapStates json =
+    JD.decodeString iapStatesDecoder json
 
 
 iapStatesDecoder : Decoder (List IapState)
