@@ -12,8 +12,6 @@
 
    TODO:
 
-   Clicking on the direction buttons doesn't work.
-
    Rip out the purchase stuff.
 
    Don't save timestamps, so we're not constantly hitting the disk.
@@ -1842,9 +1840,19 @@ processNewBoardIndex indexStr model =
             getBoard model.kind idx model
 
 
+maybeLogMsg : Msg -> Msg
+maybeLogMsg msg =
+    case msg of
+        Tick _ ->
+            msg
+
+        _ ->
+            Debug.log "Update, msg" msg
+
+
 updateMainPage : Msg -> Model -> ( Model, Cmd Msg )
 updateMainPage msg model =
-    case msg of
+    case maybeLogMsg msg of
         ShowPage page ->
             ( { model | page = page, message = Nothing }
             , maybeFetchProducts page model

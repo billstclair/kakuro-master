@@ -856,18 +856,18 @@ keypadTextClass label state =
     "SvgKeypadText " ++ color
 
 
-keycodeCell : Int -> String -> String -> String -> Int -> String -> GameState -> Html Msg
-keycodeCell keycode label cx cy cellSize fontsize state =
+keycodeCell : String -> String -> String -> Int -> String -> GameState -> Html Msg
+keycodeCell key cx cy cellSize fontsize state =
     let
         msg =
-            if label == "*" then
+            if key == "*" then
                 onClick OpenStarMenu
 
-            else if label == "#" then
+            else if key == "#" then
                 onClick ToggleHintInput
 
             else
-                onClickWithString (DownKey True) <| String.fromInt keycode
+                onClickWithString (DownKey True) <| keypadKeycode key
 
         cs =
             String.fromInt cellSize
@@ -886,12 +886,12 @@ keycodeCell keycode label cx cy cellSize fontsize state =
             ]
             []
         , Svg.text_
-            [ svgClass <| keypadTextClass label state
+            [ svgClass <| keypadTextClass key state
             , x <| String.fromInt fx
             , y <| String.fromInt fy
             , fontSize fontsize
             ]
-            [ Svg.text label ]
+            [ Svg.text key ]
         , rect
             [ svgClass "SvgClick"
             , width cs
@@ -902,22 +902,22 @@ keycodeCell keycode label cx cy cellSize fontsize state =
         ]
 
 
-keypadAlist : List ( Char, Int )
+keypadAlist : List ( String, String )
 keypadAlist =
-    [ ( '^', Char.toCode 'i' )
-    , ( 'v', Char.toCode 'k' )
-    , ( '<', Char.toCode 'j' )
-    , ( '>', Char.toCode 'l' )
-    , ( '*', Char.toCode '*' )
-    , ( '#', Char.toCode '#' )
-    , ( ' ', Char.toCode '0' )
+    [ ( "^", "i" )
+    , ( "v", "k" )
+    , ( "<", "j" )
+    , ( ">", "l" )
+    , ( "*", "*" )
+    , ( "#", "#" )
+    , ( " ", "0" )
     ]
 
 
-keypadKeycode : Char -> Int
+keypadKeycode : String -> String
 keypadKeycode char =
-    if char >= '0' && char <= '9' then
-        Char.toCode char
+    if char >= "0" && char <= "9" then
+        char
 
     else
         let
@@ -926,13 +926,13 @@ keypadKeycode char =
         in
         case pair of
             Nothing ->
-                0
+                char
 
             Just ( _, res ) ->
                 res
 
 
-renderKeypadCell : Char -> String -> Int -> Int -> String -> GameState -> Svg Msg
+renderKeypadCell : String -> String -> Int -> Int -> String -> GameState -> Svg Msg
 renderKeypadCell char cy col cellSize fontSize state =
     let
         cx =
@@ -942,8 +942,7 @@ renderKeypadCell char cy col cellSize fontSize state =
             String.fromInt cellSize
     in
     keycodeCell
-        (keypadKeycode char)
-        (String.fromList [ char ])
+        char
         cx
         cy
         cellSize
@@ -961,7 +960,7 @@ renderKeypadRow row string cellSize fontSize state =
             String.fromInt y
 
         chars =
-            String.toList string
+            String.toList string |> List.map String.fromChar
     in
     g [] <|
         List.map2
