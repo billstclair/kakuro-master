@@ -100,6 +100,7 @@ import SharedTypes
         , Platform(..)
         , SavedModel
         , Selection
+        , WindowSize
         )
 import String
 import Styles.Page exposing (PClass(..), PId(..), class, id)
@@ -410,7 +411,7 @@ init state =
     in
     ( mod
     , Cmd.batch
-        [ Task.perform WindowSize Dom.getViewport
+        [ Task.perform SetWindowSize Dom.getViewport
         , setTitle pageTitle
         , seedCmd
         , maybeFetchProducts mod.page mod
@@ -1531,7 +1532,7 @@ updateHelpPage msg model =
         ClickCell id ->
             ( updateSelectedCell id model, maybeMakeClickSound model )
 
-        WindowSize viewport ->
+        SetWindowSize viewport ->
             processWindowSize model viewport
 
         DeviceReady platformName ->
@@ -2395,7 +2396,7 @@ ps strings =
         |> div [ class HelpTextClass ]
 
 
-helpWindowSize : Int -> Int -> Model -> Window.Size
+helpWindowSize : Int -> Int -> Model -> WindowSize
 helpWindowSize num denom model =
     let
         windowSize =
@@ -2437,7 +2438,7 @@ pageLink page linkText linkTitle =
         [ text linkText ]
 
 
-renderHelp : String -> Model -> Window.Size -> Html Msg
+renderHelp : String -> Model -> WindowSize -> Html Msg
 renderHelp name model size =
     p []
         [ case model.helpModelDict of

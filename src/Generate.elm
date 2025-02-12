@@ -54,21 +54,21 @@ skip maxrun board =
 generateRows : Int -> Int -> Int -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
 generateRows row maxrun maxSkip seed board =
     let
-        ( start, seed ) =
+        ( start, seed2 ) =
             random 0 maxSkip seed
 
-        ( rowArray, seed2 ) =
+        ( rowArray, seed3 ) =
             generateRuns start
                 maxrun
                 maxSkip
-                seed
+                seed2
                 (Board.getRow row board)
 
         brd =
             Board.setRow row rowArray board
     in
     if row >= (board.rows - 1) then
-        ( brd, seed )
+        ( brd, seed3 )
 
     else
         generateRows (row + 1) maxrun maxSkip seed brd

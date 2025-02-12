@@ -65,7 +65,7 @@ renderElement val =
                 nbsp
 
              else
-                toString val
+                String.fromInt val
             )
         ]
 
@@ -93,7 +93,7 @@ debugNumbersElement label =
 
 debugNumbersIntElement : Int -> Html a
 debugNumbersIntElement num =
-    debugNumbersElement (toString num)
+    debugNumbersElement (String.fromInt num)
 
 
 debugNumbersTopRow : Board Int -> Html a

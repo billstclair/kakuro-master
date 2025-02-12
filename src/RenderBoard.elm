@@ -24,7 +24,7 @@ import BoardSize
 import Char
 import Debug exposing (log)
 import Entities exposing (copyright, nbsp)
-import Events exposing (onClickWithId, onClickWithInt, svgOnClickWithId)
+import Events exposing (onClickWithId, onClickWithString, svgOnClickWithId)
 import Html exposing (Attribute, Html, a, button, div, img, table, td, text, th, tr)
 import Html.Attributes exposing (alt, autofocus, href, id, src, style, title, value)
 import Html.Events exposing (on, onClick)
@@ -49,6 +49,7 @@ import SharedTypes
         , Msg(..)
         , SavedModel
         , Selection
+        , WindowSize
         )
 import String
 import Styles.Board exposing (BClass(..), class, classes)
@@ -119,7 +120,7 @@ br =
 
 cellId : String -> Int -> Int -> Attribute m
 cellId name row col =
-    id (name ++ "," ++ toString row ++ "," ++ toString col)
+    id (name ++ "," ++ String.fromInt row ++ "," ++ String.fromInt col)
 
 
 emptyLabels : Labels
@@ -269,7 +270,7 @@ toTwoDigitString : Int -> String
 toTwoDigitString x =
     let
         str =
-            toString x
+            String.fromInt x
     in
     if String.length str == 1 then
         nbsp ++ str
@@ -298,9 +299,9 @@ svgLabelTextHtml label cr sizes labelLocation =
     in
     [ Svg.text_
         [ svgClass "SvgLabelText"
-        , fontSize (toString sizes.labelFontSize)
-        , x (toString blx)
-        , y (toString bly)
+        , fontSize (String.fromInt sizes.labelFontSize)
+        , x (String.fromInt blx)
+        , y (String.fromInt bly)
         ]
         [ Svg.text (toTwoDigitString label) ]
     ]
@@ -312,18 +313,18 @@ svgLabelHtml label sizes cr bgr =
         res =
             [ rect
                 [ svgClass "SvgLabel"
-                , x (toString bgr.x)
-                , y (toString bgr.y)
-                , width (toString bgr.w)
-                , height (toString bgr.h)
+                , x (String.fromInt bgr.x)
+                , y (String.fromInt bgr.y)
+                , width (String.fromInt bgr.w)
+                , height (String.fromInt bgr.h)
                 ]
                 []
             , line
                 [ svgClass "SvgSlash"
-                , x1 (toString (cr.x + 1))
-                , y1 (toString (cr.y + 1))
-                , x2 (toString (cr.x + cr.w - 1))
-                , y2 (toString (cr.y + cr.h - 1))
+                , x1 (String.fromInt (cr.x + 1))
+                , y1 (String.fromInt (cr.y + 1))
+                , x2 (String.fromInt (cr.x + cr.w - 1))
+                , y2 (String.fromInt (cr.y + cr.h - 1))
                 ]
                 []
             ]
@@ -361,11 +362,11 @@ svgHintTexts hints sizes cr res =
                 html =
                     Svg.text_
                         [ svgClass "SvgHintText"
-                        , fontSize (toString sizes.hintFontSize)
-                        , x (toString blx)
-                        , y (toString bly)
+                        , fontSize (String.fromInt sizes.hintFontSize)
+                        , x (String.fromInt blx)
+                        , y (String.fromInt bly)
                         ]
-                        [ Svg.text (toString hint) ]
+                        [ Svg.text (String.fromInt hint) ]
             in
             svgHintTexts tail sizes cr (html :: res)
 
@@ -490,10 +491,10 @@ renderSvgCell row col sizes state =
         rectHtml =
             rect
                 [ svgClass cellClass
-                , x (toString cr2.x)
-                , y (toString cr2.y)
-                , width (toString cr2.w)
-                , height (toString cr2.h)
+                , x (String.fromInt cr2.x)
+                , y (String.fromInt cr2.y)
+                , width (String.fromInt cr2.w)
+                , height (String.fromInt cr2.h)
                 ]
                 []
     in
@@ -503,10 +504,10 @@ renderSvgCell row col sizes state =
                 clickRect =
                     rect
                         [ svgClass "SvgClick"
-                        , x (toString cr.x)
-                        , y (toString cr.y)
-                        , width (toString cr.w)
-                        , height (toString cr.h)
+                        , x (String.fromInt cr.x)
+                        , y (String.fromInt cr.y)
+                        , width (String.fromInt cr.w)
+                        , height (String.fromInt cr.h)
                         , cellId state.name brow bcol
                         , svgOnClickWithId ClickCell
                         ]
@@ -526,11 +527,11 @@ renderSvgCell row col sizes state =
                          else
                             "SvgCellText"
                         )
-                    , fontSize (toString sizes.cellFontSize)
-                    , x (toString tx)
-                    , y (toString ty)
+                    , fontSize (String.fromInt sizes.cellFontSize)
+                    , x (String.fromInt tx)
+                    , y (String.fromInt ty)
                     ]
-                    [ Svg.text (toString guess) ]
+                    [ Svg.text (String.fromInt guess) ]
                 , clickRect
                 ]
 
@@ -606,7 +607,7 @@ renderSvgBoard name model =
             model.gameState
 
         size =
-            toString sizes.boardSize
+            String.fromInt sizes.boardSize
 
         cellClasses =
             computeFilledCellClasses state.board state.guesses
@@ -735,7 +736,7 @@ helperText inc neginc acc state =
                     List.take maxRunlen run
             in
             String.append
-                (List.map (\x -> List.map toString x) run_
+                (List.map (\x -> List.map String.fromInt x) run_
                     |> List.map String.concat
                     |> String.join " "
                 )
@@ -780,7 +781,7 @@ render model =
         ]
 
 
-renderHelp : String -> Model -> ( Int, Int ) -> Html Msg
+renderHelp : String -> Model -> WindowSize -> Html Msg
 renderHelp name model windowSize =
     let
         m =
@@ -836,7 +837,7 @@ keypadTextClass label state =
 
             else
                 case String.toInt label of
-                    Ok d ->
+                    Just d ->
                         d
 
                     _ ->
@@ -866,10 +867,10 @@ keycodeCell keycode label cx cy cellSize fontsize state =
                 onClick ToggleHintInput
 
             else
-                onClickWithInt (DownKey True) keycode
+                onClickWithString (DownKey True) <| String.fromInt keycode
 
         cs =
-            toString cellSize
+            String.fromInt cellSize
 
         fx =
             (7 * cellSize) // 32
@@ -886,8 +887,8 @@ keycodeCell keycode label cx cy cellSize fontsize state =
             []
         , Svg.text_
             [ svgClass <| keypadTextClass label state
-            , x <| toString fx
-            , y <| toString fy
+            , x <| String.fromInt fx
+            , y <| String.fromInt fy
             , fontSize fontsize
             ]
             [ Svg.text label ]
@@ -935,10 +936,10 @@ renderKeypadCell : Char -> String -> Int -> Int -> String -> GameState -> Svg Ms
 renderKeypadCell char cy col cellSize fontSize state =
     let
         cx =
-            toString (1 + col * (cellSize + 1))
+            String.fromInt (1 + col * (cellSize + 1))
 
         cs =
-            toString cellSize
+            String.fromInt cellSize
     in
     keycodeCell
         (keypadKeycode char)
@@ -957,7 +958,7 @@ renderKeypadRow row string cellSize fontSize state =
             1 + row * (cellSize + 1)
 
         cy =
-            toString y
+            String.fromInt y
 
         chars =
             String.toList string
@@ -988,10 +989,10 @@ renderKeypad model =
             (boardSizes.keypadSize - 5) // 4
 
         keypadSize =
-            toString (cellSize * 4 + 5)
+            String.fromInt (cellSize * 4 + 5)
 
         fontSize =
-            toString boardSizes.keypadFontSize ++ "px"
+            String.fromInt boardSizes.keypadFontSize ++ "px"
 
         state =
             model.gameState

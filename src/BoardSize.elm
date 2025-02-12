@@ -24,8 +24,7 @@ module BoardSize exposing
     )
 
 import Debug exposing (log)
-import SharedTypes exposing (BoardSizes, Model, Platform(..))
-import Window
+import SharedTypes exposing (BoardSizes, Model, Platform(..), WindowSize)
 
 
 cellBorder : Int
@@ -83,12 +82,12 @@ minKeypadSize windowHeight =
     1 * windowHeight // 4
 
 
-defaultWindowSize : Window.Size
+defaultWindowSize : WindowSize
 defaultWindowSize =
     { width = 1024, height = 768 }
 
 
-getWindowSize : Model -> Window.Size
+getWindowSize : Model -> WindowSize
 getWindowSize model =
     case model.windowSize of
         Nothing ->
@@ -251,23 +250,23 @@ insetRectForSelection rect =
 
 
 cellTextLocation : Rect -> ( Int, Int )
-cellTextLocation cellRect =
-    ( cellRect.x + (cellRect.w * 30 // 97)
-    , cellRect.y + (cellRect.h * 72 // 97)
+cellTextLocation rect =
+    ( rect.x + (rect.w * 30 // 97)
+    , rect.y + (rect.h * 72 // 97)
     )
 
 
 bottomLabelLocation : Rect -> ( Int, Int )
-bottomLabelLocation cellRect =
-    ( cellRect.x + (cellRect.w * 8 // 97)
-    , cellRect.y + (cellRect.h * 86 // 97)
+bottomLabelLocation rect =
+    ( rect.x + (rect.w * 8 // 97)
+    , rect.y + (rect.h * 86 // 97)
     )
 
 
 rightLabelLocation : Rect -> ( Int, Int )
-rightLabelLocation cellRect =
-    ( cellRect.x + (cellRect.w * 50 // 97)
-    , cellRect.y + (cellRect.h * 40 // 97)
+rightLabelLocation rect =
+    ( rect.x + (rect.w * 50 // 97)
+    , rect.y + (rect.h * 40 // 97)
     )
 
 
@@ -313,7 +312,7 @@ hintRowToTextY hintRow =
 
 
 hintTextLocation : Int -> Rect -> ( Int, Int )
-hintTextLocation hint cellRect =
+hintTextLocation hint rect =
     let
         row =
             hintToRow hint
@@ -327,8 +326,8 @@ hintTextLocation hint cellRect =
         y =
             hintRowToTextY row
     in
-    ( cellRect.x + (cellRect.w * x // 97)
-    , cellRect.y + (cellRect.h * y // 97)
+    ( rect.x + (rect.w * x // 97)
+    , rect.y + (rect.h * y // 97)
     )
 
 

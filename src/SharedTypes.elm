@@ -35,6 +35,7 @@ module SharedTypes exposing
     , Platform(..)
     , SavedModel
     , Selection
+    , WindowSize
     , emptyGameStateTimes
     , emptyModelTimes
     , modelToSavedModel
@@ -105,6 +106,12 @@ emptyModelTimes =
     ModelTimes 0 Nothing "161231" "316966da"
 
 
+type alias WindowSize =
+    { width : Int
+    , height : Int
+    }
+
+
 type alias Model =
     { -- on disk. Copied to and from SavedModel instance.
       kind : Int
@@ -116,7 +123,7 @@ type alias Model =
 
     -- in-memory only
     , times : ModelTimes
-    , windowSize : Maybe ( Int, Int )
+    , windowSize : Maybe WindowSize
     , boardSizes : Maybe BoardSizes
     , seed : Maybe Random.Seed
     , awaitingCommand : Maybe String
@@ -196,7 +203,7 @@ type Msg
     | RestoreIapPurchases
     | IapPurchases ( Maybe (List IapPurchase), Maybe String )
     | NewBoardIndex String
-    | WindowSize Int Int
+    | SetWindowSize Int Int
     | ShowPage Page
     | GetBoardIndex
     | DeviceReady String
