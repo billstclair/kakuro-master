@@ -46,12 +46,6 @@ import SharedTypes
         , SavedModel
         , Selection
         )
-import VersionedJson
-    exposing
-        ( ConverterDict
-        , decodeVersionedJson
-        , encodeVersionedJson
-        )
 
 
 

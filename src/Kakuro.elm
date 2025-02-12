@@ -8,6 +8,17 @@
 -- See LICENSE.txt
 --
 ----------------------------------------------------------------------
+{-
+
+   TODO:
+
+   Clicking on the direction buttons doesn't work.
+
+   Rip out the purchase stuff.
+
+   Don't save timestamps, so we're not constantly hitting the disk.
+
+-}
 
 
 port module Kakuro exposing (main)
