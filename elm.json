@@ -6,6 +6,7 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
+            "NoRedInk/elm-json-decode-pipeline": "1.0.1",
             "billstclair/elm-css": "1.0.0",
             "billstclair/elm-versioned-json": "1.0.3",
             "elm/browser": "1.0.2",
