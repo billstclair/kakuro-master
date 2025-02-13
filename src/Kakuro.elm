@@ -144,9 +144,6 @@ port receiveGame : (Maybe String -> msg) -> Sub msg
 -- Writes have to go to both, but reads can come from the Model.
 
 
-port setProperty : ( String, Maybe String ) -> Cmd msg
-
-
 port setTitle : String -> Cmd msg
 
 

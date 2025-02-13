@@ -16,8 +16,13 @@ var kakuroPorts = {};
   var storageName = 'kakuro-dojo';
 
   kakuroPorts.init = init;
+  kakuroPorts.specHash = specHash;
   kakuroPorts.storageName = storageName;
 
+  function specHash(spec) {
+    var hash = sha256(spec);      // Defined in sha256.js
+    return hash.substring(0, 8);
+  }
 
   function log (x) {
     console.log(x+"\n");
@@ -65,6 +70,7 @@ var kakuroPorts = {};
     kakuro.ports.saveGame.subscribe(function(specAndState) {
       var spec = specAndState[0]
       var json = specAndState[1]
+      var hash = specHash(spec);
       //log("Saving: " + hash + ", from: " + spec + " as: " + json);
       localStorage.setItem(hash, json);
     });
