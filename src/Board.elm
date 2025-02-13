@@ -78,7 +78,7 @@ makeWithSpec rows cols defaultValue spec =
 {-| Create a new Board of the given size, with an optional specification,
 and initialized with a different value than the default.
 
-    makeWithSpec rows cols defaultValue initial spec
+    makeWithSpecInitial rows cols defaultValue initial spec
 
 -}
 makeWithSpecInitial : Int -> Int -> a -> a -> Maybe String -> Board a
