@@ -12,11 +12,9 @@
 
    TODO:
 
-   Make arrow keys works for navigation.
-
-   What's with the saveGame & requestGame ports? Are they needed.
-
    Clearing all games should leave LocalStorage empty.
+
+    Verify that old game state properly restores.
 -}
 
 
