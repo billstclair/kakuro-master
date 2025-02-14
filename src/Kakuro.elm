@@ -12,9 +12,8 @@
 
    TODO:
 
-   Clearing all games should leave LocalStorage empty.
+   Generate.elm
 
-    Verify that old game state properly restores.
 -}
 
 
@@ -587,10 +586,10 @@ movementKeyDirections =
     , ( "j", Left )
     , ( "k", Down )
     , ( "l", Right )
-    , ( "&", Up )
-    , ( "%", Left )
-    , ( "(", Down )
-    , ( "\"", Right )
+    , ( "arrowup", Up )
+    , ( "arrowleft", Left )
+    , ( "arrowdown", Down )
+    , ( "arrowright", Right )
     ]
 
 
