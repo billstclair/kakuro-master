@@ -110,6 +110,7 @@ type alias Model =
     , platform : Platform
     , properties : Dict String String --raw properties at startup
     , deviceReady : Bool
+    , savedModel : Maybe SavedModel
     }
 
 
@@ -143,6 +144,7 @@ savedModelToModel savedModel =
     , platform = WebPlatform
     , properties = Dict.fromList []
     , deviceReady = False
+    , savedModel = Nothing
     }
 
 

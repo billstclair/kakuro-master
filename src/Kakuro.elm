@@ -199,15 +199,28 @@ updateWithStorage msg model =
         savedModel =
             SharedTypes.modelToSavedModel newModel
 
-        json =
-            encodeSavedModel savedModel
+        doWrite =
+            case newModel.savedModel of
+                Nothing ->
+                    True
+
+                Just sm ->
+                    savedModel /= sm
     in
-    ( newModel
-    , Cmd.batch
-        [ setStorage <| Just <| JE.encode 0 json
-        , cmds
-        ]
-    )
+    if not doWrite then
+        ( newModel, cmds )
+
+    else
+        let
+            json =
+                encodeSavedModel savedModel
+        in
+        ( { newModel | savedModel = Just savedModel }
+        , Cmd.batch
+            [ setStorage <| Just <| JE.encode 0 json
+            , cmds
+            ]
+        )
 
 
 maybeMakeClickSound : Model -> Cmd Msg
@@ -333,6 +346,7 @@ initialModel =
     , platform = WebPlatform
     , properties = Dict.fromList []
     , deviceReady = False
+    , savedModel = Nothing
     }
 
 
@@ -1220,11 +1234,15 @@ multiRestartQuery =
 
 resetAllGameStates : Model -> ( Model, Cmd Msg )
 resetAllGameStates oldModel =
-    ( { initialModel
-        | windowSize = oldModel.windowSize
-        , seed = oldModel.seed
-        , platform = oldModel.platform
-      }
+    let
+        mdl =
+            { initialModel
+                | windowSize = oldModel.windowSize
+                , seed = oldModel.seed
+                , platform = oldModel.platform
+            }
+    in
+    ( { mdl | savedModel = Just <| SharedTypes.modelToSavedModel mdl }
     , setStorage Nothing
     )
 
