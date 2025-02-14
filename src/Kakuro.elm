@@ -1170,6 +1170,11 @@ restartQuery =
     "Restart this puzzle?"
 
 
+resetAllQuery : String
+resetAllQuery =
+    "Clear all saved puzzles?"
+
+
 processRestartQuery : Bool -> Model -> ( Model, Cmd Msg )
 processRestartQuery doit model =
     if doit then
@@ -1210,6 +1215,7 @@ answerProcessors =
     Dict.fromList
         [ ( restartQuery, processRestartQuery )
         , ( reallyResetAllQuery, processResetAllQuery )
+        , ( resetAllQuery, processRestartQuery )
         ]
 
 
@@ -1288,7 +1294,21 @@ restartDialog : Model -> Cmd Msg
 restartDialog model =
     case model.platform of
         WebPlatform ->
-            confirmDialog restartQuery
+            let
+                gameState =
+                    model.gameState
+
+                query =
+                    if
+                        Board.isBoardEmpty gameState.guesses
+                            && Board.isBoardEmpty gameState.hints
+                    then
+                        resetAllQuery
+
+                    else
+                        restartQuery
+            in
+            confirmDialog query
 
         _ ->
             multiConfirmDialog multiRestartQuery
@@ -2081,7 +2101,7 @@ helpPageDiv model =
     textPageDiv "Help" model <|
         [ h3 [] [ text "Top of Page Controls" ]
         , ps
-            [ "Number radio buttons to change size.\n'<' or '>' to change boards\n'X' to erase board.\n'Help' link for this page."
+            [ "Number radio buttons to change size.\n'<' or '>' to change boards\n'X' to erase board.\n'X' on an empty board to erase all.\n'Help' link for this page."
             ]
         , h3 [] [ text "Board" ]
         , ps
