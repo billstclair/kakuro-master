@@ -35,74 +35,94 @@ import Random
     generate rows cols seed -> ( success, board, nextSeed )
 
 -}
-generate : Int -> Int -> Random.Seed -> ( Bool, Board Int, Random.Seed )
+generate : Int -> Int -> Random.Seed -> ( Board Int, Random.Seed )
 generate rows cols seed =
     Board.make rows cols 0
         |> generateRows 0 0 seed
 
 
-maxRowTries : Int
-maxRowTries =
-    10
-
-
-generateRows : Int -> Int -> Random.Seed -> Board Int -> ( Bool, Board Int, Random.Seed )
+generateRows : Int -> Int -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
 generateRows tries startRow seed board =
     if startRow >= board.rows then
-        ( True, board, seed )
+        ( board, seed )
 
     else
         let
-            ( success, nextBoard, nextSeed ) =
-                generateColumns 0 (Debug.log "generateRows" startRow) 0 seed board
+            col0Choices =
+                columnChoices startRow 0 board
+
+            ( nextBoard, nextSeed ) =
+                generateColumns (Debug.log "generateRows" startRow)
+                    0
+                    col0Choices
+                    [ [] ]
+                    seed
+                    board
         in
-        if success then
-            generateRows 0 (startRow + 1) nextSeed nextBoard
-
-        else if tries >= maxRowTries then
-            if startRow <= 0 then
-                ( False, board, nextSeed )
-
-            else
-                generateRows 0 (startRow - 1) nextSeed board
-
-        else
-            generateRows (tries + 1) startRow nextSeed board
+        generateRows 0 (startRow + 1) nextSeed nextBoard
 
 
-maxColTries : Int
-maxColTries =
-    10
-
-
-generateColumns : Int -> Int -> Int -> Random.Seed -> Board Int -> ( Bool, Board Int, Random.Seed )
-generateColumns tries row startCol seed board =
-    if startCol >= board.cols then
-        ( True, board, seed )
-
-    else
-        let
-            ( success, nextBoard, nextSeed ) =
-                generateColumn row (Debug.log "  generateColumn" startCol) seed board
-        in
-        if success then
-            generateColumns 0 row (startCol + 1) nextSeed nextBoard
-
-        else if tries >= maxColTries then
-            if startCol <= 0 then
-                ( False, board, nextSeed )
-
-            else
-                generateColumns 0 row (startCol - 1) nextSeed board
-
-        else
-            generateColumns (tries + 1) row startCol nextSeed board
-
-
-generateColumn : Int -> Int -> Random.Seed -> Board Int -> ( Bool, Board Int, Random.Seed )
-generateColumn row col seed board =
+columnChoices : Int -> Int -> Board Int -> List Int
+columnChoices row col board =
     -- TODO
-    ( True, board, seed )
+    []
+
+
+generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
+generateColumns row startCol choices prevChoicess seed board =
+    if startCol >= board.cols then
+        ( board, seed )
+
+    else
+        let
+            ( success, ( nextChoices, nextSeed, nextBoard ) ) =
+                generateColumn row
+                    (Debug.log "  generateColumn" startCol)
+                    choices
+                    seed
+                    board
+        in
+        if success then
+            let
+                nextCol =
+                    startCol + 1
+
+                nextColChoices =
+                    columnChoices row nextCol board
+            in
+            generateColumns row
+                nextCol
+                nextColChoices
+                (choices :: prevChoicess)
+                nextSeed
+                nextBoard
+
+        else if not <| List.isEmpty nextChoices then
+            generateColumns row startCol nextChoices prevChoicess nextSeed board
+
+        else if startCol > 0 then
+            case prevChoicess of
+                [] ->
+                    -- Can't happen, unless there really aren't any solutions
+                    ( board, nextSeed )
+
+                prevChoices :: prevPrevChoicess ->
+                    generateColumns row
+                        (startCol - 1)
+                        prevChoices
+                        prevPrevChoicess
+                        nextSeed
+                        board
+
+        else
+            -- Can't happen, unless there really aren't any solutions
+            ( board, nextSeed )
+
+
+generateColumn : Int -> Int -> List Int -> Random.Seed -> Board Int -> ( Bool, ( List Int, Random.Seed, Board Int ) )
+generateColumn row col choices seed board =
+    -- TODO
+    ( True, ( choices, seed, board ) )
 
 
 random : Int -> Int -> Random.Seed -> ( Int, Random.Seed )
