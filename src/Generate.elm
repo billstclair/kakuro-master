@@ -156,6 +156,25 @@ row and column.
 -}
 fixChoicesForSums : IntBoard -> HintsBoard -> HintsBoard
 fixChoicesForSums board choicesBoard =
+    let
+        fixLoop : HintsBoard -> HintsBoard
+        fixLoop chb =
+            let
+                chb2 =
+                    fixChoicesForSumsInternal board chb
+            in
+            if chb2 == chb then
+                chb
+
+            else
+                -- Loop until it doesn't change
+                fixLoop chb2
+    in
+    fixLoop choicesBoard
+
+
+fixChoicesForSumsInternal : IntBoard -> HintsBoard -> HintsBoard
+fixChoicesForSumsInternal board choicesBoard =
     -- TODO
     choicesBoard
 
