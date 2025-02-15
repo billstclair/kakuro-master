@@ -6,7 +6,7 @@ import Browser
 import Dict exposing (Dict)
 import Generate exposing (columnChoices, generate, randomChoice)
 import Html exposing (Html, button, div, p, text)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (disabled, style)
 import Html.Events exposing (onClick)
 import PuzzleDB
 import RenderBoard
@@ -25,7 +25,7 @@ import Time exposing (Posix)
 
 type alias Model =
     { kakuroModel : SharedTypes.Model
-    , step : Mdl -> Mdl
+    , step : Maybe (Mdl -> Mdl)
     , row : Int
     , col : Int
     }
@@ -38,9 +38,9 @@ type Mdl
 initialModel : Model
 initialModel =
     { kakuroModel = initialKakuroModel
-    , step = identity
-    , row = 1
-    , col = 1
+    , step = Nothing
+    , row = 0
+    , col = 0
     }
 
 
@@ -57,19 +57,20 @@ update msg model =
             ( model, Cmd.none )
 
         Tick posix ->
-            let
-                mdl =
-                    model.step <| Mdl model
-            in
-            case mdl of
-                Mdl model2 ->
-                    ( model2, Cmd.none )
+            case model.step of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just stepper ->
+                    case stepper <| Mdl model of
+                        Mdl model2 ->
+                            ( model2, Cmd.none )
 
         StepColumnChoices ->
             ( { model
                 | row = 0
                 , col = 0
-                , step = stepColumnChoices
+                , step = Just stepColumnChoices
               }
                 |> clearGameState
             , Cmd.none
@@ -164,7 +165,7 @@ stepColumnChoices (Mdl model) =
         ( nextRow, nextCol, nextStep ) =
             if col >= cols - 1 then
                 if row >= rows - 1 then
-                    ( 0, 0, identity )
+                    ( 0, 0, Nothing )
 
                 else
                     ( row + 1, 0, newModel.step )
@@ -185,13 +186,29 @@ h2 s =
     Html.h2 [] [ text s ]
 
 
+b : String -> Html msg
+b s =
+    Html.span [ style "font-weight" "bold" ]
+        [ text s ]
+
+
 view : Model -> Html Msg
 view model =
     div [ style "margin" "2em" ]
         [ h2 "TestGenerate"
         , p []
-            [ button [ onClick StepColumnChoices ]
+            [ button
+                [ onClick StepColumnChoices
+                , disabled <| model.step /= Nothing
+                ]
                 [ text "StepColumnChoices" ]
+            ]
+        , p []
+            [ b "row: "
+            , text <| String.fromInt <| model.row + 1
+            , text " "
+            , b "col: "
+            , text <| String.fromInt <| model.col + 1
             ]
         , Html.map (\_ -> Noop) <| RenderBoard.render model.kakuroModel
         ]
@@ -279,5 +296,5 @@ main =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every 125 Tick
+        [ Time.every 200 Tick
         ]
