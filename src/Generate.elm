@@ -15,7 +15,7 @@
 
 module Generate exposing
     ( generate
-    , random, randomChoice, third
+    , columnChoices, random, randomChoice, third
     )
 
 {-| Code to generate a new Kakuro board.
