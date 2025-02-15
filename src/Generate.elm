@@ -13,7 +13,10 @@
 ----------------------------------------------------------------------
 
 
-module Generate exposing (generate)
+module Generate exposing
+    ( generate
+    , random, randomChoice, third
+    )
 
 {-| Code to generate a new Kakuro board.
 
@@ -27,13 +30,13 @@ import List.Extra as LE
 import Random
 
 
-{-| Create a new Board with the same shape as the input Board.
+{-| Create a new Board with the given number of rows and columns.
 
-    generate maxrun seed board
+    generate rows cols seed -> ( success, board, nextSeed )
 
 -}
-generate : Random.Seed -> Int -> Int -> ( Bool, Board Int, Random.Seed )
-generate seed rows cols =
+generate : Int -> Int -> Random.Seed -> ( Bool, Board Int, Random.Seed )
+generate rows cols seed =
     Board.make rows cols 0
         |> generateRows 0 0 seed
 
@@ -51,7 +54,7 @@ generateRows tries startRow seed board =
     else
         let
             ( success, nextBoard, nextSeed ) =
-                generateRow (Debug.log "generateRow" startRow) seed board
+                generateColumns 0 (Debug.log "generateRows" startRow) 0 seed board
         in
         if success then
             generateRows 0 (startRow + 1) nextSeed nextBoard
@@ -65,11 +68,6 @@ generateRows tries startRow seed board =
 
         else
             generateRows (tries + 1) startRow nextSeed board
-
-
-generateRow : Int -> Random.Seed -> Board Int -> ( Bool, Board Int, Random.Seed )
-generateRow row seed board =
-    generateColumns 0 row 0 seed board
 
 
 maxColTries : Int
@@ -128,3 +126,12 @@ randomChoice choices seed =
 
         a :: rest ->
             ( Just a, head ++ rest, nextSeed )
+
+
+
+-- For debugging
+
+
+third : ( a, b, c ) -> c
+third ( a, b, c ) =
+    c
