@@ -69,29 +69,37 @@ columnChoices row col board =
         choices =
             [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
 
-        colLoop : Int -> Int -> List Int -> List Int
-        colLoop r c ch =
-            if c >= col then
+        colLoop : Int -> List Int -> List Int
+        colLoop c ch =
+            if c < 0 then
                 ch
 
             else
                 let
                     x =
-                        Board.get r c board
+                        Board.get row c board
                 in
-                colLoop r (c + 1) <| LE.remove x ch
+                if x == 0 then
+                    ch
 
-        rowLoop : Int -> Int -> List Int -> List Int
-        rowLoop r c ch =
+                else
+                    colLoop (c - 1) <| LE.remove x ch
+
+        rowLoop : Int -> List Int -> List Int
+        rowLoop r ch =
             if r >= row then
                 ch
 
             else
                 let
                     x =
-                        Board.get r c board
+                        Board.get r col board
                 in
-                rowLoop (r + 1) c <| LE.remove x ch
+                if x == 0 then
+                    ch
+
+                else
+                    rowLoop (r - 1) <| LE.remove x ch
 
         maybeRemove0 : List Int -> List Int
         maybeRemove0 ch =
@@ -132,8 +140,8 @@ columnChoices row col board =
                     choices
     in
     maybeRemove0 choices
-        |> colLoop row col
-        |> rowLoop row col
+        |> colLoop (board.cols - 1)
+        |> rowLoop (board.rows - 1)
 
 
 generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
