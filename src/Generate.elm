@@ -2,7 +2,7 @@
 --
 -- Generate.elm
 -- Generate new Kakuro board layout.
--- Copyright (c) 2016 Bill St. Clair <billstclair@gmail.com>
+-- Copyright (c) 2016-2025 Bill St. Clair <billstclair@gmail.com>
 -- Some rights reserved.
 -- Distributed under the MIT License
 -- See LICENSE.txt
@@ -23,6 +23,7 @@ module Generate exposing (generate)
 
 import Array exposing (Array)
 import Board exposing (Board)
+import List.Extra as LE
 import Random
 
 
@@ -31,10 +32,79 @@ import Random
     generate maxrun seed board
 
 -}
-generate : Int -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
-generate maxrun seed board =
-    Board.make board.rows board.cols 0
-        |> generateRows 0 maxrun (skip maxrun board) seed
+generate : Random.Seed -> Int -> Int -> ( Bool, Board Int, Random.Seed )
+generate seed rows cols =
+    Board.make rows cols 0
+        |> generateRows 0 0 seed
+
+
+maxRowTries : Int
+maxRowTries =
+    10
+
+
+generateRows : Int -> Int -> Random.Seed -> Board Int -> ( Bool, Board Int, Random.Seed )
+generateRows tries startRow seed board =
+    if startRow >= board.rows then
+        ( True, board, seed )
+
+    else
+        let
+            ( success, nextBoard, nextSeed ) =
+                generateRow (Debug.log "generateRow" startRow) seed board
+        in
+        if success then
+            generateRows 0 (startRow + 1) nextSeed nextBoard
+
+        else if tries >= maxRowTries then
+            if startRow <= 0 then
+                ( False, board, nextSeed )
+
+            else
+                generateRows 0 (startRow - 1) nextSeed board
+
+        else
+            generateRows (tries + 1) startRow nextSeed board
+
+
+generateRow : Int -> Random.Seed -> Board Int -> ( Bool, Board Int, Random.Seed )
+generateRow row seed board =
+    generateColumns 0 row 0 seed board
+
+
+maxColTries : Int
+maxColTries =
+    10
+
+
+generateColumns : Int -> Int -> Int -> Random.Seed -> Board Int -> ( Bool, Board Int, Random.Seed )
+generateColumns tries row startCol seed board =
+    if startCol >= board.cols then
+        ( True, board, seed )
+
+    else
+        let
+            ( success, nextBoard, nextSeed ) =
+                generateColumn row (Debug.log "  generateColumn" startCol) seed board
+        in
+        if success then
+            generateColumns 0 row (startCol + 1) nextSeed nextBoard
+
+        else if tries >= maxColTries then
+            if startCol <= 0 then
+                ( False, board, nextSeed )
+
+            else
+                generateColumns 0 row (startCol - 1) nextSeed board
+
+        else
+            generateColumns (tries + 1) row startCol nextSeed board
+
+
+generateColumn : Int -> Int -> Random.Seed -> Board Int -> ( Bool, Board Int, Random.Seed )
+generateColumn row col seed board =
+    -- TODO
+    ( True, board, seed )
 
 
 random : Int -> Int -> Random.Seed -> ( Int, Random.Seed )
@@ -42,80 +112,19 @@ random min max seed =
     Random.step (Random.int min max) seed
 
 
-skip : Int -> Board Int -> Int
-skip maxrun board =
-    if board.cols > 2 * maxrun then
-        max 1 (board.cols // 2 - maxrun)
-
-    else
-        max 1 (board.cols - maxrun)
-
-
-generateRows : Int -> Int -> Int -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
-generateRows row maxrun maxSkip seed board =
+randomChoice : List a -> Random.Seed -> ( Maybe a, List a, Random.Seed )
+randomChoice choices seed =
     let
-        ( start, seed2 ) =
-            random 0 maxSkip seed
+        ( idx, nextSeed ) =
+            random 0 (List.length choices - 1) seed
 
-        ( rowArray, seed3 ) =
-            generateRuns start
-                maxrun
-                maxSkip
-                seed2
-                (Board.getRow row board)
-
-        brd =
-            Board.setRow row rowArray board
+        ( head, tail ) =
+            LE.splitAt idx choices
     in
-    if row >= (board.rows - 1) then
-        ( brd, seed3 )
+    case tail of
+        [] ->
+            -- Only happens when `choices` is empty
+            ( Nothing, choices, nextSeed )
 
-    else
-        generateRows (row + 1) maxrun maxSkip seed brd
-
-
-generateRuns :
-    Int
-    -> Int
-    -> Int
-    -> Random.Seed
-    -> Array Int
-    -> ( Array Int, Random.Seed )
-generateRuns start maxrun maxSkip seed rowArray =
-    let
-        len =
-            Array.length rowArray
-
-        maxmaxrun =
-            min maxrun <| len - start
-    in
-    if maxmaxrun < 2 then
-        ( rowArray, seed )
-
-    else
-        let
-            ( run, seed2 ) =
-                random 2 maxmaxrun seed
-
-            ( ra, seed3 ) =
-                generateRun run start seed2 rowArray
-
-            ms =
-                max 1 <| min maxSkip <| len - start - run - 3
-
-            ( sk, seed4 ) =
-                random 1 ms seed3
-
-            start2 =
-                start + run + sk
-        in
-        generateRuns start2 maxrun maxSkip seed4 ra
-
-
-generateRun : Int -> Int -> Random.Seed -> Array Int -> ( Array Int, Random.Seed )
-generateRun run start seed rowArray =
-    let
-        ra =
-            Array.set start run rowArray
-    in
-    ( ra, seed )
+        a :: rest ->
+            ( Just a, head ++ rest, nextSeed )
