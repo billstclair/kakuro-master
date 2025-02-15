@@ -14,13 +14,13 @@
 
 
 module Generate exposing
-    ( generate
-    , columnChoices, random, randomChoice, third
+    ( generate, generateChoices, cellChoices, fixChoicesForSums
+    , random, randomChoice, third
     )
 
 {-| Code to generate a new Kakuro board.
 
-@docs generate
+@docs generate, generateChoices, cellChoices, fixChoicesForSums
 
 -}
 
@@ -28,6 +28,7 @@ import Array exposing (Array)
 import Board exposing (Board)
 import List.Extra as LE
 import Random
+import SharedTypes exposing (HintsBoard, IntBoard)
 
 
 {-| Create a new Board with the given number of rows and columns.
@@ -35,13 +36,13 @@ import Random
     generate rows cols seed -> ( success, board, nextSeed )
 
 -}
-generate : Int -> Int -> Random.Seed -> ( Board Int, Random.Seed )
+generate : Int -> Int -> Random.Seed -> ( IntBoard, Random.Seed )
 generate rows cols seed =
     Board.make rows cols 0
         |> generateRows 0 0 seed
 
 
-generateRows : Int -> Int -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
+generateRows : Int -> Int -> Random.Seed -> IntBoard -> ( IntBoard, Random.Seed )
 generateRows tries startRow seed board =
     if startRow >= board.rows then
         ( board, seed )
@@ -49,7 +50,7 @@ generateRows tries startRow seed board =
     else
         let
             col0Choices =
-                columnChoices startRow 0 board
+                cellChoices startRow 0 board
 
             ( nextBoard, nextSeed ) =
                 generateColumns (Debug.log "generateRows" startRow)
@@ -62,9 +63,11 @@ generateRows tries startRow seed board =
         generateRows 0 (startRow + 1) nextSeed nextBoard
 
 
-columnChoices : Int -> Int -> Board Int -> List Int
-columnChoices row col board =
-    -- TODO
+{-| Compute the choices for the given cell that don't collide with existing
+values in its row and column with smaller indices.
+-}
+cellChoices : Int -> Int -> IntBoard -> List Int
+cellChoices row col board =
     let
         choices =
             [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
@@ -87,7 +90,7 @@ columnChoices row col board =
 
         rowLoop : Int -> List Int -> List Int
         rowLoop r ch =
-            if r >= row then
+            if r < 0 then
                 ch
 
             else
@@ -137,14 +140,65 @@ columnChoices row col board =
                     LE.remove 0 ch
 
                 else
-                    choices
+                    ch
     in
     maybeRemove0 choices
-        |> colLoop (board.cols - 1)
-        |> rowLoop (board.rows - 1)
+        |> colLoop (col - 1)
+        |> rowLoop (row - 1)
 
 
-generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
+{-| Call this after collecting results for calling `cellChoices`
+for all cells, and collecting them in `choicesBoard`.
+
+Removes those choices from each cell that can't be part of the sum for the
+row and column.
+
+-}
+fixChoicesForSums : IntBoard -> HintsBoard -> HintsBoard
+fixChoicesForSums board choicesBoard =
+    -- TODO
+    choicesBoard
+
+
+{-| Call cellChoices for each cell, collecting them in a `HintsBoard`.
+Then call fixChoicesForSums to remove choices that can't be part of
+a row and column sum
+-}
+generateChoices : IntBoard -> HintsBoard
+generateChoices board =
+    let
+        rows =
+            board.rows
+
+        cols =
+            board.cols
+
+        rowRange =
+            List.range 0 (rows - 1)
+
+        colRange =
+            List.range 0 (cols - 1)
+
+        choicesBoard =
+            SharedTypes.emptyHintsBoard rows cols
+
+        eachRow : Int -> HintsBoard -> HintsBoard
+        eachRow row chb =
+            List.foldl (eachCol row) chb colRange
+
+        eachCol : Int -> Int -> HintsBoard -> HintsBoard
+        eachCol row col chb =
+            let
+                choices =
+                    cellChoices row col board
+            in
+            Board.set row col choices chb
+    in
+    List.foldl eachRow choicesBoard rowRange
+        |> fixChoicesForSums board
+
+
+generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> IntBoard -> ( IntBoard, Random.Seed )
 generateColumns row startCol choices prevChoicess seed board =
     if startCol >= board.cols then
         ( board, seed )
@@ -164,7 +218,7 @@ generateColumns row startCol choices prevChoicess seed board =
                     startCol + 1
 
                 nextColChoices =
-                    columnChoices row nextCol board
+                    cellChoices row nextCol board
             in
             generateColumns row
                 nextCol
@@ -195,7 +249,7 @@ generateColumns row startCol choices prevChoicess seed board =
             ( board, nextSeed )
 
 
-generateColumn : Int -> Int -> List Int -> Random.Seed -> Board Int -> ( Bool, ( List Int, Random.Seed, Board Int ) )
+generateColumn : Int -> Int -> List Int -> Random.Seed -> IntBoard -> ( Bool, ( List Int, Random.Seed, IntBoard ) )
 generateColumn row col choices seed board =
     -- TODO
     ( True, ( choices, seed, board ) )

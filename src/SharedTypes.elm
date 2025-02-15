@@ -31,6 +31,7 @@ module SharedTypes exposing
     , SavedModel
     , Selection
     , WindowSize
+    , emptyHintsBoard
     , modelToSavedModel
     , savedModelToModel
     )
@@ -196,6 +197,11 @@ type alias Hints =
 
 type alias HintsBoard =
     Board Hints
+
+
+emptyHintsBoard : Int -> Int -> HintsBoard
+emptyHintsBoard rows cols =
+    Board.make rows cols []
 
 
 type alias Selection =

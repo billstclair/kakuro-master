@@ -4,15 +4,17 @@ import Board exposing (Board)
 import BoardSize
 import Browser
 import Dict exposing (Dict)
-import Generate exposing (columnChoices, generate, randomChoice)
+import Generate exposing (cellChoices, generate, randomChoice)
 import Html exposing (Html, button, div, p, text)
 import Html.Attributes exposing (disabled, style)
 import Html.Events exposing (onClick)
+import List.Extra as LE
 import PuzzleDB
 import RenderBoard
 import SharedTypes
     exposing
-        ( GameState
+        ( Flags
+        , GameState
         , Hints
         , HintsBoard
         , IntBoard
@@ -26,6 +28,7 @@ import Time exposing (Posix)
 type alias Model =
     { kakuroModel : SharedTypes.Model
     , step : Maybe (Mdl -> Mdl)
+    , showHints : Bool
     , row : Int
     , col : Int
     }
@@ -39,6 +42,7 @@ initialModel : Model
 initialModel =
     { kakuroModel = initialKakuroModel
     , step = Nothing
+    , showHints = True
     , row = 0
     , col = 0
     }
@@ -47,7 +51,9 @@ initialModel =
 type Msg
     = Noop
     | Tick Posix
-    | StepColumnChoices
+    | StepCellChoices
+    | GenerateChoices
+    | ToggleHints
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -66,27 +72,66 @@ update msg model =
                         Mdl model2 ->
                             ( model2, Cmd.none )
 
-        StepColumnChoices ->
+        StepCellChoices ->
             ( { model
                 | row = 0
                 , col = 0
-                , step = Just stepColumnChoices
+                , step = Just stepCellChoices
               }
                 |> clearGameState
             , Cmd.none
             )
 
+        GenerateChoices ->
+            let
+                newModel =
+                    clearGameState model
+
+                newHints =
+                    Generate.generateChoices <| modelBoard newModel
+            in
+            ( doGameState (\gs -> { gs | hints = newHints }) newModel
+            , Cmd.none
+            )
+
+        ToggleHints ->
+            let
+                showHints =
+                    not model.showHints
+
+                hints =
+                    modelHints model
+            in
+            ( { model | showHints = showHints }
+                |> clearGameState
+                |> doHints (\_ -> hints)
+                |> (if showHints then
+                        identity
+
+                    else
+                        guessRight
+                   )
+            , Cmd.none
+            )
+
+
+doKakuroModel : (SharedTypes.Model -> SharedTypes.Model) -> Model -> Model
+doKakuroModel f model =
+    { model
+        | kakuroModel = f model.kakuroModel
+    }
+
+
+doFlags : (Flags -> Flags) -> Model -> Model
+doFlags f model =
+    doGameState
+        (\gs -> { gs | flags = f gs.flags })
+        model
+
 
 doGameState : (GameState -> GameState) -> Model -> Model
 doGameState f model =
-    let
-        km =
-            model.kakuroModel
-    in
-    { model
-        | kakuroModel =
-            { km | gameState = f km.gameState }
-    }
+    doKakuroModel (\km -> { km | gameState = f km.gameState }) model
 
 
 doBoard : (IntBoard -> IntBoard) -> Model -> Model
@@ -98,6 +143,12 @@ doBoard f model =
 doGuesses : (IntBoard -> IntBoard) -> Model -> Model
 doGuesses f model =
     doGameState (\gs -> { gs | guesses = f gs.guesses })
+        model
+
+
+doHints : (HintsBoard -> HintsBoard) -> Model -> Model
+doHints f model =
+    doGameState (\gs -> { gs | hints = f gs.hints })
         model
 
 
@@ -125,14 +176,33 @@ clearGameState model =
             )
 
 
+boardGet : Int -> Int -> Model -> Int
+boardGet row col model =
+    let
+        board =
+            modelBoard model
+    in
+    Board.get row col board
+
+
 boardSet : Int -> Int -> Int -> Model -> Model
 boardSet row col val model =
-    doBoard (\board -> Board.set row col val board) model
+    doBoard (Board.set row col val) model
 
 
 guessesSet : Int -> Int -> Int -> Model -> Model
 guessesSet row col val model =
-    doGuesses (\board -> Board.set row col val board) model
+    doGuesses (Board.set row col val) model
+
+
+hintsSet : Int -> Int -> Hints -> Model -> Model
+hintsSet row col val model =
+    doHints (Board.set row col val) model
+
+
+modelHints : Model -> HintsBoard
+modelHints model =
+    model.kakuroModel.gameState.hints
 
 
 modelBoard : Model -> IntBoard
@@ -140,8 +210,27 @@ modelBoard model =
     model.kakuroModel.gameState.board
 
 
-stepColumnChoices : Mdl -> Mdl
-stepColumnChoices (Mdl model) =
+modelGameState : Model -> GameState
+modelGameState model =
+    model.kakuroModel.gameState
+
+
+fixChoicesStep : Mdl -> Mdl
+fixChoicesStep (Mdl model) =
+    let
+        newModel =
+            { model | step = Nothing }
+
+        newHints =
+            Generate.fixChoicesForSums (modelBoard newModel)
+                (modelHints newModel)
+    in
+    doGameState (\gameState -> { gameState | hints = newHints }) newModel
+        |> Mdl
+
+
+stepCellChoices : Mdl -> Mdl
+stepCellChoices (Mdl model) =
     let
         board =
             modelBoard model
@@ -159,13 +248,23 @@ stepColumnChoices (Mdl model) =
             model.col
     in
     let
+        choices =
+            Generate.cellChoices row col <| modelBoard model
+
+        ( ch, zeroOk ) =
+            if List.member 0 choices then
+                ( LE.remove 0 choices, True )
+
+            else
+                ( choices, False )
+
         newModel =
-            guessesSet row col ((row + 1) * 10 + col + 1) model
+            hintsSet row col ch model
 
         ( nextRow, nextCol, nextStep ) =
             if col >= cols - 1 then
                 if row >= rows - 1 then
-                    ( 0, 0, Nothing )
+                    ( 0, 0, Just fixChoicesStep )
 
                 else
                     ( row + 1, 0, newModel.step )
@@ -192,16 +291,37 @@ b s =
         [ text s ]
 
 
+br : Html msg
+br =
+    Html.br []
+        []
+
+
 view : Model -> Html Msg
 view model =
     div [ style "margin" "2em" ]
         [ h2 "TestGenerate"
         , p []
             [ button
-                [ onClick StepColumnChoices
+                [ onClick StepCellChoices
                 , disabled <| model.step /= Nothing
                 ]
-                [ text "StepColumnChoices" ]
+                [ text "StepCellChoices" ]
+            , text " "
+            , button
+                [ onClick GenerateChoices
+                , disabled <| model.step /= Nothing
+                ]
+                [ text "GenerateChoices" ]
+            , br
+            , button [ onClick ToggleHints ]
+                [ text <|
+                    if model.showHints then
+                        "Show board"
+
+                    else
+                        "Show hints"
+                ]
             ]
         , p []
             [ b "row: "
@@ -252,7 +372,10 @@ initialKakuroModel =
     , gameState =
         { state
             | flags =
-                { flags | showPossibilities = False }
+                { flags
+                    | showPossibilities = False
+                    , isHintInput = True
+                }
         }
     , windowSize = Nothing
     , boardSizes = Nothing
@@ -267,20 +390,33 @@ initialKakuroModel =
     , deviceReady = False
     , savedModel = Nothing
     }
-        |> (\model ->
-                let
-                    boardSizes =
-                        BoardSize.computeBoardSizes model
-                in
-                { model
-                    | boardSizes =
-                        Just
-                            { boardSizes
-                                | cellFontSize =
-                                    toFloat boardSizes.cellFontSize * 3 / 4 |> round
-                            }
-                }
-           )
+
+
+guessRight : Model -> Model
+guessRight model =
+    let
+        board =
+            modelBoard model
+
+        rows =
+            board.rows
+
+        cols =
+            board.cols
+
+        rowRange =
+            List.range 0 (rows - 1)
+
+        colRange =
+            List.range 0 (cols - 1)
+
+        eachRow row m =
+            List.foldl (eachCol row) m colRange
+
+        eachCol row col m =
+            guessesSet row col (Board.get row col board) m
+    in
+    List.foldl eachRow model rowRange
 
 
 main : Program () Model Msg
