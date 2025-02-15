@@ -65,7 +65,75 @@ generateRows tries startRow seed board =
 columnChoices : Int -> Int -> Board Int -> List Int
 columnChoices row col board =
     -- TODO
-    []
+    let
+        choices =
+            [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+
+        colLoop : Int -> Int -> List Int -> List Int
+        colLoop r c ch =
+            if c >= col then
+                ch
+
+            else
+                let
+                    x =
+                        Board.get r c board
+                in
+                colLoop r (c + 1) <| LE.remove x ch
+
+        rowLoop : Int -> Int -> List Int -> List Int
+        rowLoop r c ch =
+            if r >= row then
+                ch
+
+            else
+                let
+                    x =
+                        Board.get r c board
+                in
+                rowLoop (r + 1) c <| LE.remove x ch
+
+        maybeRemove0 : List Int -> List Int
+        maybeRemove0 ch =
+            let
+                tooCloseToEdge =
+                    (row == 1)
+                        || (row == board.rows - 2)
+                        || (col == 1)
+                        || (col == board.cols - 2)
+            in
+            if tooCloseToEdge then
+                LE.remove 0 ch
+
+            else
+                let
+                    tooCloseTo0 =
+                        (row > 0 && Board.get (row - 1) col board == 0)
+                            || (row > 1 && (Board.get (row - 2) col board == 0))
+                            || ((row < board.rows - 1)
+                                    && (Board.get (row + 1) col board == 0)
+                               )
+                            || ((row < board.rows - 2)
+                                    && (Board.get (row + 2) col board == 0)
+                               )
+                            || (col > 0 && (Board.get row (col - 1) board == 0))
+                            || (col > 1 && (Board.get row (col - 2) board == 0))
+                            || ((col < board.cols - 1)
+                                    && (Board.get row (col + 1) board == 0)
+                               )
+                            || ((col < board.cols - 2)
+                                    && (Board.get row (col + 2) board == 0)
+                               )
+                in
+                if tooCloseTo0 then
+                    LE.remove 0 ch
+
+                else
+                    choices
+    in
+    maybeRemove0 choices
+        |> colLoop row col
+        |> rowLoop row col
 
 
 generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> Board Int -> ( Board Int, Random.Seed )
