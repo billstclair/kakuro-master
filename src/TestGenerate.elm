@@ -5,8 +5,8 @@ import BoardSize
 import Browser
 import Dict exposing (Dict)
 import Generate exposing (cellChoices, generate, randomChoice)
-import Html exposing (Html, button, div, option, p, select, text)
-import Html.Attributes exposing (disabled, selected, style, value)
+import Html exposing (Html, button, div, input, option, p, select, text)
+import Html.Attributes exposing (checked, disabled, name, selected, style, type_, value)
 import Html.Events exposing (onClick, onInput)
 import List.Extra as LE
 import PuzzleDB
@@ -37,7 +37,7 @@ textToShowWhat s =
         "ShowBoard" ->
             ShowBoard
 
-        "ShowZeros" ->
+        "ShowZeroes" ->
             ShowZeroes
 
         _ ->
@@ -48,6 +48,8 @@ type alias Model =
     { kakuroModel : SharedTypes.Model
     , step : Maybe (Mdl -> Mdl)
     , showWhat : ShowWhat
+    , kind : Int
+    , boardNum : Int
     , row : Int
     , col : Int
     }
@@ -57,11 +59,18 @@ type Mdl
     = Mdl Model
 
 
+initialKind : Int
+initialKind =
+    6
+
+
 initialModel : Model
 initialModel =
-    { kakuroModel = initialKakuroModel
+    { kakuroModel = initialKakuroModel initialKind
     , step = Nothing
     , showWhat = ShowCellChoices
+    , kind = initialKind
+    , boardNum = 0
     , row = 0
     , col = 0
     }
@@ -70,6 +79,7 @@ initialModel =
 type Msg
     = Noop
     | Tick Posix
+    | ChangeKind Int
     | StepCellChoices
     | GenerateChoices
     | SetShowWhat String
@@ -91,6 +101,16 @@ update msg model =
                         Mdl model2 ->
                             ( model2, Cmd.none )
 
+        ChangeKind newKind ->
+            if model.kind == newKind then
+                ( model, Cmd.none )
+
+            else
+                ( { model | kind = newKind }
+                    |> clearGameState
+                , Cmd.none
+                )
+
         StepCellChoices ->
             ( { model
                 | row = 0
@@ -110,7 +130,8 @@ update msg model =
                 newHints =
                     Generate.generateChoices <| modelBoard newModel
             in
-            ( doGameState (\gs -> { gs | hints = newHints }) newModel
+            ( doGameState (\gs -> { gs | hints = newHints })
+                { newModel | showWhat = ShowCellChoices }
             , Cmd.none
             )
 
@@ -153,10 +174,10 @@ guessZeroes model =
                     let
                         val =
                             if List.member 0 <| Board.get r c hints then
-                                1
+                                9
 
                             else
-                                0
+                                1
                     in
                     Board.set r c val guesses
                 )
@@ -202,26 +223,32 @@ doHints f model =
 
 clearGameState : Model -> Model
 clearGameState model =
-    model
-        |> doGameState
-            (\gs ->
-                let
-                    board =
-                        gs.board
+    let
+        gameState =
+            modelGameState model
+    in
+    if model.kind /= model.kakuroModel.kind then
+        model
+            |> doKakuroModel
+                (\km -> { km | kind = model.kind })
+            |> doGameState
+                (\gs -> newBoardOfKind model.kind 1)
 
-                    rows =
-                        board.rows
-
-                    cols =
-                        board.cols
-                in
-                { gs
-                    | guesses =
-                        Board.make rows cols board.defaultValue
-                    , hints =
-                        Board.make rows cols []
-                }
-            )
+    else
+        model
+            |> doGameState
+                (\gs ->
+                    let
+                        ( rows, cols ) =
+                            ( gs.board.rows, gs.board.cols )
+                    in
+                    { gs
+                        | guesses =
+                            Board.make rows cols gs.board.defaultValue
+                        , hints =
+                            Board.make rows cols []
+                    }
+                )
 
 
 boardGet : Int -> Int -> Model -> Int
@@ -354,12 +381,30 @@ br =
         []
 
 
+radio : String -> Bool -> msg -> Html msg
+radio value isChecked msg =
+    Html.span [ onClick msg ]
+        [ input
+            [ type_ "radio"
+            , name "board-size"
+            , checked isChecked
+            ]
+            []
+        , text value
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div [ style "margin" "2em" ]
         [ h2 "TestGenerate"
         , p []
-            [ button
+            [ p []
+                [ radio "6" (model.kind == 6) (ChangeKind 6)
+                , radio "8" (model.kind == 8) (ChangeKind 8)
+                , radio "10" (model.kind == 10) (ChangeKind 10)
+                ]
+            , button
                 [ onClick StepCellChoices
                 , disabled <| model.step /= Nothing
                 ]
@@ -402,11 +447,6 @@ view model =
         ]
 
 
-initialKind : Int
-initialKind =
-    6
-
-
 realBoardIndex : IntBoard -> Int
 realBoardIndex board =
     case board.index of
@@ -417,34 +457,42 @@ realBoardIndex board =
             index
 
 
-initialKakuroModel : SharedTypes.Model
-initialKakuroModel =
+newBoardOfKind : Int -> Int -> GameState
+newBoardOfKind kind idx =
     let
         board =
-            PuzzleDB.getBoardOfKind initialKind 1
+            PuzzleDB.getBoardOfKind kind 1
 
         state =
             RenderBoard.makeGameState board
 
-        idx =
-            realBoardIndex board
-
         flags =
             state.flags
     in
-    { kind = initialKind
+    { state
+        | flags =
+            { flags
+                | showPossibilities = False
+                , isHintInput = True
+            }
+    }
+
+
+initialKakuroModel : Int -> SharedTypes.Model
+initialKakuroModel kind =
+    let
+        state =
+            newBoardOfKind kind 1
+
+        idx =
+            realBoardIndex state.board
+    in
+    { kind = kind
     , index = idx
     , indices = [ ( 6, 1 ), ( 8, 1 ), ( 10, 1 ) ]
     , gencount = 0
     , page = HelpPage
-    , gameState =
-        { state
-            | flags =
-                { flags
-                    | showPossibilities = False
-                    , isHintInput = True
-                }
-        }
+    , gameState = state
     , windowSize = Nothing
     , boardSizes = Nothing
     , seed = Nothing

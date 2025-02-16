@@ -182,7 +182,6 @@ but don't intend to ever implement it.
 -}
 fixChoicesForSumsInternal : IntBoard -> HintsBoard -> HintsBoard
 fixChoicesForSumsInternal board choicesBoard =
-    -- TODO
     choicesBoard
 
 
@@ -271,7 +270,7 @@ generateColumns row startCol choices prevChoicess seed board =
             generateColumns row
                 nextCol
                 nextColChoices
-                (choices :: prevChoicess)
+                (nextChoices :: prevChoicess)
                 nextSeed
                 nextBoard
 
@@ -299,8 +298,20 @@ generateColumns row startCol choices prevChoicess seed board =
 
 generateColumn : Int -> Int -> List Int -> Random.Seed -> IntBoard -> ( Bool, ( List Int, Random.Seed, IntBoard ) )
 generateColumn row col choices seed board =
-    -- TODO
-    ( True, ( choices, seed, board ) )
+    if choices == [] then
+        ( False, ( choices, seed, board ) )
+
+    else
+        let
+            ( maybeChoice, newChoices, newSeed ) =
+                randomChoice choices seed
+        in
+        case maybeChoice of
+            Nothing ->
+                ( False, ( newChoices, newSeed, board ) )
+
+            Just choice ->
+                ( True, ( newChoices, newSeed, Board.set row col choice board ) )
 
 
 random : Int -> Int -> Random.Seed -> ( Int, Random.Seed )
