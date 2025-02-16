@@ -166,22 +166,20 @@ guessZeroes model =
         hints =
             Debug.log "guessZeros, hints" <|
                 modelHints model
-    in
-    model
-        |> doGuesses
-            (Generate.eachCell
-                (\r c guesses ->
-                    let
-                        val =
-                            if List.member 0 <| Board.get r c hints then
-                                9
 
-                            else
-                                1
-                    in
-                    Board.set r c val guesses
-                )
-            )
+        setCell row col guesses =
+            let
+                val =
+                    if List.member 0 <| Board.get row col hints then
+                        9
+
+                    else
+                        1
+            in
+            Board.set row col val guesses
+    in
+    doGuesses (Generate.eachCell setCell)
+        model
 
 
 doKakuroModel : (SharedTypes.Model -> SharedTypes.Model) -> Model -> Model
@@ -514,25 +512,11 @@ guessRight model =
         board =
             modelBoard model
 
-        rows =
-            board.rows
-
-        cols =
-            board.cols
-
-        rowRange =
-            List.range 0 (rows - 1)
-
-        colRange =
-            List.range 0 (cols - 1)
-
-        eachRow row m =
-            List.foldl (eachCol row) m colRange
-
-        eachCol row col m =
-            guessesSet row col (Board.get row col board) m
+        setCell row col guesses =
+            Board.set row col (Board.get row col board) guesses
     in
-    List.foldl eachRow model rowRange
+    doGuesses (Generate.eachCell setCell)
+        model
 
 
 main : Program () Model Msg

@@ -220,28 +220,18 @@ generateChoices board =
         cols =
             board.cols
 
-        rowRange =
-            List.range 0 (rows - 1)
-
-        colRange =
-            List.range 0 (cols - 1)
-
         choicesBoard =
             SharedTypes.emptyHintsBoard rows cols
 
-        eachRow : Int -> HintsBoard -> HintsBoard
-        eachRow row chb =
-            List.foldl (eachCol row) chb colRange
-
-        eachCol : Int -> Int -> HintsBoard -> HintsBoard
-        eachCol row col chb =
+        setCell : Int -> Int -> HintsBoard -> HintsBoard
+        setCell row col chb =
             let
                 choices =
                     cellChoices row col board
             in
             Board.set row col choices chb
     in
-    List.foldl eachRow choicesBoard rowRange
+    eachCell setCell choicesBoard
         |> fixChoicesForSums board
 
 
@@ -311,7 +301,11 @@ generateColumn row col choices seed board =
                 ( False, ( newChoices, newSeed, board ) )
 
             Just choice ->
-                ( True, ( newChoices, newSeed, Board.set row col choice board ) )
+                let
+                    newBoard =
+                        Board.set row col choice board
+                in
+                ( True, ( newChoices, newSeed, newBoard ) )
 
 
 random : Int -> Int -> Random.Seed -> ( Int, Random.Seed )
