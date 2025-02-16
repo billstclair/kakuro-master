@@ -14,13 +14,13 @@
 
 
 module Generate exposing
-    ( generate, generateChoices, cellChoices, fixChoicesForSums
+    ( generate, generateChoices, cellChoices, fixChoicesForSums, eachCell
     , random, randomChoice, third
     )
 
 {-| Code to generate a new Kakuro board.
 
-@docs generate, generateChoices, cellChoices, fixChoicesForSums
+@docs generate, generateChoices, cellChoices, fixChoicesForSums, eachCell
 
 -}
 
@@ -173,10 +173,39 @@ fixChoicesForSums board choicesBoard =
     fixLoop choicesBoard
 
 
+{-| I originally thought this would help, but that's because the game
+already has code to compute the possibilities, or so I thought.
+The game has code to compute the possbilities knowing the sum.
+The sum isn't known here.
+I've kept the `identity` function, and call it in `TestGenerate.elm`,
+but don't intend to ever implement it.
+-}
 fixChoicesForSumsInternal : IntBoard -> HintsBoard -> HintsBoard
 fixChoicesForSumsInternal board choicesBoard =
     -- TODO
     choicesBoard
+
+
+{-| Call the function on each cell of the board.
+-}
+eachCell : (Int -> Int -> Board a -> Board a) -> Board a -> Board a
+eachCell f board =
+    let
+        rowRange =
+            List.range 0 (board.rows - 1)
+
+        colRange =
+            List.range 0 (board.cols - 1)
+
+        eachRow : Int -> Board a -> Board a
+        eachRow row b =
+            List.foldl (eachCol row) b colRange
+
+        eachCol : Int -> Int -> Board a -> Board a
+        eachCol row col b =
+            f row col b
+    in
+    List.foldl eachRow board rowRange
 
 
 {-| Call cellChoices for each cell, collecting them in a `HintsBoard`.

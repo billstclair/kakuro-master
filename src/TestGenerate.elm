@@ -5,9 +5,9 @@ import BoardSize
 import Browser
 import Dict exposing (Dict)
 import Generate exposing (cellChoices, generate, randomChoice)
-import Html exposing (Html, button, div, p, text)
-import Html.Attributes exposing (disabled, style)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, option, p, select, text)
+import Html.Attributes exposing (disabled, selected, style, value)
+import Html.Events exposing (onClick, onInput)
 import List.Extra as LE
 import PuzzleDB
 import RenderBoard
@@ -25,10 +25,29 @@ import SharedTypes
 import Time exposing (Posix)
 
 
+type ShowWhat
+    = ShowCellChoices
+    | ShowBoard
+    | ShowZeroes
+
+
+textToShowWhat : String -> ShowWhat
+textToShowWhat s =
+    case s of
+        "ShowBoard" ->
+            ShowBoard
+
+        "ShowZeros" ->
+            ShowZeroes
+
+        _ ->
+            ShowCellChoices
+
+
 type alias Model =
     { kakuroModel : SharedTypes.Model
     , step : Maybe (Mdl -> Mdl)
-    , showHints : Bool
+    , showWhat : ShowWhat
     , row : Int
     , col : Int
     }
@@ -42,7 +61,7 @@ initialModel : Model
 initialModel =
     { kakuroModel = initialKakuroModel
     , step = Nothing
-    , showHints = True
+    , showWhat = ShowCellChoices
     , row = 0
     , col = 0
     }
@@ -53,7 +72,7 @@ type Msg
     | Tick Posix
     | StepCellChoices
     | GenerateChoices
-    | ToggleHints
+    | SetShowWhat String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -77,6 +96,7 @@ update msg model =
                 | row = 0
                 , col = 0
                 , step = Just stepCellChoices
+                , showWhat = ShowCellChoices
               }
                 |> clearGameState
             , Cmd.none
@@ -94,24 +114,52 @@ update msg model =
             , Cmd.none
             )
 
-        ToggleHints ->
+        SetShowWhat showWhatString ->
             let
-                showHints =
-                    not model.showHints
+                showWhat =
+                    textToShowWhat showWhatString
 
                 hints =
                     modelHints model
             in
-            ( { model | showHints = showHints }
+            ( { model | showWhat = showWhat }
                 |> clearGameState
                 |> doHints (\_ -> hints)
-                |> (if showHints then
-                        identity
+                |> (case showWhat of
+                        ShowCellChoices ->
+                            identity
 
-                    else
-                        guessRight
+                        ShowBoard ->
+                            guessRight
+
+                        ShowZeroes ->
+                            guessZeroes
                    )
             , Cmd.none
+            )
+
+
+guessZeroes : Model -> Model
+guessZeroes model =
+    let
+        hints =
+            Debug.log "guessZeros, hints" <|
+                modelHints model
+    in
+    model
+        |> doGuesses
+            (Generate.eachCell
+                (\r c guesses ->
+                    let
+                        val =
+                            if List.member 0 <| Board.get r c hints then
+                                1
+
+                            else
+                                0
+                    in
+                    Board.set r c val guesses
+                )
             )
 
 
@@ -222,6 +270,8 @@ fixChoicesStep (Mdl model) =
             { model | step = Nothing }
 
         newHints =
+            -- See the comment above the definition of `Generate.fixChoicesForSums`.
+            -- It doesn't do anything
             Generate.fixChoicesForSums (modelBoard newModel)
                 (modelHints newModel)
     in
@@ -251,12 +301,16 @@ stepCellChoices (Mdl model) =
         choices =
             Generate.cellChoices row col <| modelBoard model
 
-        ( ch, zeroOk ) =
-            if List.member 0 choices then
-                ( LE.remove 0 choices, True )
+        {-
+           ( ch, zeroOk ) =
+               if List.member 0 choices then
+                   ( LE.remove 0 choices, True )
 
-            else
-                ( choices, False )
+               else
+                   ( choices, False )
+        -}
+        ch =
+            choices
 
         newModel =
             hintsSet row col ch model
@@ -264,6 +318,9 @@ stepCellChoices (Mdl model) =
         ( nextRow, nextCol, nextStep ) =
             if col >= cols - 1 then
                 if row >= rows - 1 then
+                    -- See the comment above the definition of
+                    -- `Generate.fixChoicesForSumsInternal`.
+                    -- It doesn't do anything
                     ( 0, 0, Just fixChoicesStep )
 
                 else
@@ -313,14 +370,25 @@ view model =
                 , disabled <| model.step /= Nothing
                 ]
                 [ text "GenerateChoices" ]
-            , br
-            , button [ onClick ToggleHints ]
-                [ text <|
-                    if model.showHints then
-                        "Show board"
-
-                    else
-                        "Show hints"
+            , p []
+                [ b "Show: "
+                , select [ onInput SetShowWhat ]
+                    [ option
+                        [ value "ShowCellChoices"
+                        , selected <| model.showWhat == ShowCellChoices
+                        ]
+                        [ text "Cell Choices" ]
+                    , option
+                        [ value "ShowBoard"
+                        , selected <| model.showWhat == ShowBoard
+                        ]
+                        [ text "Board" ]
+                    , option
+                        [ value "ShowZeroes"
+                        , selected <| model.showWhat == ShowZeroes
+                        ]
+                        [ text "Zeroes" ]
+                    ]
                 ]
             ]
         , p []
