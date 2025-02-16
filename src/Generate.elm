@@ -318,7 +318,6 @@ generateColumns row startCol choices prevChoicess seed board =
                         board
 
         else
-            -- Can't happen, unless there really aren't any solutions
             ( False, board, nextSeed )
 
 

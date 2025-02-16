@@ -3,6 +3,7 @@ module TestGenerate exposing (main)
 import Board exposing (Board)
 import BoardSize
 import Browser
+import Cmd.Extra exposing (addCmd, withCmd, withCmds, withNoCmd)
 import Dict exposing (Dict)
 import Generate exposing (cellChoices, generate, randomChoice)
 import Html exposing (Html, button, div, input, option, p, select, text)
@@ -10,6 +11,7 @@ import Html.Attributes exposing (checked, disabled, name, selected, style, type_
 import Html.Events exposing (onClick, onInput)
 import List.Extra as LE
 import PuzzleDB
+import Random
 import RenderBoard
 import SharedTypes
     exposing
@@ -22,6 +24,7 @@ import SharedTypes
         , Page(..)
         , Platform(..)
         )
+import Task
 import Time exposing (Posix)
 
 
@@ -46,6 +49,7 @@ textToShowWhat s =
 
 type alias Model =
     { kakuroModel : SharedTypes.Model
+    , seed : Random.Seed
     , step : Maybe (Mdl -> Mdl)
     , showWhat : ShowWhat
     , kind : Int
@@ -67,6 +71,7 @@ initialKind =
 initialModel : Model
 initialModel =
     { kakuroModel = initialKakuroModel initialKind
+    , seed = Random.initialSeed 0
     , step = Nothing
     , showWhat = ShowCellChoices
     , kind = initialKind
@@ -78,8 +83,10 @@ initialModel =
 
 type Msg
     = Noop
+    | InitSeed Posix
     | Tick Posix
     | ChangeKind Int
+    | Generate
     | StepCellChoices
     | GenerateChoices
     | SetShowWhat String
@@ -90,6 +97,11 @@ update msg model =
     case msg of
         Noop ->
             ( model, Cmd.none )
+
+        InitSeed posix ->
+            ( { model | seed = Random.initialSeed <| Time.posixToMillis posix }
+            , Cmd.none
+            )
 
         Tick posix ->
             case model.step of
@@ -110,6 +122,26 @@ update msg model =
                     |> clearGameState
                 , Cmd.none
                 )
+
+        Generate ->
+            let
+                board =
+                    modelBoard model
+
+                ( success, ( nextSeed, _, genBoard ) ) =
+                    Generate.generate board.rows board.cols model.seed
+
+                mdl =
+                    { model
+                        | seed = nextSeed
+                        , showWhat = ShowBoard
+                    }
+            in
+            mdl
+                |> doGameState
+                    (\gs -> newGameState genBoard)
+                |> guessRight
+                |> withNoCmd
 
         StepCellChoices ->
             ( { model
@@ -402,17 +434,24 @@ view model =
                 , radio "8" (model.kind == 8) (ChangeKind 8)
                 , radio "10" (model.kind == 10) (ChangeKind 10)
                 ]
-            , button
-                [ onClick StepCellChoices
-                , disabled <| model.step /= Nothing
+            , p []
+                [ button
+                    [ onClick Generate ]
+                    [ text "Generate" ]
                 ]
-                [ text "StepCellChoices" ]
-            , text " "
-            , button
-                [ onClick GenerateChoices
-                , disabled <| model.step /= Nothing
+            , p []
+                [ button
+                    [ onClick StepCellChoices
+                    , disabled <| model.step /= Nothing
+                    ]
+                    [ text "StepCellChoices" ]
+                , text " "
+                , button
+                    [ onClick GenerateChoices
+                    , disabled <| model.step /= Nothing
+                    ]
+                    [ text "GenerateChoices" ]
                 ]
-                [ text "GenerateChoices" ]
             , p []
                 [ b "Show: "
                 , select [ onInput SetShowWhat ]
@@ -457,10 +496,12 @@ realBoardIndex board =
 
 newBoardOfKind : Int -> Int -> GameState
 newBoardOfKind kind idx =
-    let
-        board =
-            PuzzleDB.getBoardOfKind kind 1
+    newGameState <| PuzzleDB.getBoardOfKind kind 1
 
+
+newGameState : IntBoard -> GameState
+newGameState board =
+    let
         state =
             RenderBoard.makeGameState board
 
@@ -522,7 +563,7 @@ guessRight model =
 main : Program () Model Msg
 main =
     Browser.element
-        { init = \_ -> ( initialModel, Cmd.none )
+        { init = \_ -> ( initialModel, Task.perform InitSeed Time.now )
         , view = view
         , update = update
         , subscriptions = subscriptions
