@@ -36,31 +36,68 @@ import SharedTypes exposing (HintsBoard, IntBoard)
     generate rows cols seed -> ( success, board, nextSeed )
 
 -}
-generate : Int -> Int -> Random.Seed -> ( IntBoard, Random.Seed )
+generate : Int -> Int -> Random.Seed -> ( Bool, ( Random.Seed, List ( Int, IntBoard ), IntBoard ) )
 generate rows cols seed =
     Board.make rows cols 0
-        |> generateRows 0 0 seed
+        |> generateRows 0 0 seed []
 
 
-generateRows : Int -> Int -> Random.Seed -> IntBoard -> ( IntBoard, Random.Seed )
-generateRows tries startRow seed board =
+maxGenerateRowTries : Int
+maxGenerateRowTries =
+    10
+
+
+generateRows : Int -> Int -> Random.Seed -> List ( Int, IntBoard ) -> IntBoard -> ( Bool, ( Random.Seed, List ( Int, IntBoard ), IntBoard ) )
+generateRows tries startRow seed stack board =
     if startRow >= board.rows then
-        ( board, seed )
+        ( True, ( seed, [], board ) )
+
+    else if tries >= maxGenerateRowTries then
+        case stack of
+            [] ->
+                ( False, ( seed, [], board ) )
+
+            ( lastTries, lastBoard ) :: lastStack ->
+                ( False, ( seed, lastStack, lastBoard ) )
 
     else
         let
             col0Choices =
                 cellChoices startRow 0 board
 
-            ( nextBoard, nextSeed ) =
+            ( colSuccess, nextBoard, nextSeed ) =
                 generateColumns (Debug.log "generateRows" startRow)
                     0
                     col0Choices
-                    [ [] ]
+                    []
                     seed
                     board
         in
-        generateRows 0 (startRow + 1) nextSeed nextBoard
+        if colSuccess then
+            let
+                nextStack =
+                    ( tries, nextBoard ) :: stack
+
+                ( rowSuccess, ( nextNextSeed, lastStack, nextNextBoard ) ) =
+                    generateRows 0 (startRow + 1) nextSeed nextStack nextBoard
+            in
+            if rowSuccess then
+                ( True, ( nextNextSeed, stack, nextNextBoard ) )
+
+            else
+                generateRows (tries + 1) startRow nextNextSeed stack board
+
+        else
+            case stack of
+                [] ->
+                    ( False, ( nextSeed, [], board ) )
+
+                ( lastTries, lastBoard ) :: lastStack ->
+                    generateRows lastTries
+                        (startRow - 1)
+                        nextSeed
+                        lastStack
+                        lastBoard
 
 
 {-| Compute the choices for the given cell that don't collide with existing
@@ -235,14 +272,14 @@ generateChoices board =
         |> fixChoicesForSums board
 
 
-generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> IntBoard -> ( IntBoard, Random.Seed )
+generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> IntBoard -> ( Bool, IntBoard, Random.Seed )
 generateColumns row startCol choices prevChoicess seed board =
     if startCol >= board.cols then
-        ( board, seed )
+        ( True, board, seed )
 
     else
         let
-            ( success, ( nextChoices, nextSeed, nextBoard ) ) =
+            ( success, ( nextChoices, nextBoard, nextSeed ) ) =
                 generateColumn row
                     (Debug.log "  generateColumn" startCol)
                     choices
@@ -264,14 +301,13 @@ generateColumns row startCol choices prevChoicess seed board =
                 nextSeed
                 nextBoard
 
-        else if not <| List.isEmpty nextChoices then
+        else if nextChoices /= [] then
             generateColumns row startCol nextChoices prevChoicess nextSeed board
 
         else if startCol > 0 then
             case prevChoicess of
                 [] ->
-                    -- Can't happen, unless there really aren't any solutions
-                    ( board, nextSeed )
+                    ( False, board, nextSeed )
 
                 prevChoices :: prevPrevChoicess ->
                     generateColumns row
@@ -283,13 +319,13 @@ generateColumns row startCol choices prevChoicess seed board =
 
         else
             -- Can't happen, unless there really aren't any solutions
-            ( board, nextSeed )
+            ( False, board, nextSeed )
 
 
-generateColumn : Int -> Int -> List Int -> Random.Seed -> IntBoard -> ( Bool, ( List Int, Random.Seed, IntBoard ) )
+generateColumn : Int -> Int -> List Int -> Random.Seed -> IntBoard -> ( Bool, ( List Int, IntBoard, Random.Seed ) )
 generateColumn row col choices seed board =
     if choices == [] then
-        ( False, ( choices, seed, board ) )
+        ( False, ( choices, board, seed ) )
 
     else
         let
@@ -298,14 +334,14 @@ generateColumn row col choices seed board =
         in
         case maybeChoice of
             Nothing ->
-                ( False, ( newChoices, newSeed, board ) )
+                ( False, ( newChoices, board, newSeed ) )
 
             Just choice ->
                 let
                     newBoard =
                         Board.set row col choice board
                 in
-                ( True, ( newChoices, newSeed, newBoard ) )
+                ( True, ( newChoices, newBoard, newSeed ) )
 
 
 random : Int -> Int -> Random.Seed -> ( Int, Random.Seed )
