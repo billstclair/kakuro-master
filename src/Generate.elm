@@ -57,7 +57,7 @@ generateRows tries startRow seed stack board =
             [] ->
                 ( False, ( seed, [], board ) )
 
-            ( lastTries, lastBoard ) :: lastStack ->
+            ( _, lastBoard ) :: lastStack ->
                 ( False, ( seed, lastStack, lastBoard ) )
 
     else
@@ -158,20 +158,8 @@ cellChoices row col board =
                     tooCloseTo0 =
                         (row > 0 && Board.get (row - 1) col board == 0)
                             || (row > 1 && (Board.get (row - 2) col board == 0))
-                            || ((row < board.rows - 1)
-                                    && (Board.get (row + 1) col board == 0)
-                               )
-                            || ((row < board.rows - 2)
-                                    && (Board.get (row + 2) col board == 0)
-                               )
                             || (col > 0 && (Board.get row (col - 1) board == 0))
                             || (col > 1 && (Board.get row (col - 2) board == 0))
-                            || ((col < board.cols - 1)
-                                    && (Board.get row (col + 1) board == 0)
-                               )
-                            || ((col < board.cols - 2)
-                                    && (Board.get row (col + 2) board == 0)
-                               )
                 in
                 if tooCloseTo0 then
                     LE.remove 0 ch
@@ -281,7 +269,7 @@ generateColumns row startCol choices prevChoicess seed board =
         let
             ( success, ( nextChoices, nextBoard, nextSeed ) ) =
                 generateColumn row
-                    (Debug.log "  generateColumn" startCol)
+                    startCol
                     choices
                     seed
                     board
@@ -292,7 +280,7 @@ generateColumns row startCol choices prevChoicess seed board =
                     startCol + 1
 
                 nextColChoices =
-                    cellChoices row nextCol board
+                    cellChoices row nextCol nextBoard
             in
             generateColumns row
                 nextCol
@@ -350,20 +338,24 @@ random min max seed =
 
 randomChoice : List a -> Random.Seed -> ( Maybe a, List a, Random.Seed )
 randomChoice choices seed =
-    let
-        ( idx, nextSeed ) =
-            random 0 (List.length choices - 1) seed
+    if choices == [] then
+        ( Nothing, [], seed )
 
-        ( head, tail ) =
-            LE.splitAt idx choices
-    in
-    case tail of
-        [] ->
-            -- Only happens when `choices` is empty
-            ( Nothing, choices, nextSeed )
+    else
+        let
+            ( idx, nextSeed ) =
+                random 0 (List.length choices - 1) seed
 
-        a :: rest ->
-            ( Just a, head ++ rest, nextSeed )
+            ( head, tail ) =
+                LE.splitAt idx choices
+        in
+        case tail of
+            [] ->
+                -- Can't happen
+                ( Nothing, choices, nextSeed )
+
+            a :: rest ->
+                ( Just a, head ++ rest, nextSeed )
 
 
 
