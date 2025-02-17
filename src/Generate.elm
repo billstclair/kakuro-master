@@ -49,7 +49,8 @@ maxGenerateRowTries =
 
 type alias GenerateRowState =
     { done : Bool --True if all done
-    , row : Int -- row & colum for board
+    , success : Bool --False if the call to generateRowStep failed
+    , row : Int -- row & column for board
     , col : Int
     , board : IntBoard
     , tries : Int --tries left in the current row
@@ -60,13 +61,68 @@ type alias GenerateRowState =
 
 
 generateRowStep : GenerateRowState -> GenerateRowState
-generateRowStep state =
+generateRowStep rowState =
     let
         { done, row, col, board, tries, rowStack, colState, seed } =
-            state
+            rowState
     in
-    -- TODO
-    { state | done = True }
+    if done then
+        rowState
+
+    else
+        let
+            nextCol =
+                rowState.col + 1
+
+            nextRowState =
+                if nextCol < board.cols then
+                    { rowState | col = nextCol }
+
+                else
+                    let
+                        nextRow =
+                            rowState.row + 1
+                    in
+                    if nextRow >= board.rows then
+                        { rowState
+                            | done = True
+                            , success = True
+                        }
+
+                    else
+                        { rowState
+                            | row = nextRow
+                            , col = 0
+                        }
+        in
+        if nextRowState.done then
+            nextRowState
+
+        else
+            let
+                ( nextColState, nextSeed ) =
+                    generateColumnStep
+                        { colState
+                            | done = False
+                            , row = nextRowState.row
+                            , col = nextRowState.col
+                        }
+                        seed
+            in
+            if nextColState.success then
+                { rowState
+                    | success = True
+                    , board = colState.board
+                    , colState = colState
+                    , seed = nextSeed
+                }
+
+            else
+                { rowState
+                    | done = True
+                    , success = False
+                    , seed = nextSeed
+                }
 
 
 generateRows : Int -> Int -> Random.Seed -> List ( Int, IntBoard ) -> IntBoard -> ( Bool, ( Random.Seed, List ( Int, IntBoard ), IntBoard ) )
@@ -283,22 +339,28 @@ generateChoices board =
 
 
 type alias GenerateColumnState =
-    { done : Bool
-    , row : Int
-    , col : Int
+    { done : Bool -- True if nothing left to do.
+    , success : Bool --False if the call to generateColumnState failed.
+    , row : Int --row and column for board
+    , col : Int --this code never changes these
     , board : IntBoard
-    , stack : List (List Int)
+    , possibilities : List Int --remaining possibilities for this column
+    , stack : List (List Int) --remaining possibilities for previous columns
     }
 
 
 generateColumnStep : GenerateColumnState -> Random.Seed -> ( GenerateColumnState, Random.Seed )
 generateColumnStep state seed =
     let
-        { row, col, board, stack } =
+        { done, row, col, board, possibilities, stack } =
             state
     in
-    -- TODO
-    ( { state | done = True }, seed )
+    if done then
+        ( state, seed )
+
+    else
+        -- TODO
+        ( { state | done = True }, seed )
 
 
 generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> IntBoard -> ( Bool, IntBoard, Random.Seed )
