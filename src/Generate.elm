@@ -47,6 +47,28 @@ maxGenerateRowTries =
     10
 
 
+type alias GenerateRowState =
+    { done : Bool --True if all done
+    , row : Int -- row & colum for board
+    , col : Int
+    , board : IntBoard
+    , tries : Int --tries left in the current row
+    , rowStack : List ( Int, IntBoard ) --for each row < row, (tries, board)
+    , colState : GenerateColumnState
+    , seed : Random.Seed
+    }
+
+
+generateRowStep : GenerateRowState -> GenerateRowState
+generateRowStep state =
+    let
+        { done, row, col, board, tries, rowStack, colState, seed } =
+            state
+    in
+    -- TODO
+    { state | done = True }
+
+
 generateRows : Int -> Int -> Random.Seed -> List ( Int, IntBoard ) -> IntBoard -> ( Bool, ( Random.Seed, List ( Int, IntBoard ), IntBoard ) )
 generateRows tries startRow seed stack board =
     if startRow >= board.rows then
@@ -258,6 +280,25 @@ generateChoices board =
     in
     eachCell setCell choicesBoard
         |> fixChoicesForSums board
+
+
+type alias GenerateColumnState =
+    { done : Bool
+    , row : Int
+    , col : Int
+    , board : IntBoard
+    , stack : List (List Int)
+    }
+
+
+generateColumnStep : GenerateColumnState -> Random.Seed -> ( GenerateColumnState, Random.Seed )
+generateColumnStep state seed =
+    let
+        { row, col, board, stack } =
+            state
+    in
+    -- TODO
+    ( { state | done = True }, seed )
 
 
 generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> IntBoard -> ( Bool, IntBoard, Random.Seed )
