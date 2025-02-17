@@ -56,6 +56,7 @@ type alias GenerateRowState =
     , tries : Int --tries left in the current row
     , rowStack : List ( Int, IntBoard ) --for each row < row, (tries, board)
     , colState : GenerateColumnState
+    , colStack : List (List Int) --for each col < col, possibilities
     , seed : Random.Seed
     }
 
@@ -63,7 +64,7 @@ type alias GenerateRowState =
 generateRowStep : GenerateRowState -> GenerateRowState
 generateRowStep rowState =
     let
-        { done, row, col, board, tries, rowStack, colState, seed } =
+        { done, row, col, board, tries, rowStack, colState, colStack, seed } =
             rowState
     in
     if done then
@@ -76,7 +77,10 @@ generateRowStep rowState =
 
             nextRowState =
                 if nextCol < board.cols then
-                    { rowState | col = nextCol }
+                    { rowState
+                        | col = nextCol
+                        , colStack = colState.possibilities :: colStack
+                    }
 
                 else
                     let
@@ -118,6 +122,7 @@ generateRowStep rowState =
                 }
 
             else
+                -- Need to back off a column, then retry the row, then back off a row
                 { rowState
                     | done = True
                     , success = False
@@ -345,14 +350,13 @@ type alias GenerateColumnState =
     , col : Int --this code never changes these
     , board : IntBoard
     , possibilities : List Int --remaining possibilities for this column
-    , stack : List (List Int) --remaining possibilities for previous columns
     }
 
 
 generateColumnStep : GenerateColumnState -> Random.Seed -> ( GenerateColumnState, Random.Seed )
 generateColumnStep state seed =
     let
-        { done, row, col, board, possibilities, stack } =
+        { done, row, col, board, possibilities } =
             state
     in
     if done then
