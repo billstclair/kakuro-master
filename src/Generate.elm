@@ -54,9 +54,8 @@ type alias GenerateRowState =
     , col : Int
     , board : IntBoard
     , tries : Int --tries left in the current row
-    , rowStack : List ( Int, IntBoard ) --for each row < row, (tries, board)
-    , colState : GenerateColumnState
-    , colStack : List (List Int) --for each col < col, possibilities
+    , rowStack : List ( Int, GenerateColState ) --for each row < row, (tries, colState)
+    , colState : GenerateColState
     , seed : Random.Seed
     }
 
@@ -64,7 +63,7 @@ type alias GenerateRowState =
 generateRowStep : GenerateRowState -> GenerateRowState
 generateRowStep rowState =
     let
-        { done, row, col, board, tries, rowStack, colState, colStack, seed } =
+        { done, row, col, board, tries, rowStack, colState, seed } =
             rowState
     in
     if done then
@@ -75,12 +74,18 @@ generateRowStep rowState =
             nextCol =
                 rowState.col + 1
 
-            nextRowState =
+            ( nextRowState, nextColState ) =
                 if nextCol < board.cols then
-                    { rowState
+                    ( { rowState
                         | col = nextCol
-                        , colStack = colState.possibilities :: colStack
-                    }
+                      }
+                    , { colState
+                        | col = nextCol
+                        , possibilities = cellChoices row nextCol board
+                        , colStack =
+                            ( colState.board, colState.possibilities ) :: colState.colStack
+                      }
+                    )
 
                 else
                     let
@@ -88,41 +93,96 @@ generateRowStep rowState =
                             rowState.row + 1
                     in
                     if nextRow >= board.rows then
-                        { rowState
+                        ( { rowState
                             | done = True
                             , success = True
-                        }
+                          }
+                        , colState
+                        )
 
                     else
-                        { rowState
+                        let
+                            ncs =
+                                { colState
+                                    | row = nextRow
+                                    , col = 0
+                                    , possibilities =
+                                        cellChoices nextRow 0 board
+                                    , colStack =
+                                        ( colState.board, colState.possibilities )
+                                            :: colState.colStack
+                                }
+                        in
+                        ( { rowState
                             | row = nextRow
                             , col = 0
-                        }
+                            , colState = ncs
+                            , rowStack = ( tries, colState ) :: rowStack
+                          }
+                        , ncs
+                        )
         in
         if nextRowState.done then
             nextRowState
 
         else
             let
-                ( nextColState, nextSeed ) =
+                ( nextNextColState, nextSeed ) =
                     generateColumnStep
-                        { colState
-                            | done = False
-                            , row = nextRowState.row
-                            , col = nextRowState.col
-                        }
+                        { nextColState | done = False }
                         seed
             in
-            if nextColState.success then
+            if nextNextColState.success then
                 { rowState
                     | success = True
-                    , board = colState.board
-                    , colState = colState
+                    , board = nextNextColState.board
+                    , colState = nextNextColState
                     , seed = nextSeed
                 }
 
+            else if tries < maxGenerateRowTries then
+                -- Retry the row
+                let
+                    oldBoard =
+                        case nextColState.colStack |> List.reverse |> List.head of
+                            Nothing ->
+                                nextColState.board
+
+                            Just ( b, _ ) ->
+                                b
+                in
+                { nextRowState
+                    | tries = tries + 1
+                    , success = True
+                    , board = oldBoard
+                    , col = -1
+                    , colState =
+                        { nextColState
+                            | col = -1
+                            , possibilities = []
+                            , colStack = []
+                        }
+                }
+
+            else if nextRowState.row > 0 then
+                -- Resume the previous row
+                case rowStack of
+                    [] ->
+                        -- Not possbile
+                        { nextRowState
+                            | done = True
+                            , success = False
+                        }
+
+                    ( lastTries, lastColState ) :: tail ->
+                        { nextRowState
+                            | success = True
+                            , row = lastColState.row
+                            , col = lastColState.col
+                            , colState = { lastColState | done = False }
+                        }
+
             else
-                -- Need to back off a column, then retry the row, then back off a row
                 { rowState
                     | done = True
                     , success = False
@@ -343,17 +403,18 @@ generateChoices board =
         |> fixChoicesForSums board
 
 
-type alias GenerateColumnState =
+type alias GenerateColState =
     { done : Bool -- True if nothing left to do.
-    , success : Bool --False if the call to generateColumnState failed.
+    , success : Bool --False if the call to generateColState failed.
     , row : Int --row and column for board
     , col : Int --this code never changes these
     , board : IntBoard
     , possibilities : List Int --remaining possibilities for this column
+    , colStack : List ( IntBoard, List Int ) --for each col < col: (board, possibilities)
     }
 
 
-generateColumnStep : GenerateColumnState -> Random.Seed -> ( GenerateColumnState, Random.Seed )
+generateColumnStep : GenerateColState -> Random.Seed -> ( GenerateColState, Random.Seed )
 generateColumnStep state seed =
     let
         { done, row, col, board, possibilities } =
