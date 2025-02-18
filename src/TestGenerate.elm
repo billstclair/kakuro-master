@@ -192,18 +192,18 @@ update msg model =
 generate : Model -> Model
 generate model =
     let
-        mdl =
-            generateStep model
+        ( mdl, state ) =
+            generateStepInternal model
     in
     if mdl.generateRowState == Nothing then
-        mdl
+        finishGenerate mdl state
 
     else
         generate mdl
 
 
-generateStep : Model -> Model
-generateStep model =
+generateStepInternal : Model -> ( Model, GenerateRowState )
+generateStepInternal model =
     let
         board =
             modelBoard model
@@ -220,36 +220,51 @@ generateStep model =
                     grs
 
                 Nothing ->
-                    Generate.initialGenerateRowState rows cols model.seed
+                    Generate.initialGenerateRowState rows cols
 
-        newState =
-            Generate.generateRowStep { state | seed = model.seed }
-
-        mdl =
-            { model
-                | row = newState.row
-                , col = newState.col
-                , generateRowState =
-                    if newState.done then
-                        Nothing
-
-                    else
-                        Just newState
-                , seed = newState.seed
-            }
+        ( newState, nextSeed ) =
+            Generate.generateRowStep state model.seed
     in
-    if
-        not newState.done
-            && (Board.get newState.row newState.col newState.board == 0)
-    then
-        generateStep mdl
+    ( { model
+        | row = newState.row
+        , col = newState.col
+        , generateRowState =
+            if newState.done then
+                Nothing
 
-    else
-        mdl
-            |> doGameState
-                (\gs -> newGameState newState.board)
-            |> hintsFromGenerateRowState newState
-            |> guessRight
+            else
+                Just newState
+        , seed = nextSeed
+      }
+    , newState
+    )
+
+
+finishGenerate : Model -> GenerateRowState -> Model
+finishGenerate model state =
+    model
+        |> doGameState
+            (\gs -> newGameState state.board)
+        |> hintsFromGenerateRowState state
+        |> guessRight
+
+
+generateStep : Model -> Model
+generateStep model =
+    let
+        ( mdl, state ) =
+            generateStepInternal model
+    in
+    case model.generateRowState of
+        Nothing ->
+            finishGenerate mdl state
+
+        Just s ->
+            if Board.get s.row s.col s.board == 0 then
+                generateStep mdl
+
+            else
+                finishGenerate mdl state
 
 
 hintsFromGenerateRowState : GenerateRowState -> Model -> Model
