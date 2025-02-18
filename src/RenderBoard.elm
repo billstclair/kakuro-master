@@ -365,7 +365,14 @@ svgHintTexts hints sizes cr res =
                         , x (String.fromInt blx)
                         , y (String.fromInt bly)
                         ]
-                        [ Svg.text (String.fromInt hint) ]
+                        [ Svg.text <|
+                            if hint == 0 then
+                                -- Happens in TextGenerate.elm
+                                ""
+
+                            else
+                                String.fromInt hint
+                        ]
             in
             svgHintTexts tail sizes cr (html :: res)
 
@@ -487,9 +494,17 @@ renderSvgCell row col sizes state =
             else
                 cr
 
-        rectHtml =
+        rectHtml doneColorp =
             rect
-                [ svgClass cellClass
+                [ svgClass
+                    (cellClass
+                        ++ (if doneColorp then
+                                " SvgDoneColor"
+
+                            else
+                                ""
+                           )
+                    )
                 , x (String.fromInt cr2.x)
                 , y (String.fromInt cr2.y)
                 , width (String.fromInt cr2.w)
@@ -517,7 +532,7 @@ renderSvgCell row col sizes state =
                     ( tx, ty ) =
                         BoardSize.cellTextLocation cr
                 in
-                [ rectHtml
+                [ rectHtml False
                 , Svg.text_
                     [ svgClass
                         (if isExploratory then
@@ -535,13 +550,13 @@ renderSvgCell row col sizes state =
                 ]
 
             else
-                rectHtml
+                rectHtml (List.member 0 hints)
                     :: List.append
                         (svgHintTexts hints sizes cr [])
                         [ clickRect ]
 
          else if label == ( 0, 0 ) then
-            [ rectHtml ]
+            [ rectHtml False ]
 
          else
             let
@@ -549,7 +564,7 @@ renderSvgCell row col sizes state =
                     BoardSize.labelBackgroundRect cr
             in
             List.append
-                [ rectHtml ]
+                [ rectHtml False ]
                 (svgLabelHtml label sizes cr bgr)
         )
 

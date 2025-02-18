@@ -128,7 +128,7 @@ generateRowStep rowState =
         else
             let
                 ( nextNextColState, nextSeed ) =
-                    generateColumnStep
+                    generateColStep
                         { nextColState | done = False }
                         seed
             in
@@ -288,10 +288,8 @@ cellChoices row col board =
         maybeRemove0 ch =
             let
                 tooCloseToEdge =
-                    (row == 1)
-                        || (row == board.rows - 2)
-                        || (col == 1)
-                        || (col == board.cols - 2)
+                    ((row == 1) && Board.get 0 col board /= 0)
+                        || ((col == 1) && Board.get row (col - 1) board /= 0)
             in
             if tooCloseToEdge then
                 LE.remove 0 ch
@@ -414,8 +412,8 @@ type alias GenerateColState =
     }
 
 
-generateColumnStep : GenerateColState -> Random.Seed -> ( GenerateColState, Random.Seed )
-generateColumnStep state seed =
+generateColStep : GenerateColState -> Random.Seed -> ( GenerateColState, Random.Seed )
+generateColStep state seed =
     let
         { done, row, col, board, possibilities } =
             state
@@ -423,9 +421,28 @@ generateColumnStep state seed =
     if done then
         ( state, seed )
 
+    else if possibilities == [] then
+        ( { state | done = True, success = False }, seed )
+
     else
-        -- TODO
-        ( { state | done = True }, seed )
+        let
+            ( maybeCell, newPossibilities, newSeed ) =
+                randomChoice possibilities seed
+        in
+        case maybeCell of
+            Just cell ->
+                ( { state
+                    | possibilities = newPossibilities
+                    , board = Board.set row col cell board
+                    , done = True
+                    , success = True
+                  }
+                , newSeed
+                )
+
+            Nothing ->
+                generateColStep { state | possibilities = newPossibilities }
+                    newSeed
 
 
 generateColumns : Int -> Int -> List Int -> List (List Int) -> Random.Seed -> IntBoard -> ( Bool, IntBoard, Random.Seed )
