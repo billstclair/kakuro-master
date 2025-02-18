@@ -5,7 +5,7 @@ import BoardSize
 import Browser
 import Cmd.Extra exposing (addCmd, withCmd, withCmds, withNoCmd)
 import Dict exposing (Dict)
-import Generate exposing (cellChoices, generate, randomChoice)
+import Generate exposing (GenerateRowState)
 import Html exposing (Html, button, div, input, option, p, select, text)
 import Html.Attributes exposing (checked, disabled, name, selected, style, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -50,6 +50,7 @@ textToShowWhat s =
 type alias Model =
     { kakuroModel : SharedTypes.Model
     , seed : Random.Seed
+    , generateRowState : Maybe GenerateRowState
     , step : Maybe (Mdl -> Mdl)
     , showWhat : ShowWhat
     , kind : Int
@@ -72,6 +73,7 @@ initialModel : Model
 initialModel =
     { kakuroModel = initialKakuroModel initialKind
     , seed = Random.initialSeed 0
+    , generateRowState = Nothing
     , step = Nothing
     , showWhat = ShowCellChoices
     , kind = initialKind
@@ -87,8 +89,10 @@ type Msg
     | Tick Posix
     | ChangeKind Int
     | Generate
+    | GenerateStep
     | StepCellChoices
     | GenerateChoices
+    | CancelSteps
     | SetShowWhat String
 
 
@@ -124,24 +128,10 @@ update msg model =
                 )
 
         Generate ->
-            let
-                board =
-                    modelBoard model
+            generate model |> withNoCmd
 
-                ( success, ( nextSeed, _, genBoard ) ) =
-                    Generate.generate board.rows board.cols model.seed
-
-                mdl =
-                    { model
-                        | seed = nextSeed
-                        , showWhat = ShowBoard
-                    }
-            in
-            mdl
-                |> doGameState
-                    (\gs -> newGameState genBoard)
-                |> guessRight
-                |> withNoCmd
+        GenerateStep ->
+            generateStep model |> withNoCmd
 
         StepCellChoices ->
             ( { model
@@ -167,6 +157,13 @@ update msg model =
             , Cmd.none
             )
 
+        CancelSteps ->
+            { model
+                | step = Nothing
+                , generateRowState = Nothing
+            }
+                |> withNoCmd
+
         SetShowWhat showWhatString ->
             let
                 showWhat =
@@ -190,6 +187,85 @@ update msg model =
                    )
             , Cmd.none
             )
+
+
+generate : Model -> Model
+generate model =
+    let
+        mdl =
+            generateStep model
+    in
+    if mdl.generateRowState == Nothing then
+        mdl
+
+    else
+        generate mdl
+
+
+generateStep : Model -> Model
+generateStep model =
+    let
+        board =
+            modelBoard model
+
+        rows =
+            board.rows
+
+        cols =
+            board.cols
+
+        state =
+            case model.generateRowState of
+                Just grs ->
+                    grs
+
+                Nothing ->
+                    Generate.initialGenerateRowState rows cols model.seed
+
+        newState =
+            Generate.generateRowStep { state | seed = model.seed }
+
+        mdl =
+            { model
+                | row = newState.row
+                , col = newState.col
+                , generateRowState =
+                    if newState.done then
+                        Nothing
+
+                    else
+                        Just newState
+                , seed = newState.seed
+            }
+    in
+    if
+        not newState.done
+            && (Board.get newState.row newState.col newState.board == 0)
+    then
+        generateStep mdl
+
+    else
+        mdl
+            |> doGameState
+                (\gs -> newGameState newState.board)
+            |> hintsFromGenerateRowState newState
+            |> guessRight
+
+
+hintsFromGenerateRowState : GenerateRowState -> Model -> Model
+hintsFromGenerateRowState state model =
+    let
+        row =
+            state.row
+
+        col =
+            state.col
+
+        setHints =
+            -- TODO
+            Generate.eachCell (\r c -> Board.set r c [])
+    in
+    doHints setHints model
 
 
 guessZeroes : Model -> Model
@@ -434,23 +510,52 @@ view model =
                 , radio "8" (model.kind == 8) (ChangeKind 8)
                 , radio "10" (model.kind == 10) (ChangeKind 10)
                 ]
-            , p []
+            , let
+                ( stepLabel, allLabel ) =
+                    if model.generateRowState == Nothing then
+                        ( "Start Generate", "Generate" )
+
+                    else
+                        ( "Generate Step", "Finish" )
+              in
+              p []
                 [ button
-                    [ onClick Generate ]
-                    [ text "Generate" ]
+                    [ onClick GenerateStep
+                    , disabled <| model.step /= Nothing
+                    ]
+                    [ text stepLabel ]
+                , text " "
+                , button
+                    [ onClick <| Generate
+                    , disabled <| model.step /= Nothing
+                    ]
+                    [ text allLabel ]
                 ]
             , p []
                 [ button
                     [ onClick StepCellChoices
-                    , disabled <| model.step /= Nothing
+                    , disabled <|
+                        (model.step /= Nothing)
+                            || (model.generateRowState /= Nothing)
                     ]
                     [ text "StepCellChoices" ]
                 , text " "
                 , button
                     [ onClick GenerateChoices
-                    , disabled <| model.step /= Nothing
+                    , disabled <|
+                        (model.step /= Nothing)
+                            || (model.generateRowState /= Nothing)
                     ]
                     [ text "GenerateChoices" ]
+                ]
+            , p []
+                [ button
+                    [ onClick CancelSteps
+                    , disabled <|
+                        (model.step == Nothing)
+                            && (model.generateRowState == Nothing)
+                    ]
+                    [ text "Cancel Steps" ]
                 ]
             , p []
                 [ b "Show: "

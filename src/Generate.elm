@@ -14,13 +14,17 @@
 
 
 module Generate exposing
-    ( generate, generateChoices, cellChoices, fixChoicesForSums, eachCell
-    , random, randomChoice, third
+    ( GenerateRowState, generateRowStep
+    , cellChoices, fixChoicesForSums
+    , eachCell
+    , generate, generateChoices, initialGenerateRowState, random, randomChoice, third
     )
 
 {-| Code to generate a new Kakuro board.
 
-@docs generate, generateChoices, cellChoices, fixChoicesForSums, eachCell
+@docs GenerateRowState, initialRowState, generateRowStep
+@docs cellChoices, fixChoicesForSums
+@docs eachCell
 
 -}
 
@@ -45,6 +49,24 @@ generate rows cols seed =
 maxGenerateRowTries : Int
 maxGenerateRowTries =
     10
+
+
+initialGenerateRowState : Int -> Int -> Random.Seed -> GenerateRowState
+initialGenerateRowState rows cols seed =
+    let
+        board =
+            Board.make rows cols 0
+    in
+    { done = False
+    , success = True
+    , row = 0
+    , col = 0
+    , board = board
+    , tries = 0
+    , rowStack = []
+    , colState = initialGenerateColState board
+    , seed = seed
+    }
 
 
 type alias GenerateRowState =
@@ -125,6 +147,9 @@ generateRowStep rowState =
         if nextRowState.done then
             nextRowState
 
+        else if nextRowState.row >= board.rows && nextRowState.col >= board.cols then
+            { nextRowState | done = True }
+
         else
             let
                 ( nextNextColState, nextSeed ) =
@@ -133,7 +158,7 @@ generateRowStep rowState =
                         seed
             in
             if nextNextColState.success then
-                { rowState
+                { nextRowState
                     | success = True
                     , board = nextNextColState.board
                     , colState = nextNextColState
@@ -249,6 +274,15 @@ values in its row and column with smaller indices.
 cellChoices : Int -> Int -> IntBoard -> List Int
 cellChoices row col board =
     let
+        rows =
+            board.rows
+
+        cols =
+            board.cols
+
+        get r c =
+            Board.get r c board
+
         choices =
             [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
 
@@ -260,7 +294,7 @@ cellChoices row col board =
             else
                 let
                     x =
-                        Board.get row c board
+                        get row c
                 in
                 if x == 0 then
                     ch
@@ -276,7 +310,7 @@ cellChoices row col board =
             else
                 let
                     x =
-                        Board.get r col board
+                        get r col
                 in
                 if x == 0 then
                     ch
@@ -288,8 +322,8 @@ cellChoices row col board =
         maybeRemove0 ch =
             let
                 tooCloseToEdge =
-                    ((row == 1) && Board.get 0 col board /= 0)
-                        || ((col == 1) && Board.get row (col - 1) board /= 0)
+                    ((row == 1) && get 0 col /= 0)
+                        || ((col == 1) && get row (col - 1) /= 0)
             in
             if tooCloseToEdge then
                 LE.remove 0 ch
@@ -297,10 +331,15 @@ cellChoices row col board =
             else
                 let
                     tooCloseTo0 =
-                        (row > 0 && Board.get (row - 1) col board == 0)
-                            || (row > 1 && (Board.get (row - 2) col board == 0))
-                            || (col > 0 && (Board.get row (col - 1) board == 0))
-                            || (col > 1 && (Board.get row (col - 2) board == 0))
+                        ((row >= rows - 2)
+                            && ((row > 0 && get (row - 1) col == 0)
+                                    || (row > 1 && (get (row - 2) col == 0))
+                               )
+                        )
+                            || ((col >= cols - 2)
+                                    && (col > 0 && (get row (col - 1) == 0))
+                                    || (col > 1 && (get row (col - 2) == 0))
+                               )
                 in
                 if tooCloseTo0 then
                     LE.remove 0 ch
@@ -401,6 +440,18 @@ generateChoices board =
         |> fixChoicesForSums board
 
 
+initialGenerateColState : IntBoard -> GenerateColState
+initialGenerateColState board =
+    { done = False
+    , success = True
+    , row = 0
+    , col = 0
+    , board = board
+    , possibilities = []
+    , colStack = []
+    }
+
+
 type alias GenerateColState =
     { done : Bool -- True if nothing left to do.
     , success : Bool --False if the call to generateColState failed.
@@ -427,7 +478,16 @@ generateColStep state seed =
     else
         let
             ( maybeCell, newPossibilities, newSeed ) =
-                randomChoice possibilities seed
+                let
+                    poss =
+                        -- Make 0 more likely
+                        if List.member 0 possibilities then
+                            0 :: possibilities
+
+                        else
+                            possibilities
+                in
+                randomChoice poss seed
         in
         case maybeCell of
             Just cell ->
