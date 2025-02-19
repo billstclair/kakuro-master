@@ -94,6 +94,7 @@ type Msg
     | GenerateChoices
     | CancelSteps
     | SetShowWhat String
+    | ClickCell String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -188,6 +189,69 @@ update msg model =
             , Cmd.none
             )
 
+        ClickCell s ->
+            clickCell s model |> withNoCmd
+
+
+clickCell : String -> Model -> Model
+clickCell s model =
+    case List.map String.toInt <| String.split "," s of
+        [ Just row, Just col ] ->
+            let
+                frob gameState =
+                    if Board.get row col gameState.guesses /= 0 then
+                        gameState
+
+                    else
+                        let
+                            computeHints : Int -> Int -> GameState -> GameState
+                            computeHints hr hc gs =
+                                { gs
+                                    | hints =
+                                        Board.set hr
+                                            hc
+                                            (Generate.cellChoices hr hc gs.guesses)
+                                            gs.hints
+                                }
+
+                            apply : (GameState -> GameState) -> GameState -> GameState
+                            apply f gs =
+                                f gs
+
+                            eachCol : Int -> List (GameState -> GameState) -> GameState -> GameState
+                            eachCol c hintsComputers gs =
+                                if c <= 0 || Board.get row c gs.board == 0 then
+                                    List.foldl apply gs hintsComputers
+
+                                else
+                                    eachCol (c - 1)
+                                        (computeHints row c :: hintsComputers)
+                                        { gs
+                                            | board =
+                                                Board.set row c 0 gs.board
+                                        }
+
+                            eachRow : Int -> List (GameState -> GameState) -> GameState -> GameState
+                            eachRow r hintsComputers gs =
+                                if r <= 0 || Board.get r col gs.board == 0 then
+                                    List.foldl apply gs hintsComputers
+
+                                else
+                                    eachRow (r - 1)
+                                        (computeHints r col :: hintsComputers)
+                                        { gs
+                                            | board =
+                                                Board.set r col 0 gameState.board
+                                        }
+                        in
+                        eachCol (col - 1) [] gameState
+                            |> eachRow (row - 1) []
+            in
+            doGameState frob model
+
+        _ ->
+            model
+
 
 generate : Model -> Model
 generate model =
@@ -245,7 +309,6 @@ finishGenerate model state =
     model
         |> doGameState
             (\gs -> newGameState state.board)
-        |> hintsFromGenerateRowState state
         |> guessRight
 
 
@@ -265,22 +328,6 @@ generateStep model =
 
             else
                 finishGenerate mdl state
-
-
-hintsFromGenerateRowState : GenerateRowState -> Model -> Model
-hintsFromGenerateRowState state model =
-    let
-        row =
-            state.row
-
-        col =
-            state.col
-
-        setHints =
-            -- TODO
-            Generate.eachCell (\r c -> Board.set r c [])
-    in
-    doHints setHints model
 
 
 guessZeroes : Model -> Model
@@ -600,7 +647,16 @@ view model =
             , b "col: "
             , text <| String.fromInt <| model.col + 1
             ]
-        , Html.map (\_ -> Noop) <| RenderBoard.render model.kakuroModel
+        , let
+            mapMsg msg =
+                case msg of
+                    SharedTypes.ClickCell s ->
+                        ClickCell s
+
+                    _ ->
+                        Noop
+          in
+          Html.map mapMsg <| RenderBoard.render model.kakuroModel
         ]
 
 
