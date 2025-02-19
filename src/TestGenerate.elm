@@ -227,8 +227,8 @@ clickCell s model =
                                     eachCol (c - 1)
                                         (computeHints row c :: hintsComputers)
                                         { gs
-                                            | board =
-                                                Board.set row c 0 gs.board
+                                            | guesses =
+                                                Board.set row c 0 gs.guesses
                                         }
 
                             eachRow : Int -> List (GameState -> GameState) -> GameState -> GameState
@@ -240,8 +240,8 @@ clickCell s model =
                                     eachRow (r - 1)
                                         (computeHints r col :: hintsComputers)
                                         { gs
-                                            | board =
-                                                Board.set r col 0 gameState.board
+                                            | guesses =
+                                                Board.set r col 0 gameState.guesses
                                         }
                         in
                         eachCol (col - 1) [] gameState
