@@ -15,6 +15,7 @@ module RenderBoard exposing
     , makeGameState
     , render
     , renderHelp
+    , renderInternal
     , renderKeypad
     )
 
@@ -85,6 +86,7 @@ type alias RenderState =
     , flags : Flags
     , selection : Maybe Selection
     , exploreState : Maybe ExploreState
+    , debugMode : Bool
 
     -- Added to GameState
     , allDone : Bool
@@ -92,8 +94,8 @@ type alias RenderState =
     }
 
 
-makeRenderState : String -> GameState -> BClassBoard -> Bool -> RenderState
-makeRenderState name state cellClasses allDone =
+makeRenderState : Bool -> String -> GameState -> BClassBoard -> Bool -> RenderState
+makeRenderState debugMode name state cellClasses allDone =
     let
         flags =
             state.flags
@@ -106,6 +108,7 @@ makeRenderState name state cellClasses allDone =
     , flags = state.flags
     , selection = state.selection
     , exploreState = state.exploreState
+    , debugMode = debugMode
 
     -- Added to state
     , allDone = allDone
@@ -415,8 +418,11 @@ renderSvgCell row col sizes state =
                     Just es ->
                         guess == Board.get brow bcol es.guesses
 
+        debugMode =
+            state.debugMode
+
         hints =
-            if value /= 0 && guess == 0 then
+            if debugMode || (value /= 0 && guess == 0) then
                 Board.get brow bcol state.hints
 
             else
@@ -498,7 +504,7 @@ renderSvgCell row col sizes state =
             rect
                 [ svgClass
                     (cellClass
-                        ++ (if doneColorp then
+                        ++ (if doneColorp && not state.debugMode then
                                 " SvgDoneColor"
 
                             else
@@ -513,7 +519,7 @@ renderSvgCell row col sizes state =
                 []
     in
     g []
-        (if value /= 0 then
+        (if value /= 0 || (debugMode && row /= 0 && col /= 0) then
             let
                 clickRect =
                     rect
@@ -611,8 +617,8 @@ getBoardSizes model =
             bs
 
 
-renderSvgBoard : String -> Model -> Html Msg
-renderSvgBoard name model =
+renderSvgBoard : Bool -> String -> Model -> Html Msg
+renderSvgBoard debugMode name model =
     let
         sizes =
             getBoardSizes model
@@ -630,7 +636,7 @@ renderSvgBoard name model =
             isAllDone state.board state.guesses
 
         state2 =
-            makeRenderState name state cellClasses allDone
+            makeRenderState debugMode name state cellClasses allDone
     in
     svg [ width size, height size ]
         (rect [ svgClass "SvgCell SvgCellColor", width size, height size ] []
@@ -788,9 +794,14 @@ renderPossibilities model =
 
 render : Model -> Html Msg
 render model =
+    renderInternal False model
+
+
+renderInternal : Bool -> Model -> Html Msg
+renderInternal debugMode model =
     div []
         [ Styles.Board.style
-        , renderSvgBoard "" model
+        , renderSvgBoard debugMode "" model
         , renderPossibilities model
         ]
 
@@ -803,7 +814,7 @@ renderHelp name model windowSize =
     in
     div []
         [ Styles.Board.style
-        , renderSvgBoard name m
+        , renderSvgBoard False name m
         , case model.gameState.selection of
             Nothing ->
                 br

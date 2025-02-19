@@ -9,6 +9,7 @@ import Generate exposing (GenerateRowState)
 import Html exposing (Html, button, div, input, option, p, select, text)
 import Html.Attributes exposing (checked, disabled, name, selected, style, type_, value)
 import Html.Events exposing (onClick, onInput)
+import Html.Lazy as Lazy
 import List.Extra as LE
 import PuzzleDB
 import Random
@@ -31,7 +32,6 @@ import Time exposing (Posix)
 type ShowWhat
     = ShowCellChoices
     | ShowBoard
-    | ShowZeroes
 
 
 textToShowWhat : String -> ShowWhat
@@ -39,9 +39,6 @@ textToShowWhat s =
     case s of
         "ShowBoard" ->
             ShowBoard
-
-        "ShowZeroes" ->
-            ShowZeroes
 
         _ ->
             ShowCellChoices
@@ -93,8 +90,7 @@ type Msg
     | StepCellChoices
     | GenerateChoices
     | CancelSteps
-    | SetShowWhat String
-    | ClickCell String
+    | SetShowWhat ShowWhat
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -165,11 +161,10 @@ update msg model =
             }
                 |> withNoCmd
 
-        SetShowWhat showWhatString ->
+        SetShowWhat showWhat ->
             let
-                showWhat =
-                    textToShowWhat showWhatString
-
+                --showWhat =
+                --  textToShowWhat showWhatString
                 hints =
                     modelHints model
             in
@@ -182,75 +177,9 @@ update msg model =
 
                         ShowBoard ->
                             guessRight
-
-                        ShowZeroes ->
-                            guessZeroes
                    )
             , Cmd.none
             )
-
-        ClickCell s ->
-            clickCell s model |> withNoCmd
-
-
-clickCell : String -> Model -> Model
-clickCell s model =
-    case List.map String.toInt <| String.split "," s of
-        [ Just row, Just col ] ->
-            let
-                frob gameState =
-                    if Board.get row col gameState.guesses /= 0 then
-                        gameState
-
-                    else
-                        let
-                            computeHints : Int -> Int -> GameState -> GameState
-                            computeHints hr hc gs =
-                                { gs
-                                    | hints =
-                                        Board.set hr
-                                            hc
-                                            (Generate.cellChoices hr hc gs.guesses)
-                                            gs.hints
-                                }
-
-                            apply : (GameState -> GameState) -> GameState -> GameState
-                            apply f gs =
-                                f gs
-
-                            eachCol : Int -> List (GameState -> GameState) -> GameState -> GameState
-                            eachCol c hintsComputers gs =
-                                if c <= 0 || Board.get row c gs.board == 0 then
-                                    List.foldl apply gs hintsComputers
-
-                                else
-                                    eachCol (c - 1)
-                                        (computeHints row c :: hintsComputers)
-                                        { gs
-                                            | guesses =
-                                                Board.set row c 0 gs.guesses
-                                        }
-
-                            eachRow : Int -> List (GameState -> GameState) -> GameState -> GameState
-                            eachRow r hintsComputers gs =
-                                if r <= 0 || Board.get r col gs.board == 0 then
-                                    List.foldl apply gs hintsComputers
-
-                                else
-                                    eachRow (r - 1)
-                                        (computeHints r col :: hintsComputers)
-                                        { gs
-                                            | guesses =
-                                                Board.set r col 0 gameState.guesses
-                                        }
-                        in
-                        eachCol (col - 1) [] gameState
-                            |> eachRow (row - 1) []
-            in
-            doGameState frob model
-
-        _ ->
-            model
 
 
 generate : Model -> Model
@@ -304,12 +233,53 @@ generateStepInternal model =
     )
 
 
+fillChoices : Model -> Model
+fillChoices model =
+    let
+        board =
+            modelBoard model
+
+        rows =
+            board.rows
+
+        cols =
+            board.cols
+
+        get r c =
+            Board.get r c board
+
+        eachCol : Int -> Int -> Model -> Model
+        eachCol row c m =
+            if c >= cols then
+                m
+
+            else if get row c == 0 then
+                eachCol row (c + 1) <|
+                    doHints
+                        (Board.set row c (Generate.cellChoices row c board))
+                        m
+
+            else
+                eachCol row (c + 1) m
+
+        eachRow row m =
+            if row >= rows then
+                m
+
+            else
+                eachRow (row + 1) <|
+                    eachCol row 0 m
+    in
+    eachRow 0 model
+
+
 finishGenerate : Model -> GenerateRowState -> Model
 finishGenerate model state =
-    model
+    { model | showWhat = ShowBoard }
         |> doGameState
             (\gs -> newGameState state.board)
         |> guessRight
+        |> fillChoices
 
 
 generateStep : Model -> Model
@@ -318,7 +288,7 @@ generateStep model =
         ( mdl, state ) =
             generateStepInternal model
     in
-    case model.generateRowState of
+    case mdl.generateRowState of
         Nothing ->
             finishGenerate mdl state
 
@@ -549,12 +519,12 @@ br =
         []
 
 
-radio : String -> Bool -> msg -> Html msg
-radio value isChecked msg =
+radio : String -> String -> Bool -> msg -> Html msg
+radio radioName value isChecked msg =
     Html.span [ onClick msg ]
         [ input
             [ type_ "radio"
-            , name "board-size"
+            , name radioName
             , checked isChecked
             ]
             []
@@ -568,9 +538,9 @@ view model =
         [ h2 "TestGenerate"
         , p []
             [ p []
-                [ radio "6" (model.kind == 6) (ChangeKind 6)
-                , radio "8" (model.kind == 8) (ChangeKind 8)
-                , radio "10" (model.kind == 10) (ChangeKind 10)
+                [ radio "board-size" "6" (model.kind == 6) (ChangeKind 6)
+                , radio "board-size" "8" (model.kind == 8) (ChangeKind 8)
+                , radio "board-size" "10" (model.kind == 10) (ChangeKind 10)
                 ]
             , let
                 ( stepLabel, allLabel ) =
@@ -621,6 +591,13 @@ view model =
                 ]
             , p []
                 [ b "Show: "
+                , radio "show" "Cell choices" (model.showWhat == ShowCellChoices) <|
+                    SetShowWhat ShowCellChoices
+                , radio "show" "Board" (model.showWhat == ShowBoard) <|
+                    SetShowWhat ShowBoard
+                ]
+
+            {--
                 , select [ onInput SetShowWhat ]
                     [ option
                         [ value "ShowCellChoices"
@@ -632,13 +609,8 @@ view model =
                         , selected <| model.showWhat == ShowBoard
                         ]
                         [ text "Board" ]
-                    , option
-                        [ value "ShowZeroes"
-                        , selected <| model.showWhat == ShowZeroes
-                        ]
-                        [ text "Zeroes" ]
                     ]
-                ]
+                    --}
             ]
         , p []
             [ b "row: "
@@ -647,16 +619,14 @@ view model =
             , b "col: "
             , text <| String.fromInt <| model.col + 1
             ]
-        , let
-            mapMsg msg =
-                case msg of
-                    SharedTypes.ClickCell s ->
-                        ClickCell s
 
-                    _ ->
-                        Noop
-          in
-          Html.map mapMsg <| RenderBoard.render model.kakuroModel
+        -- For some reason, lazy doesn't work here
+        , p []
+            [ Html.map (\_ -> Noop) <|
+                Lazy.lazy
+                    (RenderBoard.renderInternal True)
+                    model.kakuroModel
+            ]
         ]
 
 
