@@ -1,5 +1,13 @@
 module TestGenerate exposing (main)
 
+{-| TODO:
+
+Generate.cellChoices needs to prevent single-wide snakes at edges
+(and elsewhere?) This can be requiring a 0 square at the edge or
+not allowing a zero square one from the edge.
+
+-}
+
 import Board exposing (Board)
 import BoardSize
 import Browser
@@ -253,15 +261,15 @@ fillChoices model =
             if c >= cols then
                 m
 
-            else if get row c == 0 then
+            else
+                -- if get row c == 0 then
                 eachCol row (c + 1) <|
                     doHints
                         (Board.set row c (Generate.cellChoices row c board))
                         m
 
-            else
-                eachCol row (c + 1) m
-
+        --else
+        --    eachCol row (c + 1) m
         eachRow row m =
             if row >= rows then
                 m
@@ -624,7 +632,7 @@ view model =
         , p []
             [ Html.map (\_ -> Noop) <|
                 Lazy.lazy
-                    (RenderBoard.renderInternal True)
+                    (RenderBoard.renderInternal <| model.showWhat == ShowBoard)
                     model.kakuroModel
             ]
         ]

@@ -416,13 +416,6 @@ type alias GenerateColState =
     }
 
 
-{-| I don't know yet how to make zero more likely
--}
-encourageZero : List Int -> List Int
-encourageZero possibilities =
-    possibilities
-
-
 generateColStep : Bool -> GenerateColState -> Random.Seed -> ( GenerateColState, Random.Seed )
 generateColStep newCol state seed =
     let
@@ -452,7 +445,7 @@ generateColStep newCol state seed =
             -- normal case, choose a random cell value from the possibilities
             let
                 ( maybeVal, newPossibilities, newSeed ) =
-                    randomChoice (encourageZero realPossibilities) seed
+                    randomChoice realPossibilities seed
             in
             case maybeVal of
                 Just val ->
