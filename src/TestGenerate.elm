@@ -262,14 +262,11 @@ fillChoices model =
                 m
 
             else
-                -- if get row c == 0 then
                 eachCol row (c + 1) <|
                     doHints
                         (Board.set row c (Generate.cellChoices row c board))
                         m
 
-        --else
-        --    eachCol row (c + 1) m
         eachRow row m =
             if row >= rows then
                 m
