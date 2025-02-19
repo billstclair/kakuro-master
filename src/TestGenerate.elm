@@ -6,6 +6,8 @@ Generate.cellChoices needs to prevent single-wide snakes at edges
 (and elsewhere?) This can be requiring a 0 square at the edge or
 not allowing a zero square one from the edge.
 
+Play mode. Try out a generated game, to see if it is soluble.
+
 -}
 
 import Board exposing (Board)
