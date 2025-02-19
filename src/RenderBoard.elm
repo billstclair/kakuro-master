@@ -362,20 +362,18 @@ svgHintTexts hints sizes cr res =
                     BoardSize.hintTextLocation hint cr
 
                 html =
-                    Svg.text_
-                        [ svgClass "SvgHintText"
-                        , fontSize (String.fromInt sizes.hintFontSize)
-                        , x (String.fromInt blx)
-                        , y (String.fromInt bly)
-                        ]
-                        [ Svg.text <|
-                            if hint == 0 then
-                                -- Happens in TextGenerate.elm
-                                ""
+                    if hint == 0 then
+                        -- Happens in TextGenerate.elm
+                        Svg.text_ [] []
 
-                            else
-                                String.fromInt hint
-                        ]
+                    else
+                        Svg.text_
+                            [ svgClass "SvgHintText"
+                            , fontSize (String.fromInt sizes.hintFontSize)
+                            , x (String.fromInt blx)
+                            , y (String.fromInt bly)
+                            ]
+                            [ Svg.text <| String.fromInt hint ]
             in
             svgHintTexts tail sizes cr (html :: res)
 
@@ -473,7 +471,7 @@ renderSvgCell row col sizes state =
 
         cellClass =
             if value == 0 then
-                if label == emptyLabels then
+                if label == emptyLabels && not debugMode then
                     "SvgEmptyCell"
 
                 else
