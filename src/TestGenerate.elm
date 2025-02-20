@@ -16,7 +16,7 @@ import Browser
 import Cmd.Extra exposing (addCmd, withCmd, withCmds, withNoCmd)
 import Dict exposing (Dict)
 import Generate exposing (GenerateRowState)
-import Html exposing (Html, button, div, input, option, p, select, text)
+import Html exposing (Html, button, div, input, option, p, select, span, text)
 import Html.Attributes exposing (checked, disabled, name, selected, style, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy as Lazy
@@ -55,7 +55,8 @@ textToShowWhat s =
 
 
 type alias Model =
-    { kakuroModel : SharedTypes.Model
+    { error : Maybe String
+    , kakuroModel : SharedTypes.Model
     , seed : Random.Seed
     , generateRowState : Maybe GenerateRowState
     , step : Maybe (Mdl -> Mdl)
@@ -79,7 +80,8 @@ initialKind =
 
 initialModel : Model
 initialModel =
-    { kakuroModel = initialKakuroModel initialKind
+    { error = Nothing
+    , kakuroModel = initialKakuroModel initialKind
     , seed = Random.initialSeed 0
     , generateRowState = Nothing
     , step = Nothing
@@ -115,7 +117,10 @@ update msg model =
                     model
 
                 _ ->
-                    { model | clickedId = Nothing }
+                    { model
+                        | error = Nothing
+                        , clickedId = Nothing
+                    }
     in
     updateInternal msg mdl
 
@@ -315,16 +320,20 @@ generateStep model =
         ( mdl, state ) =
             generateStepInternal model
     in
-    case mdl.generateRowState of
-        Nothing ->
-            finishGenerate mdl state
+    if not state.success then
+        { mdl | error = Just "Generate failed!" }
 
-        Just s ->
-            if Board.get s.row s.col s.board == 0 then
-                generateStep mdl
-
-            else
+    else
+        case mdl.generateRowState of
+            Nothing ->
                 finishGenerate mdl state
+
+            Just s ->
+                if Board.get s.row s.col s.board == 0 then
+                    generateStep mdl
+
+                else
+                    finishGenerate mdl state
 
 
 guessZeroes : Model -> Model
@@ -563,6 +572,15 @@ view : Model -> Html Msg
 view model =
     div [ style "margin" "2em" ]
         [ h2 "TestGenerate"
+        , p []
+            [ case model.error of
+                Nothing ->
+                    text " "
+
+                Just err ->
+                    span [ style "color" "red" ]
+                        [ text err ]
+            ]
         , p []
             [ p []
                 [ radio "board-size" "6" (model.kind == 6) (ChangeKind 6)
