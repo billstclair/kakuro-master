@@ -392,7 +392,6 @@ generateRowStepInternal newCol rowState seed =
             -- Back up a row
             case rowStack of
                 [] ->
-                    -- Can't happen
                     ( { rowState
                         | done = True
                         , success = False
