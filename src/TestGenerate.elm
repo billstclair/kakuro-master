@@ -16,8 +16,8 @@ import Browser
 import Cmd.Extra exposing (addCmd, withCmd, withCmds, withNoCmd)
 import Dict exposing (Dict)
 import Generate exposing (GenerateRowState)
-import Html exposing (Html, button, div, input, option, p, select, span, text)
-import Html.Attributes exposing (checked, disabled, name, selected, style, type_, value)
+import Html exposing (Html, a, button, div, input, option, p, select, span, text)
+import Html.Attributes exposing (checked, disabled, href, name, selected, style, target, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Html.Lazy as Lazy
 import List.Extra as LE
@@ -573,6 +573,8 @@ view model =
     div [ style "margin" "2em" ]
         [ h2 "TestGenerate"
         , p []
+            [ text "I'm working on generating new boards. This is a tool for doing that." ]
+        , p []
             [ case model.error of
                 Nothing ->
                     text " "
@@ -684,18 +686,21 @@ view model =
                                 Board.get row col <| modelHints model
                         in
                         p []
-                            [ b "hints: "
-                            , text <| Debug.toString hint
-                            , text ", "
-                            , b "row: "
+                            [ b "hints"
+                            , text "["
                             , text <| String.fromInt row
-                            , text " "
-                            , b "col: "
+                            , text ","
                             , text <| String.fromInt col
+                            , text "] = "
+                            , text <| Debug.toString hint
                             ]
 
                     Nothing ->
                         text ""
+        , p []
+            [ a [ href "./" ]
+                [ text "Kakuro Dojo" ]
+            ]
         ]
 
 

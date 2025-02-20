@@ -1624,9 +1624,7 @@ radio value isChecked msg =
 view : Model -> Html Msg
 view model =
     div
-        [ align "center"
-
-        --deprecated, so sue me
+        [ align "center" --deprecated, so sue me
         ]
         [ Styles.Page.style
         , case model.page of
@@ -2266,6 +2264,9 @@ footerDiv model =
         , text (copyright ++ " 2016-2025 ")
         , a [ href "https://GibGoyGames.com/" ]
             [ text "Gib Goy Games" ]
+        , space
+        , a [ href "test-generate.html" ]
+            [ text "TestGenerate" ]
         , space
         , mailLink "GibGoyGames@gmail.com"
         , br
