@@ -64,6 +64,7 @@ type alias Model =
     , boardNum : Int
     , row : Int
     , col : Int
+    , clickedId : Maybe String
     }
 
 
@@ -87,6 +88,7 @@ initialModel =
     , boardNum = 0
     , row = 0
     , col = 0
+    , clickedId = Nothing
     }
 
 
@@ -101,10 +103,25 @@ type Msg
     | GenerateChoices
     | CancelSteps
     | SetShowWhat ShowWhat
+    | ClickCell String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        mdl =
+            case msg of
+                Tick _ ->
+                    model
+
+                _ ->
+                    { model | clickedId = Nothing }
+    in
+    updateInternal msg mdl
+
+
+updateInternal : Msg -> Model -> ( Model, Cmd Msg )
+updateInternal msg model =
     case msg of
         Noop ->
             ( model, Cmd.none )
@@ -178,7 +195,7 @@ update msg model =
                 hints =
                     modelHints model
             in
-            ( { model | showWhat = showWhat }
+            { model | showWhat = showWhat }
                 |> clearGameState
                 |> doHints (\_ -> hints)
                 |> (case showWhat of
@@ -188,8 +205,11 @@ update msg model =
                         ShowBoard ->
                             guessRight
                    )
-            , Cmd.none
-            )
+                |> withNoCmd
+
+        ClickCell id ->
+            { model | clickedId = Just id }
+                |> withNoCmd
 
 
 generate : Model -> Model
@@ -629,12 +649,61 @@ view model =
 
         -- For some reason, lazy doesn't work here
         , p []
-            [ Html.map (\_ -> Noop) <|
+            [ Html.map msgMap <|
                 Lazy.lazy
                     (RenderBoard.renderInternal <| model.showWhat == ShowBoard)
                     model.kakuroModel
             ]
+        , case model.clickedId of
+            Nothing ->
+                text "Click on a cell for its hints."
+
+            Just id ->
+                case idToRowCol id of
+                    Just ( row, col ) ->
+                        let
+                            hint =
+                                Board.get row col <| modelHints model
+                        in
+                        p []
+                            [ b "hints: "
+                            , text <| Debug.toString hint
+                            , text ", "
+                            , b "row: "
+                            , text <| String.fromInt row
+                            , text " "
+                            , b "col: "
+                            , text <| String.fromInt col
+                            ]
+
+                    Nothing ->
+                        text ""
         ]
+
+
+idToRowCol : String -> Maybe ( Int, Int )
+idToRowCol id =
+    case String.split "," id of
+        [ _, rowString, colString ] ->
+            case ( String.toInt rowString, String.toInt colString ) of
+                ( Just row, Just col ) ->
+                    Just ( row, col )
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
+
+
+msgMap : SharedTypes.Msg -> Msg
+msgMap stm =
+    case stm of
+        SharedTypes.ClickCell id ->
+            ClickCell id
+
+        _ ->
+            Noop
 
 
 realBoardIndex : IntBoard -> Int

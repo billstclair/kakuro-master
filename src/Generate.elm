@@ -191,9 +191,17 @@ cellChoices row col board =
                                         && (get (row - 1) col /= 0)
                                    )
                             )
+                                || ((row == maxRow)
+                                        && (col == maxCol - 1)
+                                        && (get (row - 2) (col + 1) == 0)
+                                   )
                                 || ((col == 0 || get row (col - 1) == 0)
                                         && ((col == 1 || (col > 1 && get row (col - 2) == 0))
                                                 && (get row (col - 1) /= 0)
+                                           )
+                                        || ((col == maxCol)
+                                                && (row == maxRow - 1)
+                                                && (get (row + 1) (col - 2) == 0)
                                            )
                                    )
                     in
@@ -463,7 +471,19 @@ generateColStep newCol state seed =
                             cellChoices row (col + 1) board
 
                         just0 =
-                            choices == [ 0 ]
+                            (choices == [ 0 ])
+                                |> (\x ->
+                                        if not x then
+                                            x
+
+                                        else
+                                            let
+                                                n =
+                                                    Debug.log "just0, (row, col)"
+                                                        ( row, col + 1, Array.get row board.array )
+                                            in
+                                            x
+                                   )
                     in
                     ( col + 1
                     , choices
@@ -482,25 +502,9 @@ generateColStep newCol state seed =
                 case realPossibilities of
                     [] ->
                         ( Nothing, realPossibilities, seed )
-                            |> (\x ->
-                                    let
-                                        n =
-                                            Debug.log "no possibilities, (row, col, seed)"
-                                                ( row, realCol, seed )
-                                    in
-                                    x
-                               )
 
                     [ onePossibility ] ->
                         ( Just onePossibility, [], seed )
-                            |> (\x ->
-                                    let
-                                        n =
-                                            Debug.log "onePossibility (x, row, col)"
-                                                ( x, row, realCol )
-                                    in
-                                    x
-                               )
 
                     _ :: _ ->
                         randomChoice realPossibilities seed
@@ -520,7 +524,10 @@ generateColStep newCol state seed =
                 -- No result. Back up
                 if realCol <= 0 then
                     -- We've backed up all we can. Fail.
-                    ( { state | success = False }
+                    ( { state
+                        | success = False
+                        , board = Board.set row realCol 0 board
+                      }
                     , newSeed
                     )
 
@@ -533,11 +540,19 @@ generateColStep newCol state seed =
                     case newStack of
                         [] ->
                             -- Shouldn't happen
-                            ( { state | success = False }, seed )
+                            ( { state
+                                | success = False
+                                , board = Board.set row realCol 0 board
+                              }
+                            , seed
+                            )
 
                         ( lastBoard, lastPossibilities, only0 ) :: tail ->
                             if only0 then
-                                ( { state | success = False }
+                                ( { state
+                                    | success = False
+                                    , board = Board.set row realCol 0 board
+                                  }
                                 , seed
                                 )
 
