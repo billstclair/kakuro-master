@@ -235,6 +235,12 @@ cellChoices row col board =
         cols =
             board.cols
 
+        maxRow =
+            rows - 1
+
+        maxCol =
+            cols - 1
+
         get r c =
             Board.get r c board
 
@@ -300,9 +306,37 @@ cellChoices row col board =
                     LE.remove 0 ch
 
                 else
-                    ch
+                    let
+                        snakeTailAgainstWall =
+                            ((row == 0 || get (row - 1) col == 0)
+                                && ((row == 1 || (row > 1 && get (row - 2) col == 0))
+                                        && (get (row - 1) col /= 0)
+                                   )
+                            )
+                                || ((col == 0 || get row (col - 1) == 0)
+                                        && ((col == 1 || (col > 1 && get row (col - 2) == 0))
+                                                && (get row (col - 1) /= 0)
+                                           )
+                                   )
+                    in
+                    if snakeTailAgainstWall then
+                        LE.remove 0 ch
+
+                    else
+                        ch
+
+        maybeOnly0Ch =
+            if
+                (row == maxRow && get (row - 1) col == 0)
+                    || (col == maxCol && get row (col - 1) == 0)
+            then
+                -- Don't allow single-wide row or column segments on bottom or right
+                [ 0 ]
+
+            else
+                choices
     in
-    maybeRemove0 choices
+    maybeRemove0 maybeOnly0Ch
         |> colLoop (col - 1)
         |> rowLoop (row - 1)
 

@@ -498,12 +498,21 @@ renderSvgCell row col sizes state =
             else
                 cr
 
-        rectHtml doneColorp =
+        rectHtml zeroHintp =
             rect
                 [ svgClass
                     (cellClass
-                        ++ (if doneColorp && not state.debugMode then
+                        ++ (if zeroHintp && not debugMode then
                                 " SvgDoneColor"
+
+                            else if
+                                (value == 0)
+                                    && not zeroHintp
+                                    && debugMode
+                                    && (row /= 0)
+                                    && (col /= 0)
+                            then
+                                " SvgErrorColor"
 
                             else
                                 ""
