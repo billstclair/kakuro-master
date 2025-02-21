@@ -15,6 +15,7 @@ import BoardSize
 import Browser
 import Cmd.Extra exposing (addCmd, withCmd, withCmds, withNoCmd)
 import Dict exposing (Dict)
+import Entities exposing (nbsp)
 import Generate exposing (GenerateRowState)
 import Html exposing (Html, a, button, div, input, option, p, select, span, text)
 import Html.Attributes exposing (checked, disabled, href, name, selected, style, target, type_, value)
@@ -254,7 +255,13 @@ generateStepInternal model =
             Generate.generateRowStep state model.seed
     in
     ( { model
-        | row = newState.row
+        | error =
+            if newState.success then
+                Nothing
+
+            else
+                Just "Generate error"
+        , row = newState.row
         , col = newState.col
         , generateRowState =
             if newState.done then
@@ -283,15 +290,29 @@ fillChoices model =
         get r c =
             Board.get r c board
 
+        mr =
+            model.row
+
+        mc =
+            model.col
+
         eachCol : Int -> Int -> Model -> Model
         eachCol row c m =
             if c >= cols then
                 m
 
             else
+                let
+                    newChoices =
+                        if (row == mr && c > mc) || (row > mr) then
+                            [ 0 ]
+
+                        else
+                            Generate.cellChoices row c board
+                in
                 eachCol row (c + 1) <|
                     doHints
-                        (Board.set row c (Generate.cellChoices row c board))
+                        (Board.set row c newChoices)
                         m
 
         eachRow row m =
@@ -577,7 +598,7 @@ view model =
         , p []
             [ case model.error of
                 Nothing ->
-                    text " "
+                    text nbsp
 
                 Just err ->
                     span [ style "color" "red" ]
@@ -661,10 +682,10 @@ view model =
             ]
         , p []
             [ b "row: "
-            , text <| String.fromInt <| model.row + 1
+            , text <| String.fromInt <| model.row
             , text " "
             , b "col: "
-            , text <| String.fromInt <| model.col + 1
+            , text <| String.fromInt <| model.col
             ]
 
         -- For some reason, lazy doesn't work here

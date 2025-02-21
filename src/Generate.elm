@@ -461,8 +461,10 @@ generateColStep newCol state seed =
     if not success then
         ( state, seed )
 
-    else if col >= board.cols then
-        ( state, seed )
+    else if newCol && col >= (board.cols - 1) then
+        ( { state | col = board.cols }
+        , seed
+        )
 
     else
         let
