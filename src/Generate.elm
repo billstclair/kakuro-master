@@ -331,10 +331,18 @@ generateRowStepInternal newCol rowState seed =
 
     else
         let
-            ( nextColState, nextSeed ) =
-                generateColStep newCol colState seed
+            ( backup, nextColState, nextSeed ) =
+                if tries > maxGenerateRowTries then
+                    ( True, colState, seed )
+
+                else
+                    let
+                        ( ncs, ns ) =
+                            generateColStep newCol colState seed
+                    in
+                    ( not ncs.success, ncs, ns )
         in
-        if nextColState.success then
+        if not backup then
             let
                 nextRowState =
                     { rowState
@@ -344,9 +352,7 @@ generateRowStepInternal newCol rowState seed =
                     }
             in
             if nextRowState.col < board.cols then
-                ( nextRowState
-                , nextSeed
-                )
+                ( nextRowState, nextSeed )
 
             else
                 let
@@ -378,25 +384,6 @@ generateRowStepInternal newCol rowState seed =
                         }
                         nextSeed
 
-        else if tries < maxGenerateRowTries then
-            -- Try this row again
-            let
-                ncs =
-                    { colState
-                        | col = -1
-                        , possibilities = []
-                        , colStack = []
-                        , success = True
-                    }
-            in
-            generateRowStep
-                { rowState
-                    | col = -1
-                    , tries = tries + 1
-                    , colState = ncs
-                }
-                seed
-
         else
             -- Back up a row
             case rowStack of
@@ -409,26 +396,17 @@ generateRowStepInternal newCol rowState seed =
                     )
 
                 ( lastTries, lastColState ) :: tail ->
-                    if lastTries >= maxGenerateRowTries then
-                        ( { rowState
-                            | done = True
-                            , success = False
-                          }
-                        , nextSeed
-                        )
-
-                    else
-                        generateRowStepInternal
-                            False
-                            { rowState
-                                | row = row - 1
-                                , col = lastColState.col
-                                , board = lastColState.board
-                                , tries = lastTries + 1
-                                , colState = lastColState
-                                , rowStack = tail
-                            }
-                            nextSeed
+                    generateRowStepInternal
+                        False
+                        { rowState
+                            | row = row - 1
+                            , col = lastColState.col
+                            , board = lastColState.board
+                            , tries = lastTries + 1
+                            , colState = lastColState
+                            , rowStack = tail
+                        }
+                        nextSeed
 
 
 initialGenerateColState : IntBoard -> GenerateColState
@@ -499,7 +477,7 @@ generateColStep newCol state seed =
                         ( Just onePossibility, [], seed )
 
                     _ ->
-                        randomChoice realPossibilities seed
+                        randomChoiceWith0Enhancement realPossibilities seed
         in
         case maybeVal of
             Just val ->
@@ -549,6 +527,59 @@ generateColStep newCol state seed =
                                     , colStack = tail
                                 }
                                 seed
+
+
+randomChoiceWith0Enhancement : List Int -> Random.Seed -> ( Maybe Int, List Int, Random.Seed )
+randomChoiceWith0Enhancement choices seed =
+    randomChoice choices seed
+
+
+oneInX0s : Float
+oneInX0s =
+    3
+
+
+notRandomChoiceWith0Enhancement : List Int -> Random.Seed -> ( Maybe Int, List Int, Random.Seed )
+notRandomChoiceWith0Enhancement choices seed =
+    if not <| List.member 0 choices then
+        randomChoice choices seed
+
+    else
+        let
+            enhance0s ch =
+                let
+                    zeroes =
+                        round <| (toFloat <| List.length ch - 1) / oneInX0s
+                in
+                if zeroes > 1 then
+                    ( List.repeat (zeroes - 1) 0 ++ ch, True )
+
+                else
+                    ( ch, False )
+
+            ( enhancedChoices, isEnhanced ) =
+                enhance0s choices
+
+            res =
+                randomChoice enhancedChoices seed
+        in
+        if not isEnhanced then
+            res
+
+        else
+            let
+                ( maybeChoice, newChoices, newSeed ) =
+                    res
+
+                no0NewChoices =
+                    LE.remove 0 newChoices
+            in
+            case maybeChoice of
+                Just 0 ->
+                    ( maybeChoice, no0NewChoices, newSeed )
+
+                _ ->
+                    ( maybeChoice, 0 :: no0NewChoices, newSeed )
 
 
 random : Int -> Int -> Random.Seed -> ( Int, Random.Seed )
