@@ -62,16 +62,6 @@ generateInternal state seed =
         generateInternal newState newSeed
 
 
-
--- This gives (expt 3 10) = 59049 total row tries,
--- for a 10x10 board.
-
-
-maxGenerateRowTries : Int
-maxGenerateRowTries =
-    3
-
-
 initialGenerateRowState : Int -> Int -> GenerateRowState
 initialGenerateRowState rows cols =
     let
@@ -83,7 +73,6 @@ initialGenerateRowState rows cols =
     , row = 0
     , col = 0
     , board = board
-    , tries = 0
     , rowStack = []
     , colState = initialGenerateColState board
     }
@@ -95,8 +84,7 @@ type alias GenerateRowState =
     , row : Int -- row & column for board
     , col : Int
     , board : IntBoard
-    , tries : Int --tries left in the current row
-    , rowStack : List ( Int, GenerateColState ) --for each row < row, (tries, colState)
+    , rowStack : List GenerateColState --for each row < row: colState
     , colState : GenerateColState
     }
 
@@ -323,7 +311,7 @@ generateRowStep rowState seed =
 generateRowStepInternal : Bool -> GenerateRowState -> Random.Seed -> ( GenerateRowState, Random.Seed )
 generateRowStepInternal newCol rowState seed =
     let
-        { done, row, col, board, tries, rowStack, colState } =
+        { done, row, col, board, rowStack, colState } =
             rowState
     in
     if done then
@@ -332,15 +320,11 @@ generateRowStepInternal newCol rowState seed =
     else
         let
             ( backup, nextColState, nextSeed ) =
-                if tries > maxGenerateRowTries then
-                    ( True, colState, seed )
-
-                else
-                    let
-                        ( ncs, ns ) =
-                            generateColStep newCol colState seed
-                    in
-                    ( not ncs.success, ncs, ns )
+                let
+                    ( ncs, ns ) =
+                        generateColStep newCol colState seed
+                in
+                ( not ncs.success, ncs, ns )
         in
         if not backup then
             let
@@ -379,8 +363,7 @@ generateRowStepInternal newCol rowState seed =
                             | row = nextRow
                             , col = -1
                             , colState = ncs
-                            , tries = 1
-                            , rowStack = ( tries, colState ) :: rowStack
+                            , rowStack = colState :: rowStack
                         }
                         nextSeed
 
@@ -395,14 +378,13 @@ generateRowStepInternal newCol rowState seed =
                     , nextSeed
                     )
 
-                ( lastTries, lastColState ) :: tail ->
+                lastColState :: tail ->
                     generateRowStepInternal
                         False
                         { rowState
-                            | row = row - 1
+                            | row = Debug.log "Backup up to row" <| row - 1
                             , col = lastColState.col
                             , board = lastColState.board
-                            , tries = lastTries + 1
                             , colState = lastColState
                             , rowStack = tail
                         }

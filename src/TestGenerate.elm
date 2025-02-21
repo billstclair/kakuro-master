@@ -2,9 +2,12 @@ module TestGenerate exposing (main)
 
 {-| TODO:
 
-Generate.cellChoices needs to prevent single-wide snakes at edges
-(and elsewhere?) This can be requiring a 0 square at the edge or
-not allowing a zero square one from the edge.
+Need to restrict number of all-number rows & columns. It appears to be
+doing everthing now, which is a lot in 10x10 boards.
+
+Pause every 10 seconds or so to see if the user wants to continue.
+Populate hints from rowStack & colStack, so we can see what's left,
+not what's possible.
 
 Play mode. Try out a generated game, to see if it is soluble.
 
