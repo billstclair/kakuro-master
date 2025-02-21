@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Compile src/TestGenerate.elm into site/test-generate.html
+
+elm make src/TestGenerate.elm --output site/test-generate.html

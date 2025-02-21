@@ -364,6 +364,7 @@ generateRowStepInternal newCol rowState seed =
                             { colState
                                 | row = nextRow
                                 , col = -1
+                                , possibilities = []
                                 , colStack = []
                             }
                     in
@@ -417,7 +418,8 @@ generateRowStepInternal newCol rowState seed =
                         )
 
                     else
-                        generateRowStep
+                        generateRowStepInternal
+                            False
                             { rowState
                                 | row = row - 1
                                 , col = lastColState.col
@@ -471,19 +473,7 @@ generateColStep newCol state seed =
                             cellChoices row (col + 1) board
 
                         just0 =
-                            (choices == [ 0 ])
-                                |> (\x ->
-                                        if not x then
-                                            x
-
-                                        else
-                                            let
-                                                n =
-                                                    Debug.log "just0, (row, col)"
-                                                        ( row, col + 1, Array.get row board.array )
-                                            in
-                                            x
-                                   )
+                            choices == [ 0 ]
                     in
                     ( col + 1
                     , choices
@@ -501,12 +491,12 @@ generateColStep newCol state seed =
             ( maybeVal, newPossibilities, newSeed ) =
                 case realPossibilities of
                     [] ->
-                        ( Nothing, realPossibilities, seed )
+                        ( Nothing, [], seed )
 
                     [ onePossibility ] ->
                         ( Just onePossibility, [], seed )
 
-                    _ :: _ ->
+                    _ ->
                         randomChoice realPossibilities seed
         in
         case maybeVal of
@@ -522,51 +512,41 @@ generateColStep newCol state seed =
 
             Nothing ->
                 -- No result. Back up
-                if realCol <= 0 then
-                    -- We've backed up all we can. Fail.
-                    ( { state
-                        | success = False
-                        , board = Board.set row realCol 0 board
-                      }
-                    , newSeed
-                    )
+                case newStack of
+                    [] ->
+                        -- we've tried everything for this column. Fail.
+                        ( { state
+                            | success = False
+                            , board = Board.set row realCol 0 board
+                            , possibilities = []
+                            , colStack = []
+                          }
+                        , seed
+                        )
 
-                else
-                    -- Back up
-                    let
-                        lastCol =
-                            realCol - 1
-                    in
-                    case newStack of
-                        [] ->
-                            -- Shouldn't happen
+                    ( lastBoard, lastPossibilities, only0 ) :: tail ->
+                        if only0 then
                             ( { state
                                 | success = False
+                                , col = 0
                                 , board = Board.set row realCol 0 board
+                                , possibilities = []
+                                , colStack = []
                               }
                             , seed
                             )
 
-                        ( lastBoard, lastPossibilities, only0 ) :: tail ->
-                            if only0 then
-                                ( { state
-                                    | success = False
-                                    , board = Board.set row realCol 0 board
-                                  }
-                                , seed
-                                )
-
-                            else
-                                generateColStep
-                                    False
-                                    { state
-                                        | col = lastCol
-                                        , success = True
-                                        , board = lastBoard
-                                        , possibilities = lastPossibilities
-                                        , colStack = tail
-                                    }
-                                    seed
+                        else
+                            generateColStep
+                                False
+                                { state
+                                    | col = realCol - 1
+                                    , success = True
+                                    , board = lastBoard
+                                    , possibilities = lastPossibilities
+                                    , colStack = tail
+                                }
+                                seed
 
 
 random : Int -> Int -> Random.Seed -> ( Int, Random.Seed )
