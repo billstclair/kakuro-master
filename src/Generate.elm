@@ -477,7 +477,7 @@ generateColStep newCol state seed =
                         ( Just onePossibility, [], seed )
 
                     _ ->
-                        randomChoiceWith0Enhancement realPossibilities seed
+                        randomChoice realPossibilities seed
         in
         case maybeVal of
             Just val ->
@@ -527,59 +527,6 @@ generateColStep newCol state seed =
                                     , colStack = tail
                                 }
                                 seed
-
-
-randomChoiceWith0Enhancement : List Int -> Random.Seed -> ( Maybe Int, List Int, Random.Seed )
-randomChoiceWith0Enhancement choices seed =
-    randomChoice choices seed
-
-
-oneInX0s : Float
-oneInX0s =
-    3
-
-
-notRandomChoiceWith0Enhancement : List Int -> Random.Seed -> ( Maybe Int, List Int, Random.Seed )
-notRandomChoiceWith0Enhancement choices seed =
-    if not <| List.member 0 choices then
-        randomChoice choices seed
-
-    else
-        let
-            enhance0s ch =
-                let
-                    zeroes =
-                        round <| (toFloat <| List.length ch - 1) / oneInX0s
-                in
-                if zeroes > 1 then
-                    ( List.repeat (zeroes - 1) 0 ++ ch, True )
-
-                else
-                    ( ch, False )
-
-            ( enhancedChoices, isEnhanced ) =
-                enhance0s choices
-
-            res =
-                randomChoice enhancedChoices seed
-        in
-        if not isEnhanced then
-            res
-
-        else
-            let
-                ( maybeChoice, newChoices, newSeed ) =
-                    res
-
-                no0NewChoices =
-                    LE.remove 0 newChoices
-            in
-            case maybeChoice of
-                Just 0 ->
-                    ( maybeChoice, no0NewChoices, newSeed )
-
-                _ ->
-                    ( maybeChoice, 0 :: no0NewChoices, newSeed )
 
 
 random : Int -> Int -> Random.Seed -> ( Int, Random.Seed )
