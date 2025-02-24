@@ -182,11 +182,14 @@ updateInternal msg model =
                 newModel =
                     clearGameState model
 
-                newHints =
-                    Generate.generateChoices <| modelBoard newModel
+                ( newHints, seed ) =
+                    Generate.generateChoices (modelBoard newModel) newModel.seed
             in
             ( doGameState (\gs -> { gs | hints = newHints })
-                { newModel | showWhat = ShowCellChoices }
+                { newModel
+                    | showWhat = ShowCellChoices
+                    , seed = seed
+                }
             , Cmd.none
             )
 
@@ -299,34 +302,41 @@ fillChoices model =
         mc =
             model.col
 
-        eachCol : Int -> Int -> Model -> Model
-        eachCol row c m =
+        eachCol : Int -> Int -> Random.Seed -> Model -> ( Model, Random.Seed )
+        eachCol row c seed m =
             if c >= cols then
-                m
+                ( m, seed )
 
             else
                 let
-                    newChoices =
+                    ( newChoices, sd2 ) =
                         if (row == mr && c > mc) || (row > mr) then
-                            [ 0 ]
+                            ( [ 0 ], seed )
 
                         else
-                            Generate.cellChoices row c board
+                            Generate.cellChoices row c board seed
                 in
-                eachCol row (c + 1) <|
+                eachCol row (c + 1) sd2 <|
                     doHints
                         (Board.set row c newChoices)
                         m
 
-        eachRow row m =
+        eachRow : Int -> Random.Seed -> Model -> ( Model, Random.Seed )
+        eachRow row seed m =
             if row >= rows then
-                m
+                ( m, seed )
 
             else
-                eachRow (row + 1) <|
-                    eachCol row 0 m
+                let
+                    ( m2, sd2 ) =
+                        eachCol row 0 seed m
+                in
+                eachRow (row + 1) sd2 m2
+
+        ( m3, seed2 ) =
+            eachRow 0 model.seed model
     in
-    eachRow 0 model
+    { m3 | seed = seed2 }
 
 
 finishGenerate : Model -> GenerateRowState -> Model
@@ -523,8 +533,8 @@ stepCellChoices (Mdl model) =
             model.col
     in
     let
-        choices =
-            Generate.cellChoices row col <| modelBoard model
+        ( choices, seed ) =
+            Generate.cellChoices row col (modelBoard model) model.seed
 
         {-
            ( ch, zeroOk ) =
@@ -558,6 +568,7 @@ stepCellChoices (Mdl model) =
         | row = nextRow
         , col = nextCol
         , step = nextStep
+        , seed = seed
     }
         |> Mdl
 

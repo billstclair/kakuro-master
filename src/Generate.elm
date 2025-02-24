@@ -92,8 +92,8 @@ type alias GenerateRowState =
 {-| Compute the choices for the given cell that don't collide with existing
 values in its row and column with smaller indices.
 -}
-cellChoices : Int -> Int -> IntBoard -> List Int
-cellChoices row col board =
+cellChoices : Int -> Int -> IntBoard -> Random.Seed -> ( List Int, Random.Seed )
+cellChoices row col board seed =
     let
         rows =
             board.rows
@@ -209,10 +209,151 @@ cellChoices row col board =
 
             else
                 choices
+
+        limitWholeLines : List Int -> Random.Seed -> ( List Int, Random.Seed )
+        limitWholeLines ch sd =
+            if ch == [ 0 ] || (not <| List.member 0 ch) then
+                ( ch, sd )
+
+            else
+                let
+                    ( fullRows, fullCols ) =
+                        Debug.log
+                            ("getFullRowsAndCols, ("
+                                ++ String.fromInt row
+                                ++ ","
+                                ++ String.fromInt col
+                                ++ ")"
+                            )
+                        <|
+                            getFullRowsAndCols row col board
+
+                    ( rowCh, sd2 ) =
+                        if fullRows < maxFullRowsOrCols then
+                            ( ch, sd )
+
+                        else
+                            let
+                                ( zeropr, sd3 ) =
+                                    random 0 (board.rows - row - 1) sd
+                            in
+                            if zeropr == 0 then
+                                ( [ 0 ], sd3 )
+
+                            else
+                                ( ch, sd )
+                in
+                if rowCh == [ 0 ] || fullCols < maxFullRowsOrCols then
+                    ( rowCh, sd )
+
+                else
+                    let
+                        ( zeropc, sd4 ) =
+                            random 0 (board.rows - row - 1) sd2
+                    in
+                    if zeropc == 0 then
+                        ( [ 0 ], sd4 )
+
+                    else
+                        ( ch, sd4 )
     in
-    maybeRemove0 maybeOnly0Ch
-        |> colLoop (col - 1)
-        |> rowLoop (row - 1)
+    let
+        ( ch2, sd2 ) =
+            limitWholeLines maybeOnly0Ch seed
+    in
+    if ch2 == [ 0 ] then
+        ( ch2, sd2 )
+
+    else
+        ( maybeRemove0 ch2
+            |> colLoop (col - 1)
+            |> rowLoop (row - 1)
+        , sd2
+        )
+
+
+maxFullRowsOrCols : Int
+maxFullRowsOrCols =
+    2
+
+
+getFullRowsAndCols : Int -> Int -> IntBoard -> ( Int, Int )
+getFullRowsAndCols row col board =
+    let
+        get r c =
+            Board.get r c board
+
+        maxRowCnt =
+            min board.cols 9
+
+        maxColCnt =
+            min board.rows 9
+
+        fullRows =
+            let
+                eachRow r rowcnt =
+                    let
+                        eachCol c colcnt =
+                            if c < 0 then
+                                colcnt
+
+                            else if get r c == 0 then
+                                eachCol (c - 1) colcnt
+
+                            else
+                                eachCol (c - 1) <| colcnt + 1
+
+                        startCol =
+                            if r < row then
+                                board.cols - 1
+
+                            else
+                                col
+                    in
+                    if r < 0 || rowcnt >= maxRowCnt then
+                        rowcnt
+
+                    else if eachCol startCol 0 >= maxRowCnt then
+                        eachRow (r - 1) <| rowcnt + 1
+
+                    else
+                        eachRow (r - 1) rowcnt
+            in
+            eachRow (row - 1) 0
+
+        fullCols =
+            let
+                eachCol c colcnt =
+                    let
+                        eachRow r rowcnt =
+                            if r < 0 then
+                                rowcnt
+
+                            else if get r c == 0 then
+                                eachRow (r - 1) rowcnt
+
+                            else
+                                eachRow (r - 1) <| rowcnt + 1
+
+                        startRow =
+                            if c < col then
+                                board.rows - 1
+
+                            else
+                                row
+                    in
+                    if c < 0 || colcnt >= maxColCnt then
+                        colcnt
+
+                    else if eachRow startRow 0 >= maxColCnt then
+                        eachCol (c - 1) <| colcnt + 1
+
+                    else
+                        eachCol (c - 1) colcnt
+            in
+            eachCol (col - 1) 0
+    in
+    ( fullRows, fullCols )
 
 
 {-| Call this after collecting results for calling `cellChoices`
@@ -275,12 +416,34 @@ eachCell f board =
     List.foldl eachRow board rowRange
 
 
+{-| Call the function with a seed on each cell of the board.
+-}
+eachCellWithSeed : (Int -> Int -> Board a -> Random.Seed -> ( Board a, Random.Seed )) -> Board a -> Random.Seed -> ( Board a, Random.Seed )
+eachCellWithSeed f board seed =
+    let
+        rowRange =
+            List.range 0 (board.rows - 1)
+
+        colRange =
+            List.range 0 (board.cols - 1)
+
+        eachRow : Int -> ( Board a, Random.Seed ) -> ( Board a, Random.Seed )
+        eachRow row ( b, sd ) =
+            List.foldl (eachCol row) ( b, sd ) colRange
+
+        eachCol : Int -> Int -> ( Board a, Random.Seed ) -> ( Board a, Random.Seed )
+        eachCol row col ( b, sd ) =
+            f row col b sd
+    in
+    List.foldl eachRow ( board, seed ) rowRange
+
+
 {-| Call cellChoices for each cell, collecting them in a `HintsBoard`.
 Then call fixChoicesForSums to remove choices that can't be part of
 a row and column sum
 -}
-generateChoices : IntBoard -> HintsBoard
-generateChoices board =
+generateChoices : IntBoard -> Random.Seed -> ( HintsBoard, Random.Seed )
+generateChoices board seed =
     let
         rows =
             board.rows
@@ -291,16 +454,18 @@ generateChoices board =
         choicesBoard =
             SharedTypes.emptyHintsBoard rows cols
 
-        setCell : Int -> Int -> HintsBoard -> HintsBoard
-        setCell row col chb =
+        setCell : Int -> Int -> HintsBoard -> Random.Seed -> ( HintsBoard, Random.Seed )
+        setCell row col chb sd =
             let
-                choices =
-                    cellChoices row col board
+                ( choices, sd2 ) =
+                    cellChoices row col board seed
             in
-            Board.set row col choices chb
+            ( Board.set row col choices chb, sd2 )
+
+        ( choicesBoard2, seed2 ) =
+            eachCellWithSeed setCell choicesBoard seed
     in
-    eachCell setCell choicesBoard
-        |> fixChoicesForSums board
+    ( fixChoicesForSums board choicesBoard2, seed2 )
 
 
 generateRowStep : GenerateRowState -> Random.Seed -> ( GenerateRowState, Random.Seed )
@@ -428,26 +593,28 @@ generateColStep newCol state seed =
 
     else
         let
-            ( realCol, realPossibilities, newStack ) =
+            ( ( realCol, realPossibilities, newStack ), seed2 ) =
                 if newCol then
                     let
-                        choices =
-                            cellChoices row (col + 1) board
+                        ( choices, sd2 ) =
+                            cellChoices row (col + 1) board seed
 
                         just0 =
                             choices == [ 0 ]
                     in
-                    ( col + 1
-                    , choices
-                    , if col < 0 then
-                        []
+                    ( ( col + 1
+                      , choices
+                      , if col < 0 then
+                            []
 
-                      else
-                        ( board, possibilities, just0 ) :: colStack
+                        else
+                            ( board, possibilities, just0 ) :: colStack
+                      )
+                    , sd2
                     )
 
                 else
-                    ( col, possibilities, colStack )
+                    ( ( col, possibilities, colStack ), seed )
         in
         let
             ( maybeVal, newPossibilities, newSeed ) =
